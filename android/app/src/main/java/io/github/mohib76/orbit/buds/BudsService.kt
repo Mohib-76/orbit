@@ -37,6 +37,9 @@ class BudsService : Service() {
         const val EXTRA_MODE = "mode"
         private const val CHANNEL = "buds"
         private const val NOTIF_ID = 20
+        // Hidden in the SDK, but delivered to apps holding BLUETOOTH_CONNECT.
+        private const val ACTION_BATTERY_LEVEL_CHANGED = "android.bluetooth.device.action.BATTERY_LEVEL_CHANGED"
+        private const val EXTRA_BATTERY_LEVEL = "android.bluetooth.device.extra.BATTERY_LEVEL"
 
         fun start(ctx: Context) {
             if (!Hub.prefs.budsEnabled || !Buds.hasPermission(ctx)) return
@@ -57,9 +60,9 @@ class BudsService : Service() {
             else @Suppress("DEPRECATION") i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
             if (dev == null || !dev.address.equals(Hub.prefs.budsMac, ignoreCase = true)) return
             when (i.action) {
-                // Give the buds a moment to bring up their profiles before opening RFCOMM.
-                BluetoothDevice.ACTION_ACL_CONNECTED -> Buds.connect(attempts = 3, delayMs = 2000)
-                BluetoothDevice.ACTION_ACL_DISCONNECTED -> Buds.disconnect()
+                BluetoothDevice.ACTION_ACL_CONNECTED -> Buds.onOsConnection(true)
+                BluetoothDevice.ACTION_ACL_DISCONNECTED -> Buds.onOsConnection(false)
+                ACTION_BATTERY_LEVEL_CHANGED -> Buds.onOsBattery(i.getIntExtra(EXTRA_BATTERY_LEVEL, -1))
             }
         }
     }
@@ -75,13 +78,14 @@ class BudsService : Service() {
         val filter = IntentFilter().apply {
             addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            addAction(ACTION_BATTERY_LEVEL_CHANGED)
         }
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(btReceiver, filter, RECEIVER_EXPORTED)
         else registerReceiver(btReceiver, filter)
 
         scope.launch {
             Buds.local.combine(Buds.peer) { l, p -> Buds.effective(l, p) }.collect { s ->
-                val key = "${s.connected}|${s.name}|${s.anc}|${s.battery}|${s.charging}"
+                val key = "${s.connected}|${s.control}|${s.name}|${s.noise}|${s.noiseModes}|${s.battery}|${s.charging}|${s.batteryMain}"
                 if (key != lastShown) {
                     lastShown = key
                     getSystemService(NotificationManager::class.java).notify(NOTIF_ID, build(s))
@@ -94,7 +98,7 @@ class BudsService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (!goForeground()) return START_NOT_STICKY
         when (intent?.action) {
-            ACTION_SET -> AncMode.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_MODE) }?.let { Buds.setAnc(it) }
+            ACTION_SET -> intent.getStringExtra(EXTRA_MODE)?.let { Buds.setAnc(it) }
             ACTION_REPOST -> {
                 lastShown = null
                 getSystemService(NotificationManager::class.java).notify(NOTIF_ID, build(Buds.effective()))
@@ -120,9 +124,9 @@ class BudsService : Service() {
         false
     }
 
-    private fun servicePi(action: String, requestCode: Int, mode: AncMode? = null): PendingIntent {
+    private fun servicePi(action: String, requestCode: Int, mode: String? = null): PendingIntent {
         val i = Intent(this, BudsService::class.java).setAction(action)
-        if (mode != null) i.putExtra(EXTRA_MODE, mode.name)
+        if (mode != null) i.putExtra(EXTRA_MODE, mode)
         return PendingIntent.getForegroundService(this, requestCode, i, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
@@ -140,11 +144,12 @@ class BudsService : Service() {
             .setDeleteIntent(servicePi(ACTION_REPOST, 10))
 
         if (s.connected) {
-            b.setContentTitle(s.anc?.let { "Noise control: ${it.label}" } ?: s.name)
+            b.setContentTitle(s.noiseLabel?.let { "Noise control: $it" } ?: s.name)
             b.setContentText(batteryText(s))
-            AncMode.entries.forEachIndexed { i, m ->
-                val label = if (m == s.anc) "● ${m.label}" else m.label
-                b.addAction(Notification.Action.Builder(null as Icon?, label, servicePi(ACTION_SET, i, m)).build())
+            // A notification shows at most three actions.
+            if (s.control) s.noiseModes.take(3).forEachIndexed { i, m ->
+                val label = if (m.id == s.noise) "● ${m.label}" else m.label
+                b.addAction(Notification.Action.Builder(null as Icon?, label, servicePi(ACTION_SET, i, m.id)).build())
             }
         } else {
             b.setContentTitle("${s.name} not connected")
@@ -159,5 +164,6 @@ fun batteryText(s: BudsState): String {
     val labels = listOf("L", "R", "Case")
     val parts = labels.indices.filter { s.battery[it] >= 0 }
         .map { i -> "${labels[i]} ${s.battery[i]}%${if (s.charging[i]) "⚡" else ""}" }
+    if (parts.isEmpty() && s.batteryMain >= 0) return "Battery ${s.batteryMain}%"
     return if (parts.isEmpty()) s.name else parts.joinToString(" · ")
 }

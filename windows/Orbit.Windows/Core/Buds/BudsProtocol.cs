@@ -3,7 +3,7 @@ using System.IO;
 namespace Orbit.Core.Buds;
 
 // Protocol facts from Gadgetbridge's Oppo/realme support (see THIRD_PARTY_NOTICES.md).
-// realme / OnePlus "Heymelody" earbuds, classic Bluetooth RFCOMM.
+// realme / OnePlus / OPPO "HeyMelody" earbuds, classic Bluetooth RFCOMM; the driver is HeyMelodyDriver.cs.
 
 public enum AncMode { Off = 0x01, Transparency = 0x02, Anc = 0x08 }
 
@@ -72,6 +72,8 @@ public sealed record Feature(int Id, string Title, string Subtitle)
         new(24, "High-quality audio", "Hi-res codec when supported"),
     };
     public const int GameModeId = 6;
+
+    public BudsToggle Toggle(bool on) => new(Id.ToString(), Title, Subtitle, on);
 }
 
 /// <summary>OPPOv1 framing: AA | varint(len) | 00 00 | cmd:u16le | seq | plen:u16le | payload</summary>

@@ -20,17 +20,22 @@ public sealed partial class OrbitCore
 
     public bool BudsEnabled => Settings.BudsEnabled;
 
-    /// <summary>Ours if we hold the buds, else the phone's if it does.</summary>
+    /// <summary>Whoever holds the buds' controls, else whoever has them connected (ours first).</summary>
     public BudsSnapshot Buds
     {
         get
         {
             var l = BudsLocal.State;
-            return l.Connected || BudsPeer is not { state.Connected: true } p ? l : p.state;
+            var p = BudsPeer?.state;
+            if (l.Control) return l;
+            if (p is { Control: true }) return p;
+            if (l.Connected || p is not { Connected: true }) return l;
+            return p;
         }
     }
 
-    public bool BudsViaPhone => !BudsLocal.State.Connected && BudsPeer is { state.Connected: true };
+    /// <summary>The phone holds the buds' controls and we don't, so commands go through it.</summary>
+    public bool BudsViaPhone => !BudsLocal.State.Control && BudsPeer is { state.Control: true };
 
     void StartBuds()
     {
@@ -43,15 +48,16 @@ public sealed partial class OrbitCore
     {
         if (Settings.BudsMac == null)
         {
-            // Prefer what the phone uses, else the connected "…Buds…" device, else the only paired buds.
+            // Prefer what the phone uses, else the connected earbuds, else the only paired ones.
             var paired = await BudsController.PairedDevicesAsync();
             var phoneMac = BudsPeer?.state.Mac;
             var pick = paired.FirstOrDefault(d => phoneMac != null && d.mac.Equals(phoneMac, StringComparison.OrdinalIgnoreCase));
             if (pick.mac == null)
             {
-                var buds = paired.Where(d => d.name.Contains("buds", StringComparison.OrdinalIgnoreCase)).ToList();
-                pick = buds.FirstOrDefault(d => d.connected);
-                if (pick.mac == null && buds.Count == 1) pick = buds[0];
+                var buds = paired.Where(d => d.headset).ToList();
+                var connected = buds.Where(d => d.connected).ToList();
+                if (connected.Count == 1) pick = connected[0];
+                else if (buds.Count == 1) pick = buds[0];
             }
             if (pick.mac == null) { Ui.Run(() => BudsChanged?.Invoke()); return; }
             Settings.BudsMac = pick.mac; Settings.BudsName = pick.name; Settings.Save();
@@ -77,41 +83,28 @@ public sealed partial class OrbitCore
 
     // ---------------------------------------------------------------- commands (routed)
 
-    public void BudsSetAnc(AncMode m) => Route(new JsonObject { ["op"] = "anc", ["mode"] = m.WireName() }, () => BudsLocal.SetAnc(m));
-    public void BudsCycleAnc() => BudsSetAnc((Buds.Anc ?? AncMode.Off).Next());
-    public void BudsSetFeature(int id, bool on) => Route(new JsonObject { ["op"] = "feature", ["id"] = id, ["on"] = on }, () => BudsLocal.SetFeature(id, on));
-    public void BudsSetCycle(int mask) => Route(new JsonObject { ["op"] = "cycle", ["mask"] = mask }, () => BudsLocal.SetCycle(mask));
+    public void BudsSetAnc(string mode) => Route(new JsonObject { ["op"] = "anc", ["mode"] = mode });
+    public void BudsCycleAnc() { if (Buds.NextNoise() is { } m) BudsSetAnc(m); }
+    // Numeric ids go as numbers: older phones read them with getInt().
+    public void BudsSetFeature(string id, bool on) =>
+        Route(new JsonObject { ["op"] = "feature", ["id"] = int.TryParse(id, out var n) ? JsonValue.Create(n) : JsonValue.Create(id), ["on"] = on });
+    public void BudsSetCycle(int mask) => Route(new JsonObject { ["op"] = "cycle", ["mask"] = mask });
     public void BudsSetTouch(int side, int gesture, int action) =>
-        Route(new JsonObject { ["op"] = "touch", ["side"] = side, ["gesture"] = gesture, ["action"] = action }, () => BudsLocal.SetTouch(side, gesture, action));
+        Route(new JsonObject { ["op"] = "touch", ["side"] = side, ["gesture"] = gesture, ["action"] = action });
 
-    void Route(JsonObject op, Action local)
+    /// <summary>Run it here if we hold the controls; else ask the phone if it does.</summary>
+    void Route(JsonObject op)
     {
         if (!Settings.BudsEnabled) return;
-        if (BudsLocal.State.Connected || _link == null || BudsPeer is not { state.Connected: true } p) { local(); return; }
-        BudsPeer = (p.enabled, Optimistic(p.state, op), p.playing);
+        if (BudsLocal.State.Control || _link == null || BudsPeer is not { state.Control: true } p) { BudsLocal.Execute(op); return; }
+        BudsPeer = (p.enabled, p.state.Apply(op), p.playing);
         _link.Post("orbit.buds.cmd", op);
         Ui.Run(() => BudsChanged?.Invoke());
     }
 
-    static BudsSnapshot Optimistic(BudsSnapshot s, JsonObject op) => op["op"]?.GetValue<string>() switch
-    {
-        "anc" => s with { Anc = AncModes.FromWireName(op["mode"]?.GetValue<string>()) ?? s.Anc },
-        "feature" => s with { Features = new(s.Features) { [op["id"]!.GetValue<int>()] = op["on"]!.GetValue<bool>() } },
-        "cycle" => s with { CycleMask = op["mask"]!.GetValue<int>() },
-        "touch" => s with { Touch = new(s.Touch) { [(op["side"]!.GetValue<int>(), op["gesture"]!.GetValue<int>())] = op["action"]!.GetValue<int>() } },
-        _ => s
-    };
-
     void OnBudsCommand(JsonObject op)
     {
-        if (!BudsLocal.State.Connected) return;
-        switch (op["op"]?.GetValue<string>())
-        {
-            case "anc": if (AncModes.FromWireName(op["mode"]?.GetValue<string>()) is { } m) BudsLocal.SetAnc(m); break;
-            case "feature": BudsLocal.SetFeature(op["id"]!.GetValue<int>(), op["on"]!.GetValue<bool>()); break;
-            case "cycle": BudsLocal.SetCycle(op["mask"]!.GetValue<int>()); break;
-            case "touch": BudsLocal.SetTouch(op["side"]!.GetValue<int>(), op["gesture"]!.GetValue<int>(), op["action"]!.GetValue<int>()); break;
-        }
+        if (BudsLocal.State.Control) BudsLocal.Execute(op);
     }
 
     void OnBudsPeerState(JsonObject b)

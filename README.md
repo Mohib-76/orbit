@@ -20,7 +20,7 @@ or the same Wi-Fi. End-to-end encrypted, no account, no cloud.
 | **Battery** | Phone battery, charging and "full in …" in the window, tray and flyout, with a low-battery alert |
 | **Screen mirroring** | See and control the phone on the PC: mouse, keyboard, audio, screenshots, recording. Over USB, or Wi-Fi after a one-time setup |
 | **Auto USB tethering** | Plug the phone in and the laptop goes online through it |
-| **Earbuds** | Battery, noise control (Off / Transparency / ANC), sound features and tap actions for realme and OnePlus buds, on both devices |
+| **Earbuds** | Battery and "Play here" for any Bluetooth buds; noise control (Off / Transparency / ANC), sound features and tap actions for realme, OnePlus and OPPO buds, on both devices |
 
 ### What needs what
 
@@ -29,7 +29,7 @@ or the same Wi-Fi. End-to-end encrypted, no account, no cloud.
 | Clipboard, notifications, files, battery | Nothing extra: USB tethering, hotspot or same Wi-Fi |
 | Pair over USB, auto USB tethering, mirroring over USB | **USB debugging** on the phone ([how](docs/TROUBLESHOOTING.md#turn-on-usb-debugging)) |
 | Mirroring over Wi-Fi | Wireless debugging (one-time QR setup in Orbit) and the same Wi-Fi network |
-| Earbuds | realme / OnePlus buds that use the realme Link or HeyMelody app (tested: realme Buds T310), paired over Bluetooth |
+| Earbuds | Buds paired over Bluetooth. Full controls need realme / OnePlus / OPPO buds that use the realme Link or HeyMelody app (tested: realme Buds T310); other brands show battery and playback. Want controls for yours? See [Earbuds](docs/PROTOCOL.md#earbuds) |
 
 ## Install
 

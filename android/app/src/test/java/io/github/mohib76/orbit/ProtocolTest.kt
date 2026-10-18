@@ -2,6 +2,9 @@ package io.github.mohib76.orbit
 
 import io.github.mohib76.orbit.buds.AncMode
 import io.github.mohib76.orbit.buds.BudsProtocol
+import io.github.mohib76.orbit.buds.BudsState
+import io.github.mohib76.orbit.buds.Feature
+import io.github.mohib76.orbit.buds.HeyMelody
 import io.github.mohib76.orbit.buds.TouchKey
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -77,5 +80,45 @@ class BudsProtocolTest {
         assertEquals(AncMode.ANC, AncMode.fromCode(0x10))
         assertNull(AncMode.fromCode(0x40))
         assertEquals(AncMode.OFF, AncMode.ANC.next())
+    }
+}
+
+class BudsStateTest {
+    @Test fun jsonRoundTrip() {
+        val s = BudsState(
+            connected = true, control = true, driver = HeyMelody.ID, name = "Buds", mac = "00:11:22:33:44:55",
+            noise = "TRANSPARENCY", noiseModes = HeyMelody.NOISE_MODES, cycleMask = 0x0B,
+            battery = listOf(50, 60, -1), charging = listOf(false, true, false), batteryMain = 55,
+            toggles = listOf(Feature.BASS.toggle(true)), touch = mapOf(TouchKey(1, 0x0201) to 1)
+        )
+        assertEquals(s, BudsState.fromJson(JSONObject(s.toJson().toString())))
+    }
+
+    @Test fun readsOlderVersions() {
+        // Before drivers: "connected" meant the control channel, features were HeyMelody ids.
+        val old = JSONObject("""{"connected":true,"name":"realme Buds T310","mac":null,"anc":"ANC","cycle":0,
+            "battery":[90,85,-1],"charging":[false,false,false],"features":{"29":true,"6":false},"touch":[]}""")
+        val s = BudsState.fromJson(old)
+        assertTrue(s.control)
+        assertEquals(HeyMelody.ID, s.driver)
+        assertEquals(listOf("OFF", "TRANSPARENCY", "ANC"), s.noiseModes.map { it.id })
+        assertEquals(listOf("6", "29"), s.toggles.map { it.id })
+        assertEquals(-1, s.batteryMain)
+    }
+
+    @Test fun basicBudsHaveNoControls() {
+        val s = BudsState.fromJson(BudsState(connected = true, batteryMain = 70).toJson())
+        assertFalse(s.control)
+        assertNull(s.driver)
+        assertTrue(s.noiseModes.isEmpty())
+        assertNull(s.nextNoise())
+    }
+
+    @Test fun cyclesAndAppliesOps() {
+        val s = BudsState(control = true, noise = "ANC", noiseModes = HeyMelody.NOISE_MODES, toggles = listOf(Feature.BASS.toggle(false)))
+        assertEquals("OFF", s.nextNoise())
+        assertEquals("TRANSPARENCY", s.apply(JSONObject().put("op", "anc").put("mode", "TRANSPARENCY")).noise)
+        assertEquals("ANC", s.apply(JSONObject().put("op", "anc").put("mode", "BOGUS")).noise)
+        assertTrue(s.apply(JSONObject().put("op", "feature").put("id", 29).put("on", true)).toggles.single().on)
     }
 }

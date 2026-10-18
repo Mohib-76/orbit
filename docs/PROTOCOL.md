@@ -44,8 +44,8 @@ or `orbit.data` (file bytes).
 | `orbit.file.done` | receiver → sender | `{id}` |
 | `orbit.file.cancel` | both | `{id}` |
 | `orbit.unpair` | both | `{}` |
-| `orbit.buds.state` | both | Sender's own link to the earbuds: `{enabled, playing, connected, name, mac, anc: "OFF"\|"TRANSPARENCY"\|"ANC"\|null, cycle, battery: [L,R,case], charging: [L,R,case], features: {"<id>": bool}, touch: [[side, gesture, action]…]}`. Sent on connect and on every change (debounced 150 ms) |
-| `orbit.buds.cmd` | both | Relay when only the receiver holds the buds: `{op: "anc", mode}` · `{op: "feature", id, on}` · `{op: "cycle", mask}` · `{op: "touch", side, gesture, action}` |
+| `orbit.buds.state` | both | Sender's own view of the earbuds (see [Earbuds](#earbuds)): `{enabled, playing, connected, control, driver, name, mac, anc, noiseModes: [{id, label}…], cycle, battery: [L,R,case], charging: [L,R,case], batteryMain, toggles: [{id, title, subtitle, on}…], features: {"<id>": bool}, touch: [[side, gesture, action]…]}`. Sent on connect and on every change (debounced 150 ms) |
+| `orbit.buds.cmd` | both | Relay when only the receiver holds the buds' controls: `{op: "anc", mode}` (a `noiseModes` id) · `{op: "feature", id, on}` (a `toggles` id; numeric ids are sent as numbers) · `{op: "cycle", mask}` · `{op: "touch", side, gesture, action}` |
 | `orbit.media` | both | `{action: "play"\|"pause"}`, used by "Play here" |
 
 | `orbit.mirror.state` | PC → phone | `{active, viewOnly, transport: "USB"\|"Wi-Fi"}`. Sent when mirroring starts, stops or changes, and on connect. The phone shows its LIVE notification and tile from it |
@@ -55,6 +55,28 @@ or `orbit.data` (file bytes).
 | `orbit.mirror.info` | phone → PC | `{sdk, devOptions, wirelessDebugging, wifi, usbDebugging, canToggle}` |
 
 `orbit.settings` also carries `budsEnabled`, so the Earbuds switch stays the same on both devices.
+
+## Earbuds
+
+Each side reports its own view in `orbit.buds.state`, and the UI shows whichever side holds the controls
+(else whichever has the buds connected):
+
+- `connected`: the OS has the buds connected to the sender. `batteryMain` (`-1` = unknown) is the one
+  level the OS reports for them (the headset's standard battery reports), so any buds get these two.
+- `driver`: the brand protocol that matches the buds (`"heymelody"`: realme / OnePlus / OPPO), or `null`
+  when Orbit has none for them (battery and playback only). `control`: that driver has the buds'
+  control channel open on the sender, so commands can run there.
+- The controls describe themselves, so the receiver can show them without knowing the brand:
+  `noiseModes` lists only the modes the buds answered for (`anc` is the current id) and `toggles` only
+  the settings they reported. `battery`/`charging` (left, right, case) come from the driver. `cycle` and
+  `touch` are HeyMelody's (noise-control cycle bitmask; side, gesture and action codes).
+- Compatibility with versions before drivers: `features` repeats `toggles` as `{id: on}`. A packet
+  without `control` comes from an older version, where `connected` meant the control channel and the
+  buds were always HeyMelody.
+
+A brand's driver implements `BudsDriver` (Android `buds/BudsDriver.kt`) and `IBudsDriver` (Windows
+`Core/Buds/IBudsDriver.cs`). A driver on only one side still works on both, because the other side
+relays its commands.
 
 ## Screen mirroring
 

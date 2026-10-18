@@ -558,7 +558,7 @@ private fun SettingsTab(resumeTick: Int, openFilter: () -> Unit, requestBt: () -
 
             Column {
                 SectionLabel("Earbuds")
-                SettingRow("Earbuds", "Battery, noise control, sound and tap settings for your realme buds, here and on ${ui.pcName}") {
+                SettingRow("Earbuds", "Battery and playback for any buds, here and on ${ui.pcName}. Noise control, sound and tap settings for realme, OnePlus and OPPO buds") {
                     OrbitSwitch(budsOn, "Earbuds") { on ->
                         if (on && !io.github.mohib76.orbit.buds.Buds.hasPermission(ctx)) requestBt()
                         else Hub.setBudsEnabled(on)

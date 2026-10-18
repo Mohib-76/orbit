@@ -2,61 +2,39 @@ package io.github.mohib76.orbit.buds
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
 import io.github.mohib76.orbit.Hub
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
-import kotlin.concurrent.thread
-
-data class BudsState(
-    val connected: Boolean = false,
-    val name: String = "Earbuds",
-    val mac: String? = null,
-    val anc: AncMode? = null,
-    /** Bitmask of AncMode codes cycled by the noise-control touch action; 0 = unknown. */
-    val cycleMask: Int = 0,
-    val battery: List<Int> = listOf(-1, -1, -1),
-    val charging: List<Boolean> = listOf(false, false, false),
-    /** Only features the buds reported, so unsupported ones never show up. */
-    val features: Map<Feature, Boolean> = emptyMap(),
-    val touch: Map<TouchKey, Int> = emptyMap(),
-)
-
-/** What the PC reports about its own link to the buds (and whether it is playing audio). */
-data class PeerBuds(val enabled: Boolean, val state: BudsState, val playing: Boolean)
 
 /**
- * The phone's connection to the earbuds (RFCOMM), plus the glue to the PC:
- * both sides publish their own view over the Orbit link, and when only one of them is connected to the
- * buds the other relays its commands through it.
+ * The phone's side of the earbuds, for any brand: which buds, whether the OS has them connected, their
+ * battery as the OS reports it, and playback. A [BudsDriver] adds the controls for buds Orbit knows.
+ *
+ * Both sides publish their own view over the Orbit link, and when only one of them holds the buds'
+ * control channel the other relays its commands through it.
  */
 @SuppressLint("MissingPermission") // every Bluetooth call is gated on hasPermission()
-object Buds {
+object Buds : BudsHost {
     private const val TAG = "OrbitBuds"
-    private const val RESPONSE_TIMEOUT_MS = 1000L
+    private val HEADSET_CLASSES = setOf(BluetoothClass.Device.AUDIO_VIDEO_WEARABLE_HEADSET, BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES)
 
     private lateinit var app: Context
     private val main = Handler(Looper.getMainLooper())
     private val worker by lazy { Handler(HandlerThread("buds-worker").apply { start() }.looper) }
 
-    @Volatile private var socket: BluetoothSocket? = null
-    private var seq = 0
-    private val responseLock = Object()
-    private var awaiting = -1
-    private var responded = false
+    /** Worker thread only. */
+    private var driver: BudsDriver? = null
 
     /** This phone's own link to the buds. */
     val local = MutableStateFlow(BudsState())
@@ -70,6 +48,7 @@ object Buds {
         app = ctx.applicationContext
         local.value = BudsState(mac = Hub.prefs.budsMac, name = Hub.prefs.budsName ?: "Earbuds")
         main.post(pollPlaying)
+        worker.post { refreshOs() }
     }
 
     val enabled get() = Hub.prefs.budsEnabled
@@ -77,13 +56,33 @@ object Buds {
     fun hasPermission(ctx: Context = app) =
         ctx.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
 
-    /** The state to show: ours if we're connected to the buds, else the PC's if it is. */
-    fun effective(l: BudsState = local.value, p: PeerBuds? = peer.value): BudsState =
-        if (l.connected || p == null || !p.state.connected) l else p.state
+    /** The state to show: whoever holds the controls, else whoever has the buds connected. */
+    fun effective(l: BudsState = local.value, p: PeerBuds? = peer.value): BudsState = when {
+        l.control -> l
+        p != null && p.state.control -> p.state
+        l.connected -> l
+        p != null && p.state.connected -> p.state
+        else -> l
+    }
 
-    private fun update(f: BudsState.() -> BudsState) = main.post {
-        local.value = local.value.f()
-        schedulePublish()
+    // ---------------------------------------------------------------- BudsHost
+
+    override fun update(f: BudsState.() -> BudsState) {
+        main.post {
+            val next = local.value.f()
+            if (next != local.value) {
+                local.value = next
+                schedulePublish()
+            }
+        }
+    }
+
+    override fun closed(driver: BudsDriver) {
+        worker.post { if (driver === this.driver) update { copy(control = false) } }
+    }
+
+    override fun post(block: () -> Unit) {
+        worker.post(block)
     }
 
     // ---------------------------------------------------------------- devices
@@ -91,19 +90,22 @@ object Buds {
     fun bondedBuds(): List<BluetoothDevice> {
         if (!hasPermission()) return emptyList()
         val devices = app.getSystemService(BluetoothManager::class.java)?.adapter?.bondedDevices ?: return emptyList()
-        return devices.sortedWith(compareByDescending<BluetoothDevice> { isConnected(it) }
-            .thenByDescending { it.name?.contains("buds", true) == true })
+        return devices.sortedWith(compareByDescending<BluetoothDevice> { isConnected(it) }.thenByDescending { isHeadset(it) })
     }
 
     fun isConnected(d: BluetoothDevice): Boolean = try {
         d.javaClass.getMethod("isConnected").invoke(d) as Boolean
     } catch (_: Exception) { false }
 
-    /** Picks the buds automatically: the connected "…Buds…" device, else the only one. */
+    /** Earbuds or headphones by their Bluetooth class (or, failing that, their name). */
+    private fun isHeadset(d: BluetoothDevice) =
+        d.bluetoothClass?.deviceClass in HEADSET_CLASSES || d.name?.contains("buds", true) == true
+
+    /** Picks the buds automatically: the connected earbuds, else the only paired ones. */
     fun autoSelect(): Boolean {
         if (Hub.prefs.budsMac != null) return true
-        val list = bondedBuds().filter { it.name?.contains("buds", true) == true }
-        val pick = list.firstOrNull { isConnected(it) } ?: list.singleOrNull() ?: return false
+        val list = bondedBuds().filter { isHeadset(it) }
+        val pick = list.filter { isConnected(it) }.singleOrNull() ?: list.singleOrNull() ?: return false
         select(pick)
         return true
     }
@@ -112,81 +114,117 @@ object Buds {
         Hub.prefs.budsMac = d.address
         Hub.prefs.budsName = d.name
         local.value = BudsState(mac = d.address, name = d.name ?: "Earbuds")
-        worker.post { closeSocket(); doConnect(1) }
+        worker.post {
+            driver?.close()
+            driver = null
+            refreshOs()
+            doConnect(1)
+        }
         schedulePublish()
     }
 
-    // ---------------------------------------------------------------- commands (main thread)
+    private fun device(): BluetoothDevice? {
+        if (!hasPermission()) return null
+        val mac = Hub.prefs.budsMac ?: return null
+        val adapter = app.getSystemService(BluetoothManager::class.java)?.adapter ?: return null
+        return if (adapter.isEnabled) adapter.getRemoteDevice(mac) else null
+    }
+
+    // ---------------------------------------------------------------- what the OS knows (any buds)
+
+    /** Connection and battery as the OS sees them. Worker thread. */
+    private fun refreshOs() {
+        val d = device() ?: return
+        val osConnected = isConnected(d)
+        val level = if (osConnected) osBattery(d) else -1
+        update { copy(connected = osConnected || control, batteryMain = level) }
+    }
+
+    /** The headset's standard battery report (HFP), which Android keeps per device. Hidden API, so reflection. */
+    private fun osBattery(d: BluetoothDevice): Int = try {
+        (d.javaClass.getMethod("getBatteryLevel").invoke(d) as Int).takeIf { it in 0..100 } ?: -1
+    } catch (e: Exception) {
+        Log.w(TAG, "battery level unavailable: ${e.message}")
+        -1
+    }
+
+    /** ACL connect / disconnect of the chosen buds (from BudsService). */
+    fun onOsConnection(connected: Boolean) {
+        if (connected) {
+            worker.post { refreshOs() }
+            // Give the buds a moment to bring up their profiles before opening RFCOMM.
+            connect(attempts = 3, delayMs = 2000)
+        } else {
+            worker.post { driver?.close() }
+            update { copy(connected = false, batteryMain = -1) }
+        }
+    }
+
+    /** BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED for the chosen buds. */
+    fun onOsBattery(level: Int) = update { copy(batteryMain = level.takeIf { it in 0..100 } ?: -1) }
+
+    // ---------------------------------------------------------------- control channel (worker thread)
 
     fun connect(attempts: Int = 1, delayMs: Long = 0) {
         if (!enabled) return
         worker.postDelayed({ doConnect(attempts) }, delayMs)
     }
 
-    fun disconnect() = worker.post { closeSocket() }
+    fun disconnect() = worker.post { driver?.close() }
 
-    fun setAnc(mode: AncMode) = route(JSONObject().put("op", "anc").put("mode", mode.name)) {
-        if (local.value.connected) update { copy(anc = mode) } // optimistic; ACK / push corrects it
-        command { send(BudsProtocol.ANC_SET, BudsProtocol.ancSet(BudsProtocol.ANC_TYPE_MODE, mode.code)) }
-    }
-
-    fun cycleAnc() = setAnc((effective().anc ?: AncMode.OFF).next())
-
-    fun setCycle(mask: Int) = route(JSONObject().put("op", "cycle").put("mask", mask)) {
-        update { copy(cycleMask = mask) }
-        command {
-            send(BudsProtocol.ANC_SET, BudsProtocol.ancSet(BudsProtocol.ANC_TYPE_CYCLE, mask))
-            send(BudsProtocol.ANC_REQ, BudsProtocol.ancReq(BudsProtocol.ANC_TYPE_CYCLE))
+    private fun doConnect(attempts: Int) {
+        if (!enabled || driver?.isOpen == true) return
+        val device = device() ?: return
+        val d = driver ?: BudsDrivers.forDevice(device, this).also { driver = it }
+        if (local.value.driver != d?.id) update { copy(driver = d?.id) }
+        if (d == null) {
+            refreshOs()
+            return
+        }
+        if (d.open(device)) {
+            Log.i(TAG, "${d.id} control open")
+            update { copy(control = true, connected = true, name = device.name ?: name, mac = device.address) }
+            d.refresh()
+        } else if (attempts > 1) {
+            worker.postDelayed({ doConnect(attempts - 1) }, 3000)
         }
     }
 
-    fun setFeature(f: Feature, on: Boolean) = route(JSONObject().put("op", "feature").put("id", f.id).put("on", on)) {
-        update { copy(features = features + (f to on)) }
-        command {
-            send(BudsProtocol.MISC_SET, BudsProtocol.miscSet(f.id, on))
-            send(BudsProtocol.MISC_REQ, BudsProtocol.miscReq(f.id))
-        }
-    }
+    // ---------------------------------------------------------------- commands (main thread)
+
+    fun setAnc(mode: String) = route(JSONObject().put("op", "anc").put("mode", mode))
+
+    fun cycleAnc() { effective().nextNoise()?.let { setAnc(it) } }
+
+    fun setCycle(mask: Int) = route(JSONObject().put("op", "cycle").put("mask", mask))
+
+    // Numeric ids go as numbers: older PCs read them with GetValue<int>().
+    fun setFeature(id: String, on: Boolean) =
+        route(JSONObject().put("op", "feature").put("id", id.toIntOrNull() ?: id).put("on", on))
 
     fun setTouch(key: TouchKey, action: TouchAction) =
-        route(JSONObject().put("op", "touch").put("side", key.side).put("gesture", key.gesture).put("action", action.code)) {
-            update { copy(touch = touch + (key to action.code)) }
-            command {
-                send(BudsProtocol.TOUCH_SET, BudsProtocol.touchSet(key, action.code))
-                send(BudsProtocol.TOUCH_REQ, BudsProtocol.touchReq())
-            }
-        }
+        route(JSONObject().put("op", "touch").put("side", key.side).put("gesture", key.gesture).put("action", action.code))
 
-    /** Run locally if we hold the buds; otherwise ask the PC to do it; otherwise try to connect. */
-    private inline fun route(remote: JSONObject, localAction: () -> Unit) {
+    /** Run it here if we hold the controls; else ask the PC if it does; else try to open them here. */
+    private fun route(op: JSONObject) {
         val p = peer.value
-        when {
-            local.value.connected -> localAction()
-            p != null && p.state.connected && Hub.link != null -> {
-                peer.value = p.copy(state = p.state.applyOptimistic(remote))
-                Hub.link?.send("orbit.buds.cmd", remote)
-            }
-            else -> { connect(); localAction() }
-        }
+        if (!local.value.control && p != null && p.state.control && Hub.link != null) {
+            peer.value = p.copy(state = p.state.apply(op))
+            Hub.link?.send("orbit.buds.cmd", op)
+        } else runLocal(op)
     }
 
-    private fun BudsState.applyOptimistic(op: JSONObject): BudsState = when (op.optString("op")) {
-        "anc" -> copy(anc = runCatching { AncMode.valueOf(op.getString("mode")) }.getOrNull() ?: anc)
-        "feature" -> Feature.fromId(op.getInt("id"))?.let { copy(features = features + (it to op.getBoolean("on"))) } ?: this
-        "touch" -> copy(touch = touch + (TouchKey(op.getInt("side"), op.getInt("gesture")) to op.getInt("action")))
-        "cycle" -> copy(cycleMask = op.getInt("mask"))
-        else -> this
+    private fun runLocal(op: JSONObject) {
+        if (local.value.control) update { apply(op) } // optimistic; the buds' answer corrects it
+        worker.post {
+            if (driver?.isOpen != true) doConnect(1)
+            driver?.takeIf { it.isOpen }?.execute(op)
+        }
     }
 
     /** A command relayed from the PC. */
     fun onPeerCommand(op: JSONObject) {
-        if (!local.value.connected) return
-        when (op.optString("op")) {
-            "anc" -> runCatching { AncMode.valueOf(op.getString("mode")) }.getOrNull()?.let { setAnc(it) }
-            "feature" -> Feature.fromId(op.getInt("id"))?.let { setFeature(it, op.getBoolean("on")) }
-            "touch" -> TouchAction.fromCode(op.getInt("action"))?.let { setTouch(TouchKey(op.getInt("side"), op.getInt("gesture")), it) }
-            "cycle" -> setCycle(op.getInt("mask"))
-        }
+        if (local.value.control) runLocal(op)
     }
 
     // ---------------------------------------------------------------- media handoff ("Play here")
@@ -229,11 +267,11 @@ object Buds {
     }
 
     fun publish() {
-        Hub.link?.send("orbit.buds.state", toJson(local.value).put("enabled", enabled).put("playing", playingHere.value))
+        Hub.link?.send("orbit.buds.state", local.value.toJson().put("enabled", enabled).put("playing", playingHere.value))
     }
 
     fun onPeerState(b: JSONObject) {
-        val s = fromJson(b)
+        val s = BudsState.fromJson(b)
         peer.value = PeerBuds(b.optBoolean("enabled"), s, b.optBoolean("playing"))
         // If we don't know which buds yet, the PC's pick is a good guess.
         if (Hub.prefs.budsMac == null && s.mac != null && hasPermission()) {
@@ -242,171 +280,4 @@ object Buds {
     }
 
     fun onPeerGone() { peer.value = null }
-
-    fun toJson(s: BudsState): JSONObject = JSONObject()
-        .put("connected", s.connected).put("name", s.name).put("mac", s.mac ?: JSONObject.NULL)
-        .put("anc", s.anc?.name ?: JSONObject.NULL).put("cycle", s.cycleMask)
-        .put("battery", JSONArray(s.battery)).put("charging", JSONArray(s.charging))
-        .put("features", JSONObject().apply { s.features.forEach { (f, on) -> put(f.id.toString(), on) } })
-        .put("touch", JSONArray().apply { s.touch.forEach { (k, a) -> put(JSONArray(listOf(k.side, k.gesture, a))) } })
-
-    fun fromJson(o: JSONObject): BudsState {
-        val bat = o.optJSONArray("battery")
-        val chg = o.optJSONArray("charging")
-        val feats = o.optJSONObject("features")
-        val touch = o.optJSONArray("touch")
-        return BudsState(
-            connected = o.optBoolean("connected"),
-            name = o.optString("name", "Earbuds"),
-            mac = o.optString("mac").takeIf { it.isNotEmpty() && it != "null" },
-            anc = o.optString("anc").let { n -> AncMode.entries.firstOrNull { it.name == n } },
-            cycleMask = o.optInt("cycle"),
-            battery = (0..2).map { bat?.optInt(it, -1) ?: -1 },
-            charging = (0..2).map { chg?.optBoolean(it) ?: false },
-            features = buildMap { feats?.keys()?.forEach { k -> Feature.fromId(k.toInt())?.let { put(it, feats.getBoolean(k)) } } },
-            touch = buildMap {
-                if (touch != null) for (i in 0 until touch.length()) {
-                    val t = touch.getJSONArray(i)
-                    put(TouchKey(t.getInt(0), t.getInt(1)), t.getInt(2))
-                }
-            }
-        )
-    }
-
-    // ---------------------------------------------------------------- socket (worker thread)
-
-    private fun command(block: () -> Unit) = worker.post {
-        if (socket == null) doConnect(1)
-        if (socket != null) block()
-    }
-
-    private fun doConnect(attempts: Int) {
-        if (!enabled || socket?.isConnected == true || !hasPermission()) return
-        val mac = Hub.prefs.budsMac ?: return
-        val adapter = app.getSystemService(BluetoothManager::class.java)?.adapter ?: return
-        if (!adapter.isEnabled) return
-        val device = adapter.getRemoteDevice(mac)
-        val name = device.name
-
-        var s: BluetoothSocket? = null
-        for (uuid in listOf(BudsProtocol.UUID_VENDOR, BudsProtocol.UUID_SPP)) {
-            val candidate = device.createRfcommSocketToServiceRecord(uuid)
-            try {
-                candidate.connect()
-                s = candidate
-                Log.i(TAG, "connected via $uuid")
-                break
-            } catch (e: IOException) {
-                Log.w(TAG, "connect via $uuid failed: ${e.message}")
-                runCatching { candidate.close() }
-            }
-        }
-        if (s == null) {
-            if (attempts > 1) worker.postDelayed({ doConnect(attempts - 1) }, 3000)
-            return
-        }
-
-        socket = s
-        seq = 0
-        update { copy(connected = true, name = name ?: this.name, mac = mac) }
-        startReader(s)
-
-        send(BudsProtocol.ANC_REQ, BudsProtocol.ancReq(BudsProtocol.ANC_TYPE_MODE))
-        send(BudsProtocol.BATTERY_REQ, ByteArray(0))
-        send(BudsProtocol.SUBSCRIPTION_SET, BudsProtocol.subscribe())
-        send(BudsProtocol.TOUCH_REQ, BudsProtocol.touchReq())
-        send(BudsProtocol.ANC_REQ, BudsProtocol.ancReq(BudsProtocol.ANC_TYPE_CYCLE))
-        Feature.entries.forEach { send(BudsProtocol.MISC_REQ, BudsProtocol.miscReq(it.id)) }
-    }
-
-    /** Writes one command and waits (bounded) for its response: the buds handle one at a time. */
-    private fun send(cmd: Int, payload: ByteArray) {
-        val s = socket ?: return
-        val pkt = BudsProtocol.encode(cmd, seq++, payload)
-        synchronized(responseLock) { awaiting = cmd or BudsProtocol.RESPONSE_BIT; responded = false }
-        try {
-            s.outputStream.write(pkt)
-            s.outputStream.flush()
-        } catch (e: IOException) {
-            Log.w(TAG, "write failed: ${e.message}")
-            closeSocket()
-            return
-        }
-        synchronized(responseLock) {
-            val deadline = SystemClock.uptimeMillis() + RESPONSE_TIMEOUT_MS
-            while (!responded && socket != null) {
-                val left = deadline - SystemClock.uptimeMillis()
-                if (left <= 0) break
-                responseLock.wait(left)
-            }
-            awaiting = -1
-        }
-    }
-
-    private fun startReader(s: BluetoothSocket) = thread(name = "buds-reader", isDaemon = true) {
-        val parser = BudsProtocol.Parser()
-        val buf = ByteArray(1024)
-        try {
-            val input = s.inputStream
-            while (true) {
-                val n = input.read(buf)
-                if (n < 0) break
-                for ((cmd, payload) in parser.feed(buf, n)) {
-                    synchronized(responseLock) {
-                        if (cmd == awaiting) { responded = true; responseLock.notifyAll() }
-                    }
-                    main.post { handlePacket(cmd, payload) }
-                }
-            }
-        } catch (_: IOException) { }
-        worker.post { if (socket === s) closeSocket() }
-    }
-
-    private fun closeSocket() {
-        val s = socket ?: return
-        socket = null
-        runCatching { s.close() }
-        synchronized(responseLock) { responseLock.notifyAll() }
-        update { copy(connected = false) }
-    }
-
-    // ---------------------------------------------------------------- incoming (main thread)
-
-    private fun handlePacket(cmd: Int, payload: ByteArray) {
-        when (cmd) {
-            BudsProtocol.ANC_RET -> applyAnc(payload)
-            BudsProtocol.BATTERY_RET -> applyBattery(payload)
-            BudsProtocol.MISC_RET -> {
-                val known = BudsProtocol.parseMisc(payload).mapNotNull { (id, on) -> Feature.fromId(id)?.let { it to on } }
-                if (known.isNotEmpty()) update { copy(features = features + known) }
-            }
-            BudsProtocol.TOUCH_RET -> {
-                val t = BudsProtocol.parseTouch(payload)
-                if (t.isNotEmpty()) update { copy(touch = touch + t) }
-            }
-            BudsProtocol.SUBSCRIPTION_RET -> when (payload.firstOrNull()?.toInt()) {
-                BudsProtocol.SUB_ANC -> applyAnc(payload)
-                BudsProtocol.SUB_BATTERY -> applyBattery(payload)
-                BudsProtocol.SUB_GAME_MODE -> if (payload.size >= 2) {
-                    update { copy(features = features + (Feature.GAME_MODE to (payload[1].toInt() == 1))) }
-                }
-            }
-            BudsProtocol.ANC_ACK -> if (payload.firstOrNull()?.toInt() != 0) {
-                worker.post { send(BudsProtocol.ANC_REQ, BudsProtocol.ancReq(BudsProtocol.ANC_TYPE_MODE)) }
-            }
-        }
-    }
-
-    private fun applyAnc(payload: ByteArray) {
-        val (type, value) = BudsProtocol.parseAnc(payload) ?: return
-        when (type) {
-            BudsProtocol.ANC_TYPE_MODE -> AncMode.fromCode(value)?.let { m -> update { copy(anc = m) } }
-            BudsProtocol.ANC_TYPE_CYCLE -> update { copy(cycleMask = value) }
-        }
-    }
-
-    private fun applyBattery(payload: ByteArray) {
-        val (levels, charging) = BudsProtocol.parseBattery(payload)
-        update { copy(battery = levels.toList(), charging = charging.toList()) }
-    }
 }

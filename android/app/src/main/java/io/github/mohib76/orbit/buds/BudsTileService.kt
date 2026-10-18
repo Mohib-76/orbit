@@ -25,7 +25,7 @@ class BudsTileService : TileService() {
         Buds.init(this)
         if (!Hub.prefs.budsEnabled) return
         val s = Buds.effective()
-        if (!s.connected) {
+        if (!s.control) {
             BudsService.start(this)
             Buds.connect()
             return
@@ -37,22 +37,25 @@ class BudsTileService : TileService() {
     private fun bind() {
         val tile = qsTile ?: return
         val s = Buds.effective()
-        val on = Hub.prefs.budsEnabled && s.connected
-        tile.icon = Icon.createWithResource(this, when (if (on) s.anc else null) {
-            AncMode.ANC -> R.drawable.buds_mode_anc
-            AncMode.TRANSPARENCY -> R.drawable.buds_mode_transparency
-            AncMode.OFF -> R.drawable.buds_mode_off
+        val on = Hub.prefs.budsEnabled && s.control && s.noiseModes.isNotEmpty()
+        val mode = if (on) s.noise else null
+        tile.icon = Icon.createWithResource(this, when (mode) {
             null -> R.drawable.buds_bud
+            "OFF" -> R.drawable.buds_mode_off
+            "TRANSPARENCY" -> R.drawable.buds_mode_transparency
+            else -> R.drawable.buds_mode_anc
         })
         tile.state = when {
             !Hub.prefs.budsEnabled -> Tile.STATE_UNAVAILABLE
-            on && s.anc != null && s.anc != AncMode.OFF -> Tile.STATE_ACTIVE
+            mode != null && mode != "OFF" -> Tile.STATE_ACTIVE
             else -> Tile.STATE_INACTIVE
         }
-        tile.label = if (on && s.anc != null) "Buds · ${s.anc.label}" else "Noise control"
+        tile.label = s.noiseLabel?.takeIf { on }?.let { "Buds · $it" } ?: "Noise control"
         tile.subtitle = when {
             !Hub.prefs.budsEnabled -> "Turned off in Orbit"
             on -> "Tap to cycle mode"
+            s.control || (s.connected && s.driver == null) -> "Not on these buds"
+            s.connected -> "Tap to reconnect"
             else -> "Not connected"
         }
         tile.updateTile()

@@ -9,36 +9,16 @@ namespace Orbit.UI.Pages;
 public partial class BudsPage : UserControl
 {
     OrbitCore Core => App.Core;
-    readonly Dictionary<AncMode, RadioButton> _modes = new();
-    string _soundKey = "", _tapKey = "";
+    readonly Dictionary<string, RadioButton> _modes = new();
+    string _modesKey = "", _soundKey = "", _tapKey = "";
     bool _binding;
 
     public BudsPage()
     {
         InitializeComponent();
-        foreach (var m in AncModes.All)
-        {
-            var rb = new RadioButton
-            {
-                Style = (Style)FindResource("Segment"), GroupName = "anc",
-                Content = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    Children =
-                    {
-                        new Ic { Data = (Geometry)FindResource(m switch { AncMode.Off => "IcModeOff", AncMode.Transparency => "IcModeTrans", _ => "IcModeAnc" }), Width = 20, Height = 20, Margin = new Thickness(0, 0, 8, 0) },
-                        new TextBlock { Text = m.Label(), VerticalAlignment = VerticalAlignment.Center }
-                    }
-                }
-            };
-            rb.Checked += (_, _) => { if (!_binding && Core.Buds.Anc != m) Core.BudsSetAnc(m); };
-            AutomationPropertiesHelper.SetName(rb, m.Label());
-            _modes[m] = rb;
-            Modes.Children.Add(rb);
-        }
         Core.BudsChanged += Refresh;
         Core.Phone.PropertyChanged += (_, _) => Refresh();
-        App.Current.ThemeChanged += () => { _soundKey = _tapKey = ""; Refresh(); };
+        App.Current.ThemeChanged += () => { _modesKey = _soundKey = _tapKey = ""; Refresh(); };
         SizeChanged += (_, _) => Layout2(ActualWidth >= 900);
         IsVisibleChanged += (_, _) => { if (IsVisible) Refresh(); };
         Refresh();
@@ -68,16 +48,17 @@ public partial class BudsPage : UserControl
         var peer = Core.BudsPeer;
         bool phoneLinked = Core.Phone.IsConnected;
         bool phoneHas = phoneLinked && peer is { state.Connected: true };
-        bool on = s.Connected;
+        bool connected = s.Connected;
+        bool on = s.Control; // the controls are live
 
         NameText.Text = s.Name;
-        StatusDot.Fill = B(on ? "Green" : "AmberInk");
-        StatusText.Foreground = B(on ? "GreenInk" : "AmberInk");
+        StatusDot.Fill = B(connected ? "Green" : "AmberInk");
+        StatusText.Foreground = B(connected ? "GreenInk" : "AmberInk");
         StatusText.Text = (local.Connected, phoneHas) switch
         {
             (true, true) => $"Connected to this PC and {Core.Phone.Name}",
             (true, false) => "Connected to this PC",
-            (false, true) => $"Connected to {Core.Phone.Name} · controlling through the phone",
+            (false, true) => $"Connected to {Core.Phone.Name}" + (Core.BudsViaPhone ? " · controlling through the phone" : ""),
             _ => Core.Settings.BudsMac == null ? "Choose your buds in Settings" : "Not connected · put them in your ears or open the case"
         };
 
@@ -87,55 +68,100 @@ public partial class BudsPage : UserControl
         StyleSource(PcCard, PcState, PcPlay, local.Connected, pcPlaying, "this PC");
         StyleSource(PhoneCard, PhoneState, PhonePlay, phoneHas, phonePlaying, "your phone");
 
-        // Battery
+        // Battery: left / right / case from the driver, else the one level Windows or the phone has.
         BatteryGrid.Children.Clear();
-        string[] labels = { "Left", "Right", "Case" };
-        for (int i = 0; i < 3; i++)
+        if (connected && !s.HasSideBattery && s.BatteryMain >= 0)
         {
-            int level = on ? s.Battery[i] : -1;
-            var tile = new Border { Background = B("Surface2"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12), Margin = new Thickness(5) };
-            var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = labels[i], FontSize = 12, FontWeight = FontWeights.Bold, Foreground = B("Text2") });
-            sp.Children.Add(new TextBlock
-            {
-                Text = level < 0 ? "—" : $"{level}%" + (s.Charging[i] ? " ⚡" : ""), FontSize = 22, FontWeight = FontWeights.ExtraBold,
-                Foreground = B(level < 0 ? "Text2" : "Text"), Margin = new Thickness(0, 4, 0, 6)
-            });
-            if (level >= 0)
-                sp.Children.Add(new ProgressBar { Style = (Style)FindResource("Progress"), Value = level / 100.0, Height = 5, Foreground = B("Green") });
-            else
-                sp.Children.Add(new TextBlock { Text = i == 2 ? "Open lid to read" : "—", FontSize = 11, FontWeight = FontWeights.SemiBold, Foreground = B("Text2") });
-            tile.Child = sp;
-            BatteryGrid.Children.Add(tile);
+            BatteryGrid.Columns = 1;
+            BatteryGrid.Children.Add(BatteryTile("Battery", s.BatteryMain, false, ""));
+        }
+        else
+        {
+            BatteryGrid.Columns = 3;
+            string[] labels = { "Left", "Right", "Case" };
+            for (int i = 0; i < 3; i++)
+                BatteryGrid.Children.Add(BatteryTile(labels[i], connected ? s.Battery[i] : -1, s.Charging[i], i == 2 ? "Open lid to read" : "—"));
         }
 
-        // Noise control
-        foreach (var (m, rb) in _modes)
+        // Noise control (rebuilt only when the set of modes changes)
+        NoiseCard.Visibility = s.NoiseModes.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var modesKey = string.Join(",", s.NoiseModes.Select(m => m.Id));
+        if (modesKey != _modesKey) { _modesKey = modesKey; BuildModes(s); }
+        foreach (var (id, rb) in _modes)
         {
-            rb.IsChecked = s.Anc == m;
+            rb.IsChecked = s.Noise == id;
             rb.IsEnabled = on;
         }
-        bool showCycle = on && s.CycleMask != 0 && s.Touch.Values.Contains(TouchAction.NoiseControl.Code);
+        bool showCycle = on && s.Driver == HeyMelodyDriver.DriverId && s.CycleMask != 0 && s.Touch.Values.Contains(TouchAction.NoiseControl.Code);
         CyclePanel.Visibility = showCycle ? Visibility.Visible : Visibility.Collapsed;
         if (showCycle) BuildCycle(s);
 
         // Sound + taps (rebuilt only when the set of controls changes)
-        var supported = Feature.All.Where(f => s.Features.ContainsKey(f.Id)).ToList();
-        SoundCard.Visibility = supported.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        var soundKey = string.Join(",", supported.Select(f => $"{f.Id}={s.Features[f.Id]}")) + on;
-        if (soundKey != _soundKey) { _soundKey = soundKey; BuildSound(s, supported, on); }
+        SoundCard.Visibility = s.Toggles.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var soundKey = string.Join(",", s.Toggles.Select(t => $"{t.Id}={t.On}")) + on;
+        if (soundKey != _soundKey) { _soundKey = soundKey; BuildSound(s, on); }
 
         TapCard.Visibility = s.Touch.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         var tapKey = string.Join(",", s.Touch.OrderBy(k => k.Key).Select(k => $"{k.Key}={k.Value}")) + on;
         if (tapKey != _tapKey) { _tapKey = tapKey; BuildTaps(s, on); }
 
-        bool empty = supported.Count == 0 && s.Touch.Count == 0;
-        EmptyCard.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
-        EmptyTitle.Text = on ? "Reading your buds…" : "Sound and tap settings";
-        EmptyBody.Text = on ? "This takes a second the first time." :
-            "They appear here once the buds are connected to this PC or your phone.";
+        // Why controls are missing: not connected, no driver for these buds, a channel we can't open, or still reading.
+        bool empty = s.NoiseModes.Count == 0 && s.Toggles.Count == 0 && s.Touch.Count == 0;
+        (string title, string body)? note =
+            !connected ? ("Sound and tap settings", "They appear here once the buds are connected to this PC or your phone.")
+            : on ? (empty ? ("Reading your buds…", "This takes a second the first time.") : null)
+            : s.Driver == null ? ("Battery and playback", "Orbit doesn't have controls for these buds yet. Noise control and sound settings work with realme, OnePlus and OPPO buds.")
+            : ("Can't reach the buds' controls", "Another earbuds app may be using them. Close it, or put the buds in the case and take them out again.");
+        EmptyCard.Visibility = note != null ? Visibility.Visible : Visibility.Collapsed;
+        if (note is { } n) { EmptyTitle.Text = n.title; EmptyBody.Text = n.body; }
 
+        FootnoteRow.Visibility = s.Driver != null ? Visibility.Visible : Visibility.Collapsed;
         Footnote.Text = $"Settings live on the buds, so changes here also show on {(phoneLinked ? Core.Phone.Name : "your phone")}.";
+    }
+
+    Border BatteryTile(string label, int level, bool charging, string unknown)
+    {
+        var tile = new Border { Background = B("Surface2"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12), Margin = new Thickness(5) };
+        var sp = new StackPanel();
+        sp.Children.Add(new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = B("Text2") });
+        sp.Children.Add(new TextBlock
+        {
+            Text = level < 0 ? "—" : $"{level}%" + (charging ? " ⚡" : ""), FontSize = 22, FontWeight = FontWeights.ExtraBold,
+            Foreground = B(level < 0 ? "Text2" : "Text"), Margin = new Thickness(0, 4, 0, 6)
+        });
+        if (level >= 0)
+            sp.Children.Add(new ProgressBar { Style = (Style)FindResource("Progress"), Value = level / 100.0, Height = 5, Foreground = B("Green") });
+        else
+            sp.Children.Add(new TextBlock { Text = unknown, FontSize = 11, FontWeight = FontWeights.SemiBold, Foreground = B("Text2") });
+        tile.Child = sp;
+        return tile;
+    }
+
+    void BuildModes(BudsSnapshot s)
+    {
+        Modes.Children.Clear();
+        _modes.Clear();
+        Modes.Columns = Math.Max(1, s.NoiseModes.Count);
+        foreach (var m in s.NoiseModes)
+        {
+            var rb = new RadioButton
+            {
+                Style = (Style)FindResource("Segment"), GroupName = "anc",
+                Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children =
+                    {
+                        new Ic { Data = (Geometry)FindResource(m.Id switch { "OFF" => "IcModeOff", "TRANSPARENCY" => "IcModeTrans", _ => "IcModeAnc" }), Width = 20, Height = 20, Margin = new Thickness(0, 0, 8, 0) },
+                        new TextBlock { Text = m.Label, VerticalAlignment = VerticalAlignment.Center }
+                    }
+                }
+            };
+            rb.Checked += (_, _) => { if (!_binding && Core.Buds.Noise != m.Id) Core.BudsSetAnc(m.Id); };
+            AutomationPropertiesHelper.SetName(rb, m.Label);
+            _modes[m.Id] = rb;
+            Modes.Children.Add(rb);
+        }
     }
 
     void StyleSource(Border card, TextBlock state, Button play, bool connected, bool playing, string where)
@@ -175,20 +201,21 @@ public partial class BudsPage : UserControl
         }
     }
 
-    void BuildSound(BudsSnapshot s, List<Feature> supported, bool on)
+    void BuildSound(BudsSnapshot s, bool on)
     {
         SoundList.Children.Clear();
-        foreach (var f in supported)
+        foreach (var f in s.Toggles)
         {
             var row = new DockPanel { Margin = new Thickness(12, 0, 12, 0), MinHeight = 52 };
-            var sw = new CheckBox { Style = (Style)FindResource("Switch"), IsChecked = s.Features[f.Id], IsEnabled = on, Margin = new Thickness(12, 0, 0, 0) };
+            var sw = new CheckBox { Style = (Style)FindResource("Switch"), IsChecked = f.On, IsEnabled = on, Margin = new Thickness(12, 0, 0, 0) };
             AutomationPropertiesHelper.SetName(sw, f.Title);
             sw.Click += (_, _) => Core.BudsSetFeature(f.Id, sw.IsChecked == true);
             DockPanel.SetDock(sw, Dock.Right);
             row.Children.Add(sw);
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 8, 0, 8) };
             text.Children.Add(new TextBlock { Text = f.Title, FontSize = 14, FontWeight = FontWeights.SemiBold, Foreground = B("Text") });
-            text.Children.Add(new TextBlock { Text = f.Subtitle, FontSize = 12, Foreground = B("Text2"), TextWrapping = TextWrapping.Wrap });
+            if (f.Subtitle.Length > 0)
+                text.Children.Add(new TextBlock { Text = f.Subtitle, FontSize = 12, Foreground = B("Text2"), TextWrapping = TextWrapping.Wrap });
             row.Children.Add(text);
             if (SoundList.Children.Count > 0) SoundList.Children.Add(new Border { Height = 1, Background = B("Track"), Margin = new Thickness(12, 0, 12, 0) });
             SoundList.Children.Add(row);
