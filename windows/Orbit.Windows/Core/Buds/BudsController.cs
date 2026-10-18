@@ -172,12 +172,18 @@ public sealed class BudsController
         if (!await _connectLock.WaitAsync(0)) return;
         try
         {
-            foreach (var uuid in new[] { BudsProtocol.UuidVendor, BudsProtocol.UuidSpp })
+            // Try the cached service record first (fast); if it's missing or stale (the buds can move their
+            // RFCOMM channel, e.g. after a firmware update or re-pairing), ask the buds again (SDP).
+            var attempts = new[] { BudsProtocol.UuidVendor, BudsProtocol.UuidSpp }
+                .SelectMany(u => new[] { (uuid: u, mode: BluetoothCacheMode.Cached), (uuid: u, mode: BluetoothCacheMode.Uncached) });
+            foreach (var (uuid, mode) in attempts)
             {
-                RfcommDeviceServicesResult res = await _device.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(uuid), BluetoothCacheMode.Cached);
+                var res = await _device.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(uuid), mode);
                 if (res.Services.Count == 0)
-                    res = await _device.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(uuid), BluetoothCacheMode.Uncached);
-                if (res.Services.Count == 0) continue;
+                {
+                    if (mode == BluetoothCacheMode.Uncached) Log.Write($"buds: no {uuid} service on the buds ({res.Error})");
+                    continue;
+                }
                 var svc = res.Services[0];
                 var sock = new StreamSocket();
                 try
@@ -187,7 +193,7 @@ public sealed class BudsController
                 }
                 catch (Exception ex)
                 {
-                    Log.Write($"buds: rfcomm {uuid} failed: {ex.Message}");
+                    Log.Write($"buds: rfcomm {uuid} ({mode}) failed: 0x{ex.HResult:X8} {ex.Message}".TrimEnd());
                     sock.Dispose();
                     continue;
                 }
