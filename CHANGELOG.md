@@ -10,6 +10,7 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
   of buds reports are shown (no noise-control buttons on buds without it).
 - Earbuds brand protocols are now drivers, so other brands can be added; `orbit.buds.state` describes its
   controls (`noiseModes`, `toggles`, `control`, `driver`, `batteryMain`) and still works with older versions.
+- Android: the Noise control Quick Settings tile opens a picker with the buds' modes instead of cycling them.
 - Choosing buds automatically uses the Bluetooth device type (earbuds / headphones) instead of "buds" in the name.
 
 ## [1.0.0] - 2026-10-18

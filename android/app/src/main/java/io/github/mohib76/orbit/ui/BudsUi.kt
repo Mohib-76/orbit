@@ -146,7 +146,7 @@ fun BudsCard(onOpen: () -> Unit, requestBt: () -> Unit) {
 }
 
 @Composable
-fun NoiseSegments(s: BudsState, compact: Boolean) {
+fun NoiseSegments(s: BudsState, compact: Boolean, onPick: () -> Unit = {}) {
     val c = LocalOrbit.current
     val on = s.control
     Row(
@@ -160,7 +160,7 @@ fun NoiseSegments(s: BudsState, compact: Boolean) {
                 Modifier.weight(1f).height(if (compact) 44.dp else 88.dp)
                     .clip(RoundedCornerShape(if (compact) 12.dp else 22.dp))
                     .background(if (sel) c.primary else Color.Transparent)
-                    .selectable(selected = sel, enabled = true, role = Role.RadioButton) { Buds.setAnc(m.id) },
+                    .selectable(selected = sel, enabled = true, role = Role.RadioButton) { Buds.setAnc(m.id); onPick() },
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
             ) {
                 val fg = if (sel) c.onPrimary else c.text
@@ -168,6 +168,29 @@ fun NoiseSegments(s: BudsState, compact: Boolean) {
                 Text(m.label, fontSize = 13.sp, fontWeight = if (sel) FontWeight.ExtraBold else FontWeight.Bold, color = fg, maxLines = 1)
             }
         }
+    }
+}
+
+/** What the Quick Settings tile opens: the buds and their noise modes, picked with one tap. */
+@Composable
+fun BudsTilePicker(onDone: () -> Unit) {
+    val c = LocalOrbit.current
+    val local by Buds.local.collectAsState()
+    val peer by Buds.peer.collectAsState()
+    val s = Buds.effective(local, peer)
+    Column(
+        Modifier.padding(horizontal = 12.dp).fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(c.bg).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconChip(Icons.Buds)
+            Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                Text(s.name, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(budsSummary(s, false), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = c.text2,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        NoiseSegments(s, compact = false, onPick = onDone)
     }
 }
 
