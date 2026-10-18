@@ -4,6 +4,8 @@
 mirroring and earbuds controls, over the connections you already use: a USB cable, your phone's hotspot,
 or the same Wi-Fi. End-to-end encrypted, no account, no cloud.
 
+**Website:** https://mohib-76.github.io/orbit/
+
 [![CI](https://github.com/Mohib-76/orbit/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohib-76/orbit/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
