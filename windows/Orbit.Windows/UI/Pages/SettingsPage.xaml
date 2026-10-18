@@ -1,0 +1,401 @@
+<UserControl x:Class="Orbit.UI.Pages.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Orbit.UI">
+    <UserControl.Resources>
+        <Style x:Key="Row" TargetType="DockPanel">
+            <Setter Property="Margin" Value="12,10"/>
+            <Setter Property="MinHeight" Value="44"/>
+        </Style>
+        <Style x:Key="RowTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        </Style>
+        <Style x:Key="Section" TargetType="Border" BasedOn="{StaticResource CardBox}">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="10"/>
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="ExtraBold"/>
+            <Setter Property="Margin" Value="12,12,12,4"/>
+        </Style>
+        <Style x:Key="Field" TargetType="TextBox">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Width" Value="190"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="{DynamicResource BtnBg}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BtnBorder}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource Text}"/>
+        </Style>
+        <Style x:Key="Rule" TargetType="Border">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Background" Value="{DynamicResource Track}"/>
+            <Setter Property="Margin" Value="12,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer>
+        <StackPanel Margin="22,28,22,32">
+            <TextBlock Text="Settings" Style="{StaticResource H1}" Margin="10,0,10,10"/>
+
+            <!-- Paired phone -->
+            <Border Style="{StaticResource Section}" Padding="18,16">
+                <StackPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="+ Pair a different phone" Click="PairNew_Click"/>
+                        <TextBlock Text="Paired phone" FontSize="15" FontWeight="ExtraBold"/>
+                    </DockPanel>
+                    <Border Background="{DynamicResource Surface2}" CornerRadius="12" Padding="12" Margin="0,12,0,0">
+                        <DockPanel>
+                            <Border Width="44" Height="44" CornerRadius="12" Background="{DynamicResource Soft}" Margin="0,0,14,0">
+                                <ui:Ic Data="{StaticResource IcPhone}" Width="22" Height="22" Foreground="{DynamicResource SoftInk}"/>
+                            </Border>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBox x:Name="RenameBox" Style="{StaticResource Field}" Visibility="Collapsed" Margin="0,0,8,0" KeyDown="RenameBox_KeyDown"/>
+                                <Button x:Name="RenameBtn" Style="{StaticResource Small}" Content="Rename" Click="Rename_Click" Margin="0,0,6,0"/>
+                                <Button Style="{StaticResource DangerBtn}" Content="Unpair" Click="Unpair_Click"/>
+                            </StackPanel>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="PhoneName" FontSize="15" FontWeight="Bold"/>
+                                <TextBlock x:Name="PhoneMeta" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <UniformGrid x:Name="Grid2" Columns="2">
+
+                <!-- Connection -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Connection" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.AutoUsbTethering}" Click="Tether_Click"
+                                      AutomationProperties.Name="Auto USB tethering" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Auto USB tethering" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}" Text="When you plug your phone into this laptop, turn on USB tethering so the laptop uses the phone's internet. Needs USB debugging on the phone."/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.UseUsbLink}" Click="Save"
+                                      AutomationProperties.Name="Use the USB cable" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Connect over the USB cable" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}" Text="Orbit links instantly over USB, even with no network."/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Small}" Content="Turn on now" Click="TetherNow_Click" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="USB" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="UsbLine" Style="{StaticResource Caption}" Text="{Binding UsbStatus}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock DockPanel.Dock="Right" x:Name="LinkNow" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Text2}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="How Orbit finds your phone" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}" Text="USB cable, USB tethering and your phone's hotspot connect straight away. On a shared Wi-Fi it searches the network."/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBox DockPanel.Dock="Right" x:Name="ManualAddressBox" Style="{StaticResource Field}" Width="170" Margin="12,0,0,0"
+                                     LostFocus="ManualAddress_LostFocus" AutomationProperties.Name="Phone address"/>
+                            <StackPanel>
+                                <TextBlock Text="Phone address (optional)" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="ManualAddressHint" Style="{StaticResource Caption}" Text="If Orbit can't find your phone (VPN, guest Wi-Fi), enter the IP shown in Orbit on the phone."/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Screen mirroring -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Screen mirroring" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Small}" Content="Open mirror" Click="Mirror_Click" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Mirror your phone" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}">
+                                    See and control the phone in a window. Works over USB right away. A keyboard shortcut opens it from anywhere (see Keyboard shortcuts).
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" x:Name="MirrorSetupBtn" Style="{StaticResource Small}" Click="MirrorSetup_Click" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Wireless mirroring" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="MirrorWirelessLine" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Earbuds -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Earbuds" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox x:Name="BudsToggle" DockPanel.Dock="Right" Style="{StaticResource Switch}" Checked="BudsToggle_Click" Unchecked="BudsToggle_Click"
+                                      AutomationProperties.Name="Earbuds" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Earbuds" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}" Text="Battery, noise control, sound and tap settings for your realme buds. Turns on or off on your phone too."/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}" x:Name="BudsPickRow">
+                            <ComboBox x:Name="BudsPicker" DockPanel.Dock="Right" Style="{StaticResource Drop}" Width="200"
+                                      SelectionChanged="BudsPicker_Changed" AutomationProperties.Name="Your buds" DisplayMemberPath="Label"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Your buds" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="BudsPickState" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <StackPanel>
+                                <TextBlock Text="Works with" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="realme and OnePlus buds that use the realme Link / HeyMelody app (tested: realme Buds T310). Other buds simply won't show controls." Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Keyboard shortcuts -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Keyboard shortcuts" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Clear" Tag="clipboard" Click="HotkeyClear_Click" Margin="6,0,0,0"/>
+                            <TextBox DockPanel.Dock="Right" x:Name="HkClipboard" Tag="clipboard" Style="{StaticResource Field}" Width="150" IsReadOnly="True"
+                                     PreviewKeyDown="Hotkey_KeyDown" AutomationProperties.Name="Shortcut: send clipboard" FontFamily="{StaticResource Mono}"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Send clipboard" Style="{StaticResource RowTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Clear" Tag="noise" Click="HotkeyClear_Click" Margin="6,0,0,0"/>
+                            <TextBox DockPanel.Dock="Right" x:Name="HkNoise" Tag="noise" Style="{StaticResource Field}" Width="150" IsReadOnly="True"
+                                     PreviewKeyDown="Hotkey_KeyDown" AutomationProperties.Name="Shortcut: cycle noise control" FontFamily="{StaticResource Mono}"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Cycle noise control" Style="{StaticResource RowTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Clear" Tag="mirror" Click="HotkeyClear_Click" Margin="6,0,0,0"/>
+                            <TextBox DockPanel.Dock="Right" x:Name="HkMirror" Tag="mirror" Style="{StaticResource Field}" Width="150" IsReadOnly="True"
+                                     PreviewKeyDown="Hotkey_KeyDown" AutomationProperties.Name="Shortcut: screen mirroring" FontFamily="{StaticResource Mono}"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Screen mirroring" Style="{StaticResource RowTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <TextBlock x:Name="HotkeyHint" Style="{StaticResource Caption}" Margin="12,4,12,10"
+                                   Text="Click a box and press the new keys (with Ctrl, Alt or Win)."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- General -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="General" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBox DockPanel.Dock="Right" x:Name="PcName" Style="{StaticResource Field}" LostFocus="PcName_LostFocus" AutomationProperties.Name="This PC's name"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="This PC's name" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="What your phone calls this PC" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.StartWithWindows}" Click="Startup_Click" AutomationProperties.Name="Start with Windows"/>
+                            <StackPanel>
+                                <TextBlock Text="Start with Windows" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Orbit waits quietly in the tray" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <ComboBox DockPanel.Dock="Right" x:Name="ThemeBox" Width="120" Style="{StaticResource Drop}" SelectionChanged="Theme_Changed" AutomationProperties.Name="Theme">
+                                <ComboBoxItem Content="System"/>
+                                <ComboBoxItem Content="Light"/>
+                                <ComboBoxItem Content="Dark"/>
+                            </ComboBox>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Theme" Style="{StaticResource RowTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Clipboard -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Clipboard" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.ClipboardAutoSync}" Click="Save" AutomationProperties.Name="Auto-sync"/>
+                            <StackPanel>
+                                <TextBlock Text="Auto-sync" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Copy here, paste on your phone" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.ClipboardKeepHistory}" Click="Save" AutomationProperties.Name="Keep history"/>
+                            <StackPanel>
+                                <TextBlock Text="Keep history" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Last 10 items, on this PC only" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.ClipboardSkipSensitive}" Click="Save" AutomationProperties.Name="Skip private copies"/>
+                            <StackPanel>
+                                <TextBlock Text="Skip private copies" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Don't sync what password managers mark as private" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Notifications -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Notifications" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.NotificationsEnabled}" Click="Save" AutomationProperties.Name="Show notifications"/>
+                            <StackPanel>
+                                <TextBlock Text="Show as Windows notifications" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Pick which apps mirror in Orbit on your phone" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" x:Name="DndBtn" Style="{StaticResource Small}" Click="Dnd_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Do not disturb" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="{Binding DoNotDisturbText}" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.NotificationsHideContent}" Click="Save" AutomationProperties.Name="Hide notification text"/>
+                            <StackPanel>
+                                <TextBlock Text="Hide notification text" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Toasts only say which app it's from (handy for codes and screen sharing)" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.NotificationsWhenLocked}" Click="Save" AutomationProperties.Name="Show while locked"/>
+                            <StackPanel>
+                                <TextBlock Text="Show while this PC is locked" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Off: they still collect in the Notifications page" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <ComboBox DockPanel.Dock="Right" x:Name="BatteryBox" Width="110" Style="{StaticResource Drop}" SelectionChanged="Battery_Changed" AutomationProperties.Name="Low battery alert">
+                                <ComboBoxItem Content="Off" Tag="0"/>
+                                <ComboBoxItem Content="10%" Tag="10"/>
+                                <ComboBoxItem Content="15%" Tag="15"/>
+                                <ComboBoxItem Content="20%" Tag="20"/>
+                                <ComboBoxItem Content="30%" Tag="30"/>
+                            </ComboBox>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Low phone battery alert" Style="{StaticResource RowTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Files -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Files" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Small}" Content="Change" Click="ChangeFolder_Click" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Save location" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="FolderText" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.AutoAcceptFiles}" Click="Save" AutomationProperties.Name="Auto-accept files"/>
+                            <StackPanel>
+                                <TextBlock Text="Auto-accept from your phone" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Off: ask with Accept / Decline first" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Privacy & about -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Privacy &amp; about" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <TextBlock DockPanel.Dock="Right" Text="On" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Text2}" VerticalAlignment="Center"/>
+                            <StackPanel>
+                                <TextBlock Text="Encryption" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="TLS with keys pinned at pairing · no cloud relay" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Small}" Content="About" Click="About_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Version" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="VersionText" Style="{StaticResource Caption}"/>
+                                <TextBlock x:Name="VersionWarningText" Style="{StaticResource Caption}" Foreground="{DynamicResource AmberInk}" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Style="{StaticResource Small}" Content="Open log" Click="Log_Click" Margin="0,0,6,0"/>
+                                <Button Style="{StaticResource Small}" Content="Export" Click="Diagnostics_Click"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Diagnostics" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="A zip for bug reports, with names and addresses removed" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource DangerBtn}" Content="Reset" Click="Reset_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Reset Orbit" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Forget pairing, keys and settings on this PC" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource DangerBtn}" Content="Quit" Click="Quit_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Quit Orbit" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Closing the window keeps Orbit in the tray" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

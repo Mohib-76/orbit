@@ -1,0 +1,317 @@
+<Window x:Class="Orbit.UI.MirrorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Orbit.UI"
+        Title="Orbit mirror" Width="1120" Height="840" MinWidth="440" MinHeight="520"
+        WindowStartupLocation="CenterScreen" AllowDrop="True"
+        FontFamily="{StaticResource Manrope}" Foreground="{DynamicResource Text}" Background="{DynamicResource Bg}">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="44" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <!-- The mirror is always dark so the phone's screen is the focus. -->
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/Dark.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="Stage" Color="#0E0E14"/>
+            <SolidColorBrush x:Key="Scrim" Color="#E616161F"/>
+            <SolidColorBrush x:Key="Live" Color="#3DD68C"/>
+            <SolidColorBrush x:Key="Pending" Color="#F5B841"/>
+            <SolidColorBrush x:Key="Alert" Color="#FF7A6E"/>
+            <SolidColorBrush x:Key="AlertSoft" Color="#3A1C1A"/>
+            <SolidColorBrush x:Key="ToolInk" Color="#E4E4EE"/>
+
+            <Style x:Key="Tool" TargetType="ButtonBase">
+                <Setter Property="Width" Value="40"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Foreground" Value="{DynamicResource ToolInk}"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="ToolTipService.InitialShowDelay" Value="250"/>
+                <Setter Property="ToolTipService.Placement" Value="Left"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ButtonBase">
+                            <Border x:Name="b" CornerRadius="9" Background="Transparent">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource RailHover}"/></Trigger>
+                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource RailSel}"/></Trigger>
+                                <Trigger Property="ToggleButton.IsChecked" Value="True">
+                                    <Setter TargetName="b" Property="Background" Value="{DynamicResource Soft}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource SoftInk}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.4"/></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="ChromeToggle" TargetType="ToggleButton" BasedOn="{StaticResource Tool}">
+                <Setter Property="Width" Value="40"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="Margin" Value="6,0,0,0"/>
+                <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+                <Setter Property="ToolTipService.Placement" Value="Bottom"/>
+                <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            </Style>
+            <Style x:Key="ToolSep" TargetType="Border">
+                <Setter Property="Height" Value="1"/>
+                <Setter Property="Margin" Value="6,4"/>
+                <Setter Property="Background" Value="{DynamicResource CardBorder}"/>
+            </Style>
+            <Style x:Key="Seg" TargetType="RadioButton" BasedOn="{StaticResource Segment}">
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="Margin" Value="1.5"/>
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+            <Style x:Key="Label" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+                <Setter Property="Margin" Value="0,0,0,8"/>
+            </Style>
+            <Style x:Key="OptRow" TargetType="DockPanel">
+                <Setter Property="Margin" Value="0,10"/>
+            </Style>
+            <Style x:Key="OptTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+            <Style x:Key="OptDesc" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+                <Setter Property="Margin" Value="0,2,0,0"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+            <Style x:Key="Rule" TargetType="Border">
+                <Setter Property="Height" Value="1"/>
+                <Setter Property="Background" Value="{DynamicResource LayerBorder}"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title bar -->
+        <DockPanel Grid.Row="0" LastChildFill="False">
+            <ui:Logo DockPanel.Dock="Left" Margin="16,0,10,0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TitleText" DockPanel.Dock="Left" Text="Orbit mirror" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Style="{StaticResource Chrome}" Click="Min_Click" AutomationProperties.Name="Minimize">
+                    <Path Data="M0 5h10" Stroke="{DynamicResource Text}" StrokeThickness="1" Width="10" Height="10"/>
+                </Button>
+                <Button Style="{StaticResource Chrome}" Click="Max_Click" AutomationProperties.Name="Maximize">
+                    <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Stroke="{DynamicResource Text}" StrokeThickness="1"/>
+                </Button>
+                <Button Style="{StaticResource Chrome}" Click="Close_Click" AutomationProperties.Name="Close">
+                    <Path Data="M0 0l10 10M10 0 0 10" Stroke="{DynamicResource Text}" StrokeThickness="1" Width="10" Height="10"/>
+                </Button>
+            </StackPanel>
+            <ToggleButton x:Name="PanelToggle" DockPanel.Dock="Right" Style="{StaticResource ChromeToggle}" Margin="4,0,8,0"
+                          ToolTip="Stream settings" AutomationProperties.Name="Stream settings" Checked="Panel_Changed" Unchecked="Panel_Changed">
+                <ui:Ic Data="{StaticResource IcPanel}" Width="16" Height="16" Thickness="2"/>
+            </ToggleButton>
+            <ToggleButton x:Name="PinToggle" DockPanel.Dock="Right" Style="{StaticResource ChromeToggle}"
+                          ToolTip="Keep on top" AutomationProperties.Name="Keep on top" Checked="Pin_Changed" Unchecked="Pin_Changed">
+                <ui:Ic Data="{StaticResource IcPin}" Width="16" Height="16" Thickness="2"/>
+            </ToggleButton>
+            <Border x:Name="StatsChip" DockPanel.Dock="Right" Padding="10,4" CornerRadius="999" Background="{DynamicResource Card}" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="7" Height="7" Fill="{DynamicResource Live}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="StatsText" FontFamily="{StaticResource Mono}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Text2}"/>
+                </StackPanel>
+            </Border>
+            <Border x:Name="ViewOnlyChip" DockPanel.Dock="Right" Padding="10,4" CornerRadius="999" Background="{DynamicResource AmberSoft}"
+                    VerticalAlignment="Center" Margin="0,0,8,0" Visibility="Collapsed">
+                <TextBlock Text="View only · set on phone" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AmberInk}"/>
+            </Border>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Stage -->
+            <Grid x:Name="Stage" Grid.Column="0" Background="Transparent" Focusable="True" FocusVisualStyle="{x:Null}" SizeChanged="Stage_SizeChanged">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel VerticalAlignment="Center">
+                        <Grid HorizontalAlignment="Center">
+                        <!-- The shadow is its own static layer: an effect over the live video would re-render every frame. -->
+                        <Border x:Name="BezelShadow" Background="Black" CornerRadius="40" IsHitTestVisible="False">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="60" ShadowDepth="24" Direction="270" Opacity="0.5" Color="Black"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border x:Name="Bezel" Background="Black" CornerRadius="40" Padding="8" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
+                            <Grid x:Name="Screen" Width="320" Height="690" Background="{DynamicResource Stage}" Cursor="Arrow">
+                                <Image x:Name="Video" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"
+                                       MouseLeftButtonDown="Video_LeftDown" MouseLeftButtonUp="Video_LeftUp" MouseMove="Video_Move"
+                                       MouseRightButtonDown="Video_RightDown" MouseRightButtonUp="Video_RightUp"
+                                       MouseDown="Video_MouseDown" MouseWheel="Video_Wheel" LostMouseCapture="Video_LostCapture"/>
+
+                                <!-- Connecting -->
+                                <Border x:Name="ConnectingPanel" Background="{DynamicResource Scrim}" Visibility="Collapsed">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24">
+                                        <Grid Width="64" Height="64" HorizontalAlignment="Center">
+                                            <Ellipse Stroke="#3A3B6E" StrokeThickness="2"/>
+                                            <Ellipse Width="20" Height="20" Fill="{DynamicResource Accent}"/>
+                                            <Canvas Width="64" Height="64" RenderTransformOrigin="0.5,0.5">
+                                                <Canvas.RenderTransform><RotateTransform x:Name="Spin"/></Canvas.RenderTransform>
+                                                <Ellipse Canvas.Left="27" Canvas.Top="-5" Width="10" Height="10" Fill="{DynamicResource Accent}"/>
+                                                <Canvas.Triggers>
+                                                    <EventTrigger RoutedEvent="Loaded">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Spin" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:2.4" RepeatBehavior="Forever"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Canvas.Triggers>
+                                            </Canvas>
+                                        </Grid>
+                                        <TextBlock Text="Starting the stream…" FontSize="16" FontWeight="ExtraBold" HorizontalAlignment="Center" Margin="0,18,0,14"/>
+                                        <StackPanel x:Name="Checklist" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Paused -->
+                                <Border x:Name="LostPanel" Background="{DynamicResource Scrim}" Visibility="Collapsed">
+                                    <StackPanel VerticalAlignment="Center" Margin="28,0">
+                                        <Border Width="56" Height="56" CornerRadius="28" Background="{DynamicResource AlertSoft}" HorizontalAlignment="Center">
+                                            <TextBlock Text="!" FontSize="26" FontWeight="ExtraBold" Foreground="{DynamicResource Alert}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="Stream paused" FontSize="16" FontWeight="ExtraBold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                        <TextBlock x:Name="LostText" FontSize="13" Foreground="{DynamicResource Text2}" TextWrapping="Wrap" TextAlignment="Center"
+                                                   LineHeight="19.5" Margin="0,12,0,0"/>
+                                        <Button x:Name="ReconnectBtn" Style="{StaticResource Primary}" Content="Reconnect" HorizontalAlignment="Center"
+                                                Margin="0,18,0,0" FontSize="13" FontWeight="ExtraBold" Click="Reconnect_Click"/>
+                                        <Button x:Name="UseUsbBtn" Style="{StaticResource Link}" Content="Use USB instead" HorizontalAlignment="Center"
+                                                Margin="0,6,0,0" Height="36" Click="UseUsb_Click"/>
+                                        <Button x:Name="SetupBtn" Style="{StaticResource Link}" Content="Set up wireless mirroring" HorizontalAlignment="Center"
+                                                Margin="0,6,0,0" Height="36" Click="Setup_Click"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- File drop -->
+                                <Border x:Name="DropOverlay" Background="#CC4B4FE6" Visibility="Collapsed" IsHitTestVisible="False">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+                                        <ui:Ic Data="{StaticResource IcUpload}" Width="40" Height="40" Foreground="White" Thickness="1.6"/>
+                                        <TextBlock x:Name="DropText" Foreground="White" FontSize="16" FontWeight="ExtraBold" Margin="0,12,0,0"
+                                                   TextWrapping="Wrap" TextAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        </Grid>
+                        <TextBlock x:Name="Hints" FontSize="12" Foreground="{DynamicResource Text2}" HorizontalAlignment="Center" Margin="0,14,0,0"
+                                   TextWrapping="Wrap" TextAlignment="Center">
+                            Drop files on the screen to send  ·  <Run FontFamily="{StaticResource Mono}" Foreground="{DynamicResource Text}">Ctrl V</Run> pastes into phone  ·  Right-click = Back
+                        </TextBlock>
+                        <TextBlock x:Name="Flash" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource GreenInk}" HorizontalAlignment="Center"
+                                   Margin="0,14,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+
+                    <!-- Toolbar -->
+                    <Border x:Name="Toolbar" Margin="16,0,0,0" Padding="6" CornerRadius="14" VerticalAlignment="Center"
+                            Background="{DynamicResource Card}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
+                            AutomationProperties.Name="Phone controls">
+                        <StackPanel>
+                            <Button Style="{StaticResource Tool}" Tag="back" Click="Tool_Click" ToolTip="Back · Esc" AutomationProperties.Name="Back"><ui:Ic Data="{StaticResource IcBack}" Thickness="1.9"/></Button>
+                            <Button Style="{StaticResource Tool}" Tag="home" Click="Tool_Click" ToolTip="Home · Ctrl H" AutomationProperties.Name="Home"><ui:Ic Data="{StaticResource IcNavHome}" Thickness="1.9"/></Button>
+                            <Button Style="{StaticResource Tool}" Tag="recents" Click="Tool_Click" ToolTip="Recents · Ctrl S" AutomationProperties.Name="Recent apps"><ui:Ic Data="{StaticResource IcRecents}" Thickness="1.9"/></Button>
+                            <Border Style="{StaticResource ToolSep}"/>
+                            <Button Style="{StaticResource Tool}" Tag="volup" Click="Tool_Click" ToolTip="Volume up · Ctrl ↑" AutomationProperties.Name="Volume up"><ui:Ic Data="{StaticResource IcVolUp}" Thickness="1.9"/></Button>
+                            <Button Style="{StaticResource Tool}" Tag="voldown" Click="Tool_Click" ToolTip="Volume down · Ctrl ↓" AutomationProperties.Name="Volume down"><ui:Ic Data="{StaticResource IcVolDown}" Thickness="1.9"/></Button>
+                            <Button Style="{StaticResource Tool}" Tag="rotate" Click="Tool_Click" ToolTip="Rotate · Ctrl R" AutomationProperties.Name="Rotate"><ui:Ic Data="{StaticResource IcRotate}" Thickness="1.9"/></Button>
+                            <Border Style="{StaticResource ToolSep}"/>
+                            <Button Style="{StaticResource Tool}" Tag="screenshot" Click="Tool_Click" ToolTip="Screenshot to clipboard · Ctrl Shift S" AutomationProperties.Name="Screenshot"><ui:Ic Data="{StaticResource IcScreenshot}" Thickness="1.9"/></Button>
+                            <ToggleButton x:Name="RecordBtn" Style="{StaticResource Tool}" Tag="record" Click="Tool_Click" ToolTip="Record to Videos\Orbit · Ctrl Shift R" AutomationProperties.Name="Record"><ui:Ic x:Name="RecordIcon" Data="{StaticResource IcRecord}" Thickness="1.9"/></ToggleButton>
+                            <Border Style="{StaticResource ToolSep}"/>
+                            <ToggleButton x:Name="ScreenOffBtn" Style="{StaticResource Tool}" Tag="screenoff" Click="Tool_Click" ToolTip="Turn phone screen off · Ctrl O" AutomationProperties.Name="Phone screen off"><ui:Ic Data="{StaticResource IcScreenOff}" Thickness="1.9"/></ToggleButton>
+                            <Button Style="{StaticResource Tool}" Tag="notifications" Click="Tool_Click" ToolTip="Open notification shade · Ctrl N" AutomationProperties.Name="Notifications"><ui:Ic Data="{StaticResource IcBell}" Thickness="1.9"/></Button>
+                            <Button Style="{StaticResource Tool}" Tag="power" Click="Tool_Click" ToolTip="Lock / wake · Ctrl P" AutomationProperties.Name="Power"><ui:Ic Data="{StaticResource IcPower}" Thickness="1.9"/></Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- Stream panel -->
+            <Border x:Name="StreamPanel" Grid.Column="1" Width="300" Background="{DynamicResource Layer}" BorderBrush="{DynamicResource LayerBorder}"
+                    BorderThickness="1,0,0,0" AutomationProperties.Name="Stream settings">
+                <DockPanel Margin="20,22,20,20">
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <DockPanel Margin="0,0,0,8">
+                            <ui:Ic Data="{StaticResource IcLock}" Width="14" Height="14" Thickness="2" Foreground="{DynamicResource Text2}" VerticalAlignment="Top" Margin="0,1,8,0"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource Text2}" TextWrapping="Wrap"
+                                       Text="Video stays on your network. Phone shows a “being mirrored” notice."/>
+                        </DockPanel>
+                        <Button Style="{StaticResource DangerBtn}" Height="40" FontSize="13" FontWeight="ExtraBold" Content="Stop mirroring" Click="Close_Click"/>
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Stream" FontSize="15" FontWeight="ExtraBold" Margin="0,0,0,18"/>
+
+                            <TextBlock Text="Quality" Style="{StaticResource Label}"/>
+                            <Border Background="{DynamicResource Surface2}" CornerRadius="9" Padding="1.5">
+                                <UniformGrid Columns="4" AutomationProperties.Name="Quality">
+                                    <RadioButton x:Name="QAuto" Style="{StaticResource Seg}" GroupName="q" Content="Auto" Tag="Auto" Checked="Quality_Checked"/>
+                                    <RadioButton x:Name="Q720" Style="{StaticResource Seg}" GroupName="q" Content="720p" Tag="720p" Checked="Quality_Checked"/>
+                                    <RadioButton x:Name="Q1080" Style="{StaticResource Seg}" GroupName="q" Content="1080p" Tag="1080p" Checked="Quality_Checked"/>
+                                    <RadioButton x:Name="QMax" Style="{StaticResource Seg}" GroupName="q" Content="Max" Tag="Max" Checked="Quality_Checked"/>
+                                </UniformGrid>
+                            </Border>
+
+                            <TextBlock Text="Frame rate" Style="{StaticResource Label}" Margin="0,18,0,8"/>
+                            <Border Background="{DynamicResource Surface2}" CornerRadius="9" Padding="1.5">
+                                <UniformGrid Columns="3" AutomationProperties.Name="Frame rate">
+                                    <RadioButton x:Name="F30" Style="{StaticResource Seg}" GroupName="f" Content="30" Tag="30" Checked="Fps_Checked"/>
+                                    <RadioButton x:Name="F60" Style="{StaticResource Seg}" GroupName="f" Content="60" Tag="60" Checked="Fps_Checked"/>
+                                    <RadioButton x:Name="F90" Style="{StaticResource Seg}" GroupName="f" Content="90" Tag="90" Checked="Fps_Checked"/>
+                                </UniformGrid>
+                            </Border>
+
+                            <StackPanel Margin="0,18,0,0">
+                                <Border Style="{StaticResource Rule}"/>
+                                <DockPanel Style="{StaticResource OptRow}">
+                                    <CheckBox x:Name="OptAudio" DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="10,0,0,0" Checked="Opt_Changed" Unchecked="Opt_Changed" AutomationProperties.Name="Play phone audio on PC"/>
+                                    <StackPanel><TextBlock Text="Play phone audio on PC" Style="{StaticResource OptTitle}"/><TextBlock Text="Android 11 or later" Style="{StaticResource OptDesc}"/></StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Rule}"/>
+                                <DockPanel Style="{StaticResource OptRow}">
+                                    <CheckBox x:Name="OptScreenOff" DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="10,0,0,0" Checked="Opt_Changed" Unchecked="Opt_Changed" AutomationProperties.Name="Turn phone screen off"/>
+                                    <StackPanel><TextBlock Text="Turn phone screen off" Style="{StaticResource OptTitle}"/><TextBlock Text="Saves battery, keeps it private" Style="{StaticResource OptDesc}"/></StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Rule}"/>
+                                <DockPanel Style="{StaticResource OptRow}">
+                                    <CheckBox x:Name="OptAwake" DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="10,0,0,0" Checked="Opt_Changed" Unchecked="Opt_Changed" AutomationProperties.Name="Keep phone awake"/>
+                                    <StackPanel><TextBlock Text="Keep phone awake" Style="{StaticResource OptTitle}"/><TextBlock Text="While the window is open" Style="{StaticResource OptDesc}"/></StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Rule}"/>
+                                <DockPanel Style="{StaticResource OptRow}">
+                                    <CheckBox x:Name="OptTouches" DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="10,0,0,0" Checked="Opt_Changed" Unchecked="Opt_Changed" AutomationProperties.Name="Show touches"/>
+                                    <StackPanel><TextBlock Text="Show touches" Style="{StaticResource OptTitle}"/><TextBlock Text="Handy for recording demos" Style="{StaticResource OptDesc}"/></StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource Rule}"/>
+                                <DockPanel Style="{StaticResource OptRow}">
+                                    <CheckBox x:Name="OptResize" DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="10,0,0,0" Checked="Opt_Changed" Unchecked="Opt_Changed" AutomationProperties.Name="Resize window on rotate"/>
+                                    <StackPanel><TextBlock Text="Resize window on rotate" Style="{StaticResource OptTitle}"/><TextBlock Text="Landscape apps fill the window" Style="{StaticResource OptDesc}"/></StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

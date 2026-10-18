@@ -1,0 +1,58 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Security problems go through **Security → Report a vulnerability** instead.
+        Please check [Troubleshooting](../blob/main/docs/TROUBLESHOOTING.md) first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. …\n2. …"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Pairing / connection, Clipboard, Notifications, Files, Battery, Screen mirroring, USB tethering, Earbuds, Install / update, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: link
+    attributes:
+      label: How are the phone and PC connected?
+      options: [USB tethering, Phone hotspot, Same Wi-Fi, USB cable only, Manual address, Not connected]
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model and Android version
+      placeholder: e.g. Pixel 7, Android 15
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: e.g. Windows 11 24H2
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Orbit versions (Settings → About on both)
+      placeholder: e.g. PC 1.0.0, phone 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Settings → Export diagnostics on each device. It's redacted, but please look it over before attaching.

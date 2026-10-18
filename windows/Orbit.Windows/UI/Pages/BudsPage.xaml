@@ -1,0 +1,130 @@
+<UserControl x:Class="Orbit.UI.Pages.BudsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Orbit.UI">
+    <ScrollViewer>
+        <Grid x:Name="Cols" Margin="22,18,22,32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Left column -->
+            <StackPanel x:Name="LeftCol" Grid.Column="0">
+                <!-- Hero -->
+                <Border Style="{StaticResource CardBox}" Padding="22" Margin="10">
+                    <StackPanel>
+                        <DockPanel>
+                            <Border Width="84" Height="84" CornerRadius="20" Background="{DynamicResource Soft}" Margin="0,0,16,0">
+                                <Viewbox Width="60" Height="60">
+                                    <Canvas Width="64" Height="64">
+                                        <Canvas RenderTransform="0.970,-0.242,0.242,0.970,-6.6,6.2">
+                                            <Ellipse Canvas.Left="11" Canvas.Top="8" Width="22" Height="20" Fill="White" Stroke="#C9CAF6"/>
+                                            <Rectangle Canvas.Left="17" Canvas.Top="22" Width="9" Height="30" RadiusX="4.5" RadiusY="4.5" Fill="White" Stroke="#C9CAF6"/>
+                                            <Ellipse Canvas.Left="16.6" Canvas.Top="13.6" Width="6.8" Height="6.8" Fill="#4B4FE6"/>
+                                        </Canvas>
+                                        <Canvas RenderTransform="0.970,0.242,-0.242,0.970,8.5,-9.3">
+                                            <Ellipse Canvas.Left="31" Canvas.Top="8" Width="22" Height="20" Fill="White" Stroke="#C9CAF6"/>
+                                            <Rectangle Canvas.Left="38" Canvas.Top="22" Width="9" Height="30" RadiusX="4.5" RadiusY="4.5" Fill="White" Stroke="#C9CAF6"/>
+                                            <Ellipse Canvas.Left="40.6" Canvas.Top="13.6" Width="6.8" Height="6.8" Fill="#4B4FE6"/>
+                                        </Canvas>
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="NameText" FontSize="26" FontWeight="ExtraBold" TextTrimming="CharacterEllipsis"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <Ellipse x:Name="StatusDot" Width="8" Height="8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="StatusText" FontSize="13" FontWeight="Bold" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Audio source -->
+                        <UniformGrid Columns="2" Margin="-5,18,-5,0">
+                            <Border x:Name="PcCard" CornerRadius="12" Padding="12" Margin="5" BorderThickness="1">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:Ic Data="{StaticResource IcLaptop}" Foreground="{DynamicResource SoftInk}" Margin="0,0,8,0"/>
+                                        <TextBlock Text="This PC" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="PcState" Style="{StaticResource Caption}" Margin="0,8,0,0" Height="32" VerticalAlignment="Center" Padding="0,8,0,0"/>
+                                    <Button x:Name="PcPlay" Style="{StaticResource Primary}" Height="32" FontSize="12" Content="Play on this PC" Click="PlayPc_Click"/>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="PhoneCard" CornerRadius="12" Padding="12" Margin="5" BorderThickness="1">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:Ic Data="{StaticResource IcPhone}" Foreground="{DynamicResource SoftInk}" Margin="0,0,8,0"/>
+                                        <TextBlock x:Name="PhoneName" FontSize="14" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="PhoneState" Style="{StaticResource Caption}" Margin="0,8,0,0" Height="32" Padding="0,8,0,0"/>
+                                    <Button x:Name="PhonePlay" Style="{StaticResource Primary}" Height="32" FontSize="12" Content="Play on phone" Click="PlayPhone_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <!-- Battery -->
+                        <UniformGrid x:Name="BatteryGrid" Columns="3" Margin="-5,10,-5,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Noise control -->
+                <Border Style="{StaticResource CardBox}" Padding="20,18" Margin="10">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="cycles modes" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            <Border DockPanel.Dock="Right" BorderBrush="{DynamicResource BtnBorder}" BorderThickness="1" CornerRadius="4" Padding="7,2">
+                                <TextBlock Text="Ctrl Alt B" FontFamily="{StaticResource Mono}" FontSize="11"/>
+                            </Border>
+                            <TextBlock Text="Noise control" FontSize="15" FontWeight="ExtraBold"/>
+                        </DockPanel>
+                        <Border Background="{DynamicResource Surface2}" CornerRadius="12" Padding="2" Margin="0,12,0,0">
+                            <UniformGrid x:Name="Modes" Columns="3"/>
+                        </Border>
+                        <StackPanel x:Name="CyclePanel" Margin="0,14,0,0" Visibility="Collapsed">
+                            <TextBlock Text="Touch “Noise control” cycles through" Style="{StaticResource Caption}" FontSize="13"/>
+                            <WrapPanel x:Name="CycleChips" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Right column -->
+            <StackPanel x:Name="RightCol" Grid.Column="1">
+                <Border x:Name="SoundCard" Style="{StaticResource CardBox}" Padding="8" Margin="10">
+                    <StackPanel>
+                        <TextBlock Text="Sound" FontSize="15" FontWeight="ExtraBold" Margin="12,12,12,6"/>
+                        <StackPanel x:Name="SoundList"/>
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="TapCard" Style="{StaticResource CardBox}" Padding="20,18" Margin="10">
+                    <Grid x:Name="TapGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </Border>
+
+                <Border x:Name="EmptyCard" Style="{StaticResource CardBox}" Padding="24" Margin="10">
+                    <StackPanel>
+                        <TextBlock x:Name="EmptyTitle" FontSize="15" FontWeight="ExtraBold"/>
+                        <TextBlock x:Name="EmptyBody" Style="{StaticResource Caption}" FontSize="13" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Margin="14,8">
+                    <ui:Ic Data="{StaticResource IcRetry}" Foreground="{DynamicResource Text2}" Width="16" Height="16" Margin="0,0,10,0"/>
+                    <TextBlock x:Name="Footnote" Style="{StaticResource Caption}" FontSize="13"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

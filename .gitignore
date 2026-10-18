@@ -1,0 +1,40 @@
+dist/
+
+# Personal / machine-specific notes and secrets
+CLAUDE.local.md
+*.local.md
+android/keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+.env
+
+# Third-party binaries (fetched by tools/fetch-thirdparty.ps1)
+windows/Orbit.Windows/ThirdParty/scrcpy/*
+!windows/Orbit.Windows/ThirdParty/scrcpy/README.md
+windows/Orbit.Windows/ThirdParty/platform-tools/
+
+# .NET
+windows/**/bin/
+windows/**/obj/
+windows/**/TestResults/
+*.user
+.vs/
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.iml
+captures/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

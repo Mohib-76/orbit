@@ -1,0 +1,138 @@
+<Window x:Class="Orbit.UI.TrayFlyout"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Orbit.UI"
+        Width="360" SizeToContent="Height" WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True"
+        Background="Transparent" ShowInTaskbar="False" Topmost="True" AllowDrop="True"
+        FontFamily="{StaticResource Manrope}" Foreground="{DynamicResource Text}">
+    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="10" Margin="8">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.22"/>
+        </Border.Effect>
+        <StackPanel>
+            <StackPanel Margin="16,16,16,14">
+                <!-- Device -->
+                <DockPanel>
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource Soft}" Margin="0,0,12,0">
+                        <ui:Ic Data="{StaticResource IcPhone}" Width="22" Height="22" Foreground="{DynamicResource SoftInk}"/>
+                    </Border>
+                    <Grid DockPanel.Dock="Right" Width="52" Height="52">
+                        <ui:Ring Value="{Binding Phone.BatteryFraction}" StrokeWidth="5" Track="{DynamicResource Track}" Fill="{DynamicResource Green}"/>
+                        <TextBlock x:Name="BatteryNum" FontSize="13" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="NameText" FontSize="15" FontWeight="ExtraBold" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="Dot" Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="LinkText" FontSize="12" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                    <ui:Ic Data="{StaticResource IcBolt}" Width="12" Height="12" Thickness="0" IconFill="{DynamicResource GreenInk}" Margin="0,0,6,0"/>
+                    <TextBlock Text="{Binding Phone.ChargeText}" Style="{StaticResource Caption}"/>
+                </StackPanel>
+
+                <!-- Quick actions -->
+                <UniformGrid Columns="5" Margin="-3,14,-3,0">
+                    <UniformGrid.Resources>
+                        <Style x:Key="Quick" TargetType="Button" BasedOn="{StaticResource Secondary}">
+                            <Setter Property="Height" Value="64"/>
+                            <Setter Property="Margin" Value="3,0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="FontSize" Value="11"/>
+                        </Style>
+                    </UniformGrid.Resources>
+                    <Button Style="{StaticResource Quick}" Click="Mirror_Click" ToolTip="Ctrl Alt M">
+                        <StackPanel><ui:Ic Data="{StaticResource IcMirror}" HorizontalAlignment="Center"/><TextBlock Text="Mirror" Margin="0,5,0,0"/></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Quick}" Background="{DynamicResource Accent}" BorderBrush="{DynamicResource Accent}" Foreground="{DynamicResource OnAccent}" Click="Clip_Click">
+                        <StackPanel><ui:Ic Data="{StaticResource IcClip}" HorizontalAlignment="Center"/><TextBlock Text="Clipboard" Margin="0,5,0,0"/></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Quick}" Click="File_Click">
+                        <StackPanel><ui:Ic Data="{StaticResource IcUpload}" HorizontalAlignment="Center"/><TextBlock Text="Send file" Margin="0,5,0,0"/></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Quick}" Click="Pause_Click">
+                        <StackPanel><ui:Ic Data="{StaticResource IcMoon}" HorizontalAlignment="Center"/><TextBlock x:Name="PauseText" Text="Pause" Margin="0,5,0,0"/></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Quick}" Click="Settings_Click">
+                        <StackPanel><ui:Ic Data="{StaticResource IcSettings}" HorizontalAlignment="Center"/><TextBlock Text="Settings" Margin="0,5,0,0"/></StackPanel>
+                    </Button>
+                </UniformGrid>
+
+                <!-- Drop strip -->
+                <Border x:Name="DropStrip" Height="44" CornerRadius="8" Margin="0,12,0,0" BorderThickness="1.5" Background="Transparent">
+                    <Border.BorderBrush>
+                        <VisualBrush>
+                            <VisualBrush.Visual>
+                                <Rectangle StrokeDashArray="4 3" Stroke="{DynamicResource DropBorder}" StrokeThickness="1.5" RadiusX="8" RadiusY="8"
+                                           Width="{Binding ActualWidth, ElementName=DropStrip}" Height="{Binding ActualHeight, ElementName=DropStrip}"/>
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </Border.BorderBrush>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ui:Ic Data="{StaticResource IcUpload}" Width="16" Height="16" Foreground="{DynamicResource SoftInk}" Margin="0,0,8,0"/>
+                        <TextBlock Text="Drop files here to send" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource SoftInk}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Buds -->
+                <Border x:Name="BudsCard" Margin="0,12,0,0" Padding="10" CornerRadius="8" BorderThickness="1"
+                        BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource BtnBg}">
+                    <StackPanel>
+                        <DockPanel>
+                            <ui:Ic Data="{StaticResource IcBuds}" Foreground="{DynamicResource SoftInk}" Margin="0,0,10,0"/>
+                            <Button x:Name="BudsPlayHere" DockPanel.Dock="Right" Style="{StaticResource Link}" Height="26" FontSize="11"
+                                    Background="{DynamicResource Soft}" Content="Play here" Click="BudsPlayHere_Click"/>
+                            <TextBlock VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis">
+                                <Run x:Name="BudsName" FontWeight="ExtraBold"/><Run x:Name="BudsInfo" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
+                            </TextBlock>
+                        </DockPanel>
+                        <Border Background="{DynamicResource Surface2}" CornerRadius="7" Padding="1" Margin="0,8,0,0">
+                            <UniformGrid x:Name="BudsModes" Columns="3"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Notifications -->
+            <Border Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" CornerRadius="0,0,10,10" Padding="8,10,8,6">
+                <StackPanel>
+                    <DockPanel Margin="8,0,8,4">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Clear all" FontSize="12" Click="ClearAll_Click"/>
+                        <TextBlock Text="Notifications" FontSize="12" FontWeight="ExtraBold" Foreground="{DynamicResource Text2}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock x:Name="NoNotifs" Text="You're all caught up." Style="{StaticResource Caption}" Margin="8,4,8,10"/>
+                    <ItemsControl x:Name="Notifs">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="8,4">
+                                    <Border Width="28" Height="28" CornerRadius="7" Background="{Binding Tint}" Margin="0,0,10,0" ClipToBounds="True">
+                                        <Grid>
+                                            <TextBlock Text="{Binding Initial}" Foreground="White" FontSize="11" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Image Source="{Binding Icon}" Width="28" Height="28"/>
+                                        </Grid>
+                                    </Border>
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Width="28" Height="28" Tag="{Binding Key}" Click="Dismiss_Click" AutomationProperties.Name="Dismiss">
+                                        <ui:Ic Data="{StaticResource IcClose}" Width="12" Height="12" Thickness="2"/>
+                                    </Button>
+                                    <StackPanel>
+                                        <TextBlock FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis">
+                                            <Run Text="{Binding Title, Mode=OneWay}"/><Run Text=" · " Foreground="{DynamicResource Text2}"/><Run Text="{Binding TimeText, Mode=OneWay}" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Text}" FontSize="12" Foreground="{DynamicResource Text2}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <DockPanel Margin="8,8,8,2">
+                        <ui:Logo Width="16" Height="16" Margin="0,0,8,0"/>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Open Orbit ›" FontSize="12" Click="Open_Click"/>
+                        <TextBlock Text="orbit" FontSize="12" FontWeight="ExtraBold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+</Window>

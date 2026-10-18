@@ -1,0 +1,69 @@
+<UserControl x:Class="Orbit.UI.Pages.PairPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Orbit.UI">
+    <ScrollViewer>
+        <Grid Margin="32" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="900">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource CardBox}" Padding="18" Margin="0,0,40,0" VerticalAlignment="Center" Background="White">
+                <Image Source="{Binding PairQr}" Width="260" Height="260" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+            </Border>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Pair your phone" Style="{StaticResource H1}" FontSize="34"/>
+                <TextBlock Style="{StaticResource Body}" Foreground="{DynamicResource Text2}" Margin="0,10,0,22" FontSize="15">
+                    Your phone and PC, in one orbit. Everything stays on your own cable, hotspot or Wi-Fi, and it's encrypted.
+                </TextBlock>
+
+                <ItemsControl FontSize="14">
+                    <ItemsControl.Items>
+                        <DockPanel Margin="0,0,0,12">
+                            <Border Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Soft}" Margin="0,0,12,0">
+                                <TextBlock Text="1" FontWeight="ExtraBold" Foreground="{DynamicResource SoftInk}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center">Open Orbit on your phone</TextBlock>
+                        </DockPanel>
+                        <DockPanel Margin="0,0,0,12">
+                            <Border Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Soft}" Margin="0,0,12,0">
+                                <TextBlock Text="2" FontWeight="ExtraBold" Foreground="{DynamicResource SoftInk}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center">Tap Scan QR code</TextBlock>
+                        </DockPanel>
+                        <DockPanel Margin="0,0,0,12">
+                            <Border Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Soft}" Margin="0,0,12,0">
+                                <TextBlock Text="3" FontWeight="ExtraBold" Foreground="{DynamicResource SoftInk}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center">Point it at this code. Connect with a USB cable, your phone's hotspot or the same Wi-Fi.</TextBlock>
+                        </DockPanel>
+                    </ItemsControl.Items>
+                </ItemsControl>
+
+                <Border Background="{DynamicResource Surface2}" CornerRadius="12" Padding="16" Margin="0,14,0,0">
+                    <StackPanel>
+                        <DockPanel>
+                            <Border Style="{StaticResource IconChip}" Margin="0,0,12,0"><ui:Ic Data="{StaticResource IcUsb}"/></Border>
+                            <Button x:Name="UsbBtn" DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="Pair over USB"
+                                    IsEnabled="{Binding CanPairOverUsb}" Click="PairUsb_Click"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Phone plugged in?" FontWeight="ExtraBold" FontSize="14"/>
+                                <TextBlock Text="{Binding UsbStatus}" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <TextBlock x:Name="UsbResult" Style="{StaticResource Caption}" Margin="44,8,0,0" Foreground="{DynamicResource SoftInk}"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                    <ui:Ic Data="{StaticResource IcLock}" Width="14" Height="14" Foreground="{DynamicResource Text2}" Margin="0,0,6,0"/>
+                    <TextBlock Style="{StaticResource Caption}">
+                        <Run Text="This PC: "/><Run Text="{Binding Settings.DeviceName, Mode=OneWay}" FontWeight="Bold"/><Run Text=" · TLS with a key pinned at pairing"/>
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,38 @@
+<Window x:Class="Orbit.UI.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Orbit.UI"
+        Title="About Orbit" Width="640" Height="680" MinWidth="480" MinHeight="420"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        FontFamily="{StaticResource Manrope}" Foreground="{DynamicResource Text}" Background="{DynamicResource Layer}">
+    <DockPanel Margin="28,24,28,24">
+        <DockPanel DockPanel.Dock="Top">
+            <ui:Logo Width="56" Height="56" Margin="0,0,18,0"/>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Orbit" FontSize="28" FontWeight="ExtraBold"/>
+                <TextBlock x:Name="VersionText" Style="{StaticResource Caption}" FontSize="13"/>
+            </StackPanel>
+        </DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" Style="{StaticResource Body}" FontWeight="Normal" Margin="0,18,0,0" Foreground="{DynamicResource Text2}">
+            Your phone and PC, in one orbit. Free and open-source software under the GNU Affero General Public License v3.0.
+            Orbit is an independent project, not affiliated with realme, OnePlus, OPPO, Samsung, Google, Microsoft or Genymobile.
+        </TextBlock>
+
+        <WrapPanel DockPanel.Dock="Top" Margin="0,16,0,0">
+            <Button Style="{StaticResource Secondary}" Content="Source code" Click="Repo_Click" Margin="0,0,8,8"/>
+            <Button Style="{StaticResource Secondary}" Content="Report a bug" Click="Issue_Click" Margin="0,0,8,8"/>
+            <Button Style="{StaticResource Secondary}" Content="Releases" Click="Releases_Click" Margin="0,0,8,8"/>
+            <Button Style="{StaticResource Secondary}" Content="Privacy" Click="Privacy_Click" Margin="0,0,8,8"/>
+            <Button Style="{StaticResource Secondary}" Content="License" Click="License_Click" Margin="0,0,8,8"/>
+        </WrapPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="Open-source licenses" Style="{StaticResource CardTitle}" Margin="0,14,0,8"/>
+        <Button DockPanel.Dock="Bottom" Style="{StaticResource Primary}" Content="Close" HorizontalAlignment="Right" Margin="0,16,0,0" Click="Close_Click" IsCancel="True"/>
+        <Border Style="{StaticResource CardBox}" Padding="0">
+            <TextBox x:Name="Notices" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0"
+                     Background="Transparent" Foreground="{DynamicResource Text}" FontFamily="{StaticResource Mono}" FontSize="12" Padding="14"
+                     AutomationProperties.Name="Open-source licenses"/>
+        </Border>
+    </DockPanel>
+</Window>
