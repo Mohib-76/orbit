@@ -41,6 +41,7 @@ object AppLinks {
     const val REPO = "https://github.com/Mohib-76/orbit"
     const val ISSUES = "$REPO/issues/new/choose"
     const val PRIVACY = "$REPO/blob/main/PRIVACY.md"
+    const val USB_DEBUGGING = "$REPO/blob/main/docs/TROUBLESHOOTING.md#turn-on-usb-debugging"
 }
 
 /** Version, project links and the open-source licenses (bundled from the repository root at build time). */

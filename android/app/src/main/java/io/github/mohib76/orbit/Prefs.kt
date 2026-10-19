@@ -41,8 +41,20 @@ class Prefs(private val ctx: Context) {
     var clipboardAutoReceive by bool("clip.auto", true)
     var mirrorNotifications by bool("notif.on", true)
     var autoAcceptFiles by bool("files.auto", true)
-    /** Mirrors the PC's setting; the PC is the one that actually flips USB tethering on. */
-    var autoUsbTethering by bool("usb.tether", true)
+    /**
+     * USB mode the PC applies when the cable is plugged in: "charging", "tethering" or "files". Synced with the PC,
+     * which is the one that actually switches it (over adb).
+     */
+    var usbMode: String
+        get() = sp.getString("usb.mode", null) ?: if (sp.getBoolean("usb.tether", true)) "tethering" else "charging"
+        set(v) = sp.edit().putString("usb.mode", v).apply()
+    /** Skip "Turn off USB tethering?". */
+    var usbSkipConfirm by bool("usb.skipConfirm", false)
+
+    /** Show what's playing on the PC (Home card and the system media player). */
+    var showPcMedia by bool("media.showPc", true)
+    /** Let the PC play, pause and skip media on this phone. */
+    var pcControlsMedia by bool("media.pcControl", true)
 
     /** "system", "light" or "dark". */
     var theme: String

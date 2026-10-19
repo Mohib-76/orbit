@@ -1,6 +1,5 @@
 using System.Text.Json.Nodes;
 using Orbit.Core.Buds;
-using Windows.Media.Control;
 
 namespace Orbit.Core;
 
@@ -35,7 +34,7 @@ public sealed partial class OrbitCore
     void StartBuds()
     {
         BudsLocal.Changed += () => { Ui.Run(() => BudsChanged?.Invoke()); SchedulePublishBuds(); };
-        _ = Task.Run(MediaLoop);
+        StartMedia();
         if (Settings.BudsEnabled) _ = EnableBudsAsync();
     }
 
@@ -148,40 +147,7 @@ public sealed partial class OrbitCore
 
     // ---------------------------------------------------------------- media ("Play here")
 
-    GlobalSystemMediaTransportControlsSessionManager? _media;
-
-    async Task MediaLoop()
-    {
-        try { _media = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync(); }
-        catch (Exception ex) { Log.Write("media: " + ex.Message); return; }
-        while (!_cts.IsCancellationRequested)
-        {
-            try
-            {
-                var playing = _media.GetCurrentSession()?.GetPlaybackInfo()?.PlaybackStatus ==
-                              GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
-                if (playing != PlayingHere)
-                {
-                    PlayingHere = playing;
-                    SchedulePublishBuds();
-                    Ui.Run(() => BudsChanged?.Invoke());
-                }
-            }
-            catch { }
-            await Task.Delay(Settings.BudsEnabled ? 2000 : 10000);
-        }
-    }
-
-    async Task MediaAsync(bool play)
-    {
-        try
-        {
-            var s = _media?.GetCurrentSession();
-            if (s == null) return;
-            if (play) await s.TryPlayAsync(); else await s.TryPauseAsync();
-        }
-        catch (Exception ex) { Log.Write("media: " + ex.Message); }
-    }
+    Task MediaAsync(bool play) => LocalMedia.CommandAsync(null, play ? "play" : "pause");
 
     /// <summary>Moves playback to this PC (true) or the phone (false). The buds follow whichever device plays.</summary>
     public void PlayOn(bool pc)

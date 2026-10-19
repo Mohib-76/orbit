@@ -12,7 +12,7 @@ or over a USB cable with USB debugging on. On a shared Wi-Fi it searches the net
 
 ## Turn on USB debugging
 
-Needed for Pair over USB, auto USB tethering and screen mirroring.
+Needed for Pair over USB, USB modes (charging, tethering, file sharing) and screen mirroring.
 
 1. On the phone: *Settings → About phone → Software information* (varies by brand) → tap **Build number** seven times.
 2. *Settings → Developer options* → turn on **USB debugging**.

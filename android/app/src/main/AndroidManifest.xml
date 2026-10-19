@@ -141,6 +141,7 @@
         </receiver>
 
         <receiver android:name=".ActionReceiver" android:exported="false" />
+        <receiver android:name=".media.Media$MediaActionReceiver" android:exported="false" />
         <receiver android:name=".mirror.MirrorReceiver" android:exported="false" />
 
         <service

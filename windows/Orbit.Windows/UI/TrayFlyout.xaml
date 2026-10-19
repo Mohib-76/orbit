@@ -33,6 +33,18 @@
                     <TextBlock Text="{Binding Phone.ChargeText}" Style="{StaticResource Caption}"/>
                 </StackPanel>
 
+                <!-- USB mode (only while a cable is in) -->
+                <StackPanel x:Name="UsbBox" Margin="0,12,0,0" Visibility="Collapsed">
+                    <ContentControl x:Name="UsbSwitchHost" Focusable="False"/>
+                    <DockPanel Margin="0,6,0,0" MinHeight="24">
+                        <Button x:Name="UsbOpen" DockPanel.Dock="Right" Style="{StaticResource Primary}" Height="24" Padding="8,0" FontSize="11"
+                                Content="Open in Explorer" Click="UsbOpen_Click" Visibility="Collapsed"/>
+                        <Button x:Name="UsbLink" DockPanel.Dock="Right" Style="{StaticResource Link}" Height="24" FontSize="11" Click="UsbLink_Click"/>
+                        <ui:Ic x:Name="UsbIcon" Data="{StaticResource IcCable}" Width="12" Height="12" Thickness="2.2" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="UsbText" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    </DockPanel>
+                </StackPanel>
+
                 <!-- Quick actions -->
                 <UniformGrid Columns="5" Margin="-3,14,-3,0">
                     <UniformGrid.Resources>
@@ -60,39 +72,68 @@
                     </Button>
                 </UniformGrid>
 
-                <!-- Drop strip -->
-                <Border x:Name="DropStrip" Height="44" CornerRadius="8" Margin="0,12,0,0" BorderThickness="1.5" Background="Transparent">
-                    <Border.BorderBrush>
-                        <VisualBrush>
-                            <VisualBrush.Visual>
-                                <Rectangle StrokeDashArray="4 3" Stroke="{DynamicResource DropBorder}" StrokeThickness="1.5" RadiusX="8" RadiusY="8"
-                                           Width="{Binding ActualWidth, ElementName=DropStrip}" Height="{Binding ActualHeight, ElementName=DropStrip}"/>
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </Border.BorderBrush>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <ui:Ic Data="{StaticResource IcUpload}" Width="16" Height="16" Foreground="{DynamicResource SoftInk}" Margin="0,0,8,0"/>
-                        <TextBlock Text="Drop files here to send" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource SoftInk}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Buds -->
-                <Border x:Name="BudsCard" Margin="0,12,0,0" Padding="10" CornerRadius="8" BorderThickness="1"
+                <!-- Listening: the phone's player and the buds -->
+                <Border x:Name="BudsCard" Margin="0,12,0,0" CornerRadius="8" BorderThickness="1"
                         BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource BtnBg}">
                     <StackPanel>
-                        <DockPanel>
-                            <ui:Ic Data="{StaticResource IcBuds}" Foreground="{DynamicResource SoftInk}" Margin="0,0,10,0"/>
-                            <Button x:Name="BudsPlayHere" DockPanel.Dock="Right" Style="{StaticResource Link}" Height="26" FontSize="11"
-                                    Background="{DynamicResource Soft}" Content="Play here" Click="BudsPlayHere_Click"/>
-                            <TextBlock VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis">
-                                <Run x:Name="BudsName" FontWeight="ExtraBold"/><Run x:Name="BudsInfo" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
-                            </TextBlock>
-                        </DockPanel>
-                        <Border Background="{DynamicResource Surface2}" CornerRadius="7" Padding="1" Margin="0,8,0,0">
-                            <UniformGrid x:Name="BudsModes" Columns="3"/>
+                        <StackPanel x:Name="MediaRow" Visibility="Collapsed">
+                            <DockPanel Margin="10,10,10,8">
+                                <Border Width="40" Height="40" CornerRadius="6" Margin="0,0,10,0" ClipToBounds="True">
+                                    <Grid>
+                                        <Border x:Name="MArtNone" CornerRadius="6">
+                                            <TextBlock x:Name="MArtInitial" Foreground="White" FontSize="15" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <Border x:Name="MArtBox" CornerRadius="6">
+                                            <Border.Background><ImageBrush x:Name="MArt" Stretch="UniformToFill"/></Border.Background>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                <Button x:Name="MNext" DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Width="28" Height="32" Click="MediaNext_Click" AutomationProperties.Name="Next">
+                                    <ui:Ic x:Name="MNextIcon" Data="{StaticResource IcNext}" Width="14" Height="14" Thickness="0" IconFill="{DynamicResource Text}"/>
+                                </Button>
+                                <Button x:Name="MPlay" DockPanel.Dock="Right" Style="{StaticResource PlayBtn}" Width="32" Height="32" Margin="2,0" Click="MediaPlay_Click" AutomationProperties.Name="Play or pause">
+                                    <ui:Ic x:Name="MPlayIcon" Data="{StaticResource IcPause}" Width="14" Height="14" Thickness="0" IconFill="{DynamicResource OnAccent}"/>
+                                </Button>
+                                <Button x:Name="MPrev" DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Width="28" Height="32" Margin="6,0,0,0" Click="MediaPrev_Click" AutomationProperties.Name="Previous">
+                                    <ui:Ic x:Name="MPrevIcon" Data="{StaticResource IcPrev}" Width="14" Height="14" Thickness="0" IconFill="{DynamicResource Text}"/>
+                                </Button>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock FontSize="12" TextTrimming="CharacterEllipsis">
+                                        <Run x:Name="MTitle" FontWeight="ExtraBold"/><Run x:Name="MArtist" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
+                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border x:Name="MAppChip" Width="12" Height="12" CornerRadius="3" Margin="0,0,5,0" VerticalAlignment="Center">
+                                            <TextBlock x:Name="MAppInitial" Foreground="White" FontSize="7" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock x:Name="MWhere" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Text2}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DockPanel>
+                            <DockPanel Margin="10,0,10,8">
+                                <TextBlock x:Name="MPos" FontFamily="{StaticResource Mono}" FontSize="10" Foreground="{DynamicResource Text2}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock x:Name="MLen" DockPanel.Dock="Right" FontFamily="{StaticResource Mono}" FontSize="10" Foreground="{DynamicResource Text2}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <ui:SeekBar x:Name="MBar" Height="16" BarHeight="4" Track="{DynamicResource Track}" Ring="{DynamicResource BtnBg}"
+                                            AutomationProperties.Name="Seek"/>
+                            </DockPanel>
+                        </StackPanel>
+                        <Border x:Name="BudsPart" Padding="10" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0">
+                            <StackPanel>
+                                <DockPanel>
+                                    <ui:Ic Data="{StaticResource IcBuds}" Foreground="{DynamicResource SoftInk}" Width="16" Height="16" Margin="0,0,10,0"/>
+                                    <Button x:Name="BudsPlayHere" DockPanel.Dock="Right" Style="{StaticResource Link}" Height="24" FontSize="11"
+                                            Background="{DynamicResource Soft}" Content="Play here" Click="BudsPlayHere_Click"/>
+                                    <TextBlock VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis">
+                                        <Run x:Name="BudsName" FontWeight="ExtraBold"/><Run x:Name="BudsInfo" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
+                                    </TextBlock>
+                                </DockPanel>
+                                <Border Background="{DynamicResource Surface2}" CornerRadius="7" Padding="1" Margin="0,8,0,0">
+                                    <UniformGrid x:Name="BudsModes" Columns="3"/>
+                                </Border>
+                            </StackPanel>
                         </Border>
                     </StackPanel>
                 </Border>
+
             </StackPanel>
 
             <!-- Notifications -->
@@ -118,9 +159,9 @@
                                     </Button>
                                     <StackPanel>
                                         <TextBlock FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis">
-                                            <Run Text="{Binding Title, Mode=OneWay}"/><Run Text=" · " Foreground="{DynamicResource Text2}"/><Run Text="{Binding TimeText, Mode=OneWay}" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
+                                            <Run Text="{Binding TitleLine, Mode=OneWay}"/><Run Text=" · " Foreground="{DynamicResource Text2}"/><Run Text="{Binding TimeText, Mode=OneWay}" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
                                         </TextBlock>
-                                        <TextBlock Text="{Binding Text}" FontSize="12" Foreground="{DynamicResource Text2}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding TextLine}" FontSize="12" Foreground="{DynamicResource Text2}" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                 </DockPanel>
                             </DataTemplate>

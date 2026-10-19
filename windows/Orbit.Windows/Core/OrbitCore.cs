@@ -25,7 +25,6 @@ public sealed partial class OrbitCore : Observable
     string? _pairToken;
     string? _usbSerial;          // adb device that has Orbit installed and is forwarded
     bool _usbForwardActive;
-    readonly Dictionary<string, DateTime> _tetherAttempt = new();
 
     // ---------- observable bits for the UI ----------
     string _pairQrPayload = "";
@@ -59,7 +58,7 @@ public sealed partial class OrbitCore : Observable
         }
         else BeginPairing();
 
-        Adb.DevicesChanged += () => _ = RefreshUsbAsync();
+        Adb.DevicesChanged += () => { TrackUsbPresence(); _ = RefreshUsbAsync(); };
         Adb.DeviceOnline += serial => _ = OnUsbDeviceOnlineAsync(serial);
         Adb.Start();
         UpdateUsbStatus();
@@ -384,6 +383,7 @@ public sealed partial class OrbitCore : Observable
         ResumeTransfers();
         PublishBuds();
         SendMirrorState();
+        OnMediaConnected();
 
         try
         {
@@ -404,6 +404,8 @@ public sealed partial class OrbitCore : Observable
             link.Dispose();
             _link = null;
             OnBudsPeerGone();
+            OnMediaPeerGone();
+            OnUsbPeerGone();
             Log.Write("disconnected");
             Ui.Run(() =>
             {
@@ -438,18 +440,27 @@ public sealed partial class OrbitCore : Observable
             case "orbit.buds.state": OnBudsPeerState(b); break;
             case "orbit.buds.cmd": OnBudsCommand(b); break;
             case "orbit.media": _ = MediaAsync(b["action"]?.GetValue<string>() == "play"); break;
+            case "orbit.media.state": OnPhoneMedia(b); break;
+            case "orbit.media.art": OnPhoneMediaArt(b); break;
+            case "orbit.media.cmd": OnMediaCommand(b); break;
+            case "orbit.usb.state": OnPhoneUsbState(b); break;
+            case "orbit.usb.set": _ = SetUsbModeAsync(b["mode"]?.GetValue<string>() ?? "", fromPhone: true); break;
             case "orbit.mirror.cmd": OnMirrorCommand(b); break;
             case "orbit.mirror.info": OnMirrorInfo(b); break;
             case "orbit.settings":
                 if (b["budsEnabled"] is { } be && be.GetValue<bool>() != Settings.BudsEnabled)
                     SetBudsEnabled(be.GetValue<bool>(), fromPeer: true);
-                if (b["autoUsbTethering"] is { } aut)
+                // Older phones only send autoUsbTethering.
+                var usbMode = b["usbMode"]?.GetValue<string>()
+                    ?? (b["autoUsbTethering"] is { } aut ? (aut.GetValue<bool>() ? UsbModes.Tethering : UsbModes.Charging) : null);
+                if (usbMode != null && UsbModes.Normalize(usbMode) != Settings.UsbMode)
                 {
-                    Settings.AutoUsbTethering = aut.GetValue<bool>();
+                    Settings.UsbMode = UsbModes.Normalize(usbMode);
                     Settings.Save();
                     Ui.Run(() => Raise(nameof(Settings)));
-                    if (Settings.AutoUsbTethering && Adb.FirstReadySerial() is { } s) _ = OnUsbDeviceOnlineAsync(s);
+                    RaiseUsb();
                 }
+                if (b["mediaWanted"] is { } mw) OnPeerMediaWanted(mw.GetValue<bool>());
                 break;
             case "orbit.unpair":
                 Settings.Phone = null; Settings.Save();
@@ -463,10 +474,12 @@ public sealed partial class OrbitCore : Observable
 
     public void SendSettings() => _link?.Post("orbit.settings", new JsonObject
     {
-        ["autoUsbTethering"] = Settings.AutoUsbTethering,
+        ["autoUsbTethering"] = Settings.UsbMode == UsbModes.Tethering,
+        ["usbMode"] = Settings.UsbMode,
         ["pcName"] = Settings.DeviceName,
         ["clipboardAutoSync"] = Settings.ClipboardAutoSync,
-        ["budsEnabled"] = Settings.BudsEnabled
+        ["budsEnabled"] = Settings.BudsEnabled,
+        ["mediaWanted"] = Settings.MediaShowPhone
     });
 
     // =====================================================================
@@ -510,36 +523,15 @@ public sealed partial class OrbitCore : Observable
         try
         {
             var hasOrbit = await Adb.HasOrbitAsync(serial);
-            if (Settings.AutoUsbTethering)
-            {
-                bool recent;
-                lock (_tetherAttempt)
-                {
-                    recent = _tetherAttempt.TryGetValue(serial, out var at) && DateTime.Now - at < TimeSpan.FromSeconds(30);
-                    if (!recent) _tetherAttempt[serial] = DateTime.Now;
-                }
-                if (!recent)
-                {
-                    var r = await Adb.EnsureUsbTetheringAsync(serial);
-                    Log.Write("usb tethering: " + r);
-                    if (r == "turned on") Toasts.Simple("USB tethering on", "Your laptop is now using your phone's internet.");
-                }
-            }
             if (hasOrbit && Settings.UseUsbLink)
             {
                 var (code, _) = await Adb.RunAsync($"-s {serial} forward tcp:{Proto.UsbForwardPort} tcp:{Proto.PhonePort}");
                 if (code == 0) { _usbSerial = serial; _usbForwardActive = true; _kick.Release(); }
             }
             Ui.Run(() => { CanPairOverUsb = hasOrbit; UpdateUsbStatus(); });
+            await OnUsbOnlineAsync(serial);
         }
         catch (Exception ex) { Log.Write("usb online: " + ex.Message); }
-    }
-
-    public async Task<string> TetherNowAsync()
-    {
-        var serial = Adb.FirstReadySerial();
-        if (serial == null) return Adb.AnyUnauthorized() ? "Tap \"Allow\" on your phone's USB debugging prompt." : "No phone on USB.";
-        return "USB tethering " + await Adb.EnsureUsbTetheringAsync(serial);
     }
 
     void UpdateUsbStatus()

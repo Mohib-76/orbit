@@ -21,10 +21,15 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add("Open Orbit", null, (_, _) => App.Current.ShowMain());
         menu.Items.Add("Send clipboard to phone", null, (_, _) => App.Current.SendClipboardNow());
         menu.Items.Add("Send files…", null, (_, _) => App.Current.PickAndSendFiles());
-        menu.Items.Add("Turn on USB tethering", null, async (_, _) => Balloon("USB tethering", await App.Core.TetherNowAsync()));
-        var cycle = new WF.ToolStripMenuItem("Cycle noise control (Ctrl+Alt+B)", null, (_, _) => App.Current.CycleNoiseMode());
+        var media = new WF.ToolStripMenuItem("Play/pause on phone", null, (_, _) => App.Current.TogglePhoneMedia());
+        menu.Items.Add(media);
+        var cycle = new WF.ToolStripMenuItem("Cycle noise control", null, (_, _) => App.Current.CycleNoiseMode());
         menu.Items.Add(cycle);
-        menu.Opening += (_, _) => cycle.Visible = App.Core.BudsEnabled;
+        menu.Opening += (_, _) =>
+        {
+            media.Visible = App.Core.PhonePlayer != null;
+            cycle.Visible = App.Core.BudsEnabled;
+        };
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add("Quit Orbit", null, (_, _) => App.Current.Quit());
         _icon.ContextMenuStrip = menu;

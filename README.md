@@ -19,15 +19,16 @@ or the same Wi-Fi. End-to-end encrypted, no account, no cloud.
 | **Files** | Drag and drop onto Orbit, or *Share → Orbit* on the phone. Progress, and automatic resume if the link drops |
 | **Battery** | Phone battery, charging and "full in …" in the window, tray and flyout, with a low-battery alert |
 | **Screen mirroring** | See and control the phone on the PC: mouse, keyboard, audio, screenshots, recording. Over USB, or Wi-Fi after a one-time setup |
-| **Auto USB tethering** | Plug the phone in and the laptop goes online through it |
+| **Media controls** | See what's playing on the other device and play, pause, skip or seek it. Phone music also shows in the Windows media controls, and PC playback in the phone's media player |
+| **USB modes** | Choose what the cable does: charging only, USB tethering (the laptop goes online through the phone) or file sharing (the phone opens in File Explorer). Switch any time from either device |
 | **Earbuds** | Battery, noise control (Off / Transparency / ANC), sound features and tap actions for realme and OnePlus buds, on both devices |
 
 ### What needs what
 
 | Feature | Needs |
 |---|---|
-| Clipboard, notifications, files, battery | Nothing extra: USB tethering, hotspot or same Wi-Fi |
-| Pair over USB, auto USB tethering, mirroring over USB | **USB debugging** on the phone ([how](docs/TROUBLESHOOTING.md#turn-on-usb-debugging)) |
+| Clipboard, notifications, files, battery, media controls | Nothing extra: USB tethering, hotspot or same Wi-Fi |
+| Pair over USB, USB modes, mirroring over USB | **USB debugging** on the phone ([how](docs/TROUBLESHOOTING.md#turn-on-usb-debugging)) |
 | Mirroring over Wi-Fi | Wireless debugging (one-time QR setup in Orbit) and the same Wi-Fi network |
 | Earbuds | realme / OnePlus buds that use the realme Link or HeyMelody app (tested: realme Buds T310), paired over Bluetooth |
 

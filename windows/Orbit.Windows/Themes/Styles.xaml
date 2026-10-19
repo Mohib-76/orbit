@@ -280,6 +280,74 @@
     <Geometry x:Key="IcModeTrans">M8 15.5c0 2 1.3 3.5 3 3.5 2.5 0 2.5-3 4-4.5 1.3-1.3 2-2.6 2-4.5a5 5 0 0 0-10 0 M10 10a2 2 0 0 1 4 0 M19.5 6.5a7 7 0 0 1 0 7</Geometry>
     <Geometry x:Key="IcModeAnc">M12 3 5 6v5.5c0 4.2 3 7.6 7 8.5 4-0.9 7-4.3 7-8.5V6z M9 12l2 2 4-4</Geometry>
     <Geometry x:Key="IcChevronDown">m6 9 6 6 6-6</Geometry>
+    <!-- Media (filled: draw with Thickness="0" and IconFill) -->
+    <Geometry x:Key="IcPlay">M7 4v16l13-8z</Geometry>
+    <Geometry x:Key="IcPause">M6 4h4v16H6z M14 4h4v16h-4z</Geometry>
+    <Geometry x:Key="IcNext">M15 5h2v14h-2z M4 5v14l10-7z</Geometry>
+    <Geometry x:Key="IcPrev">M7 5h2v14H7z M20 5v14l-10-7z</Geometry>
+    <Geometry x:Key="IcInfo">M12 8v5 M12 16h0.01 M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18z</Geometry>
+    <Geometry x:Key="IcSwitching">M20 11a8 8 0 0 0-14.5-4.5L4 8 M4 4v4h4</Geometry>
+    <Geometry x:Key="IcCable">M9 2v6 M15 2v6 M7 8h10v4a5 5 0 0 1-10 0z M12 17v5</Geometry>
+
+    <!-- Segmented control with a raised "card" selection (USB mode) -->
+    <Style x:Key="SegmentCard" TargetType="RadioButton">
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Margin" Value="1.5"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="b" CornerRadius="7" Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource RailHover}"/></Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="b" Property="Background" Value="{DynamicResource SegSel}"/>
+                            <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Accent}"/></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{DynamicResource DisabledInk}"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Round media button (Previous / Next) -->
+    <Style x:Key="MediaBtn" TargetType="Button" BasedOn="{StaticResource IconBtn}">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+    </Style>
+    <Style x:Key="PlayBtn" TargetType="Button">
+        <Setter Property="Width" Value="44"/>
+        <Setter Property="Height" Value="44"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+        <Setter Property="Background" Value="{DynamicResource Accent}"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="22" BorderThickness="1.5" BorderBrush="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.88"/></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.75"/></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Text}"/></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.45"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <!-- Segmented control (noise mode) -->
     <Style x:Key="Segment" TargetType="RadioButton">

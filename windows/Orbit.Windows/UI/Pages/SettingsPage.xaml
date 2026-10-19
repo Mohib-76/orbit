@@ -37,6 +37,39 @@
             <Setter Property="Background" Value="{DynamicResource Track}"/>
             <Setter Property="Margin" Value="12,0"/>
         </Style>
+        <!-- A radio choice drawn as a card: dot, title, description -->
+        <Style x:Key="RadioCard" TargetType="RadioButton">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="b" CornerRadius="12" Padding="14" BorderThickness="1" BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource Card}">
+                            <DockPanel>
+                                <Grid Width="18" Height="18" Margin="0,1,12,0" VerticalAlignment="Top">
+                                    <Ellipse x:Name="ring" Stroke="{DynamicResource ToggleOff}" StrokeThickness="2"/>
+                                    <Ellipse x:Name="dot" Width="8" Height="8" Fill="{DynamicResource Accent}" Visibility="Collapsed"/>
+                                </Grid>
+                                <ContentPresenter/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource BtnHover}"/></Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="b" Property="BorderThickness" Value="1.5"/>
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource DropBg}"/>
+                                <Setter TargetName="ring" Property="Stroke" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="dot" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Text}"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer>
@@ -69,21 +102,50 @@
                 </StackPanel>
             </Border>
 
+            <!-- USB cable default -->
+            <Border Style="{StaticResource Section}" Padding="18,16">
+                <StackPanel>
+                    <WrapPanel>
+                        <TextBlock Text="When the cable is connected" FontSize="15" FontWeight="ExtraBold" Margin="0,0,10,0" VerticalAlignment="Bottom"/>
+                        <TextBlock x:Name="UsbSyncedLine" Style="{StaticResource Caption}" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                    </WrapPanel>
+                    <UniformGrid x:Name="UsbChoices" Columns="3" Margin="-5,7,-5,0">
+                        <RadioButton x:Name="UsbCharging" Style="{StaticResource RadioCard}" GroupName="usbDefault" Tag="charging" Checked="UsbDefault_Checked"
+                                     AutomationProperties.Name="Charging only">
+                            <StackPanel>
+                                <TextBlock Text="Charging only" FontSize="14" FontWeight="ExtraBold"/>
+                                <TextBlock Text="The cable just charges. Orbit keeps working over Wi-Fi or hotspot." Style="{StaticResource Caption}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton x:Name="UsbTethering" Style="{StaticResource RadioCard}" GroupName="usbDefault" Tag="tethering" Checked="UsbDefault_Checked"
+                                     AutomationProperties.Name="USB tethering">
+                            <StackPanel>
+                                <TextBlock Text="USB tethering" FontSize="14" FontWeight="ExtraBold"/>
+                                <TextBlock Text="This laptop gets internet from the phone." Style="{StaticResource Caption}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton x:Name="UsbFiles" Style="{StaticResource RadioCard}" GroupName="usbDefault" Tag="files" Checked="UsbDefault_Checked"
+                                     AutomationProperties.Name="File sharing">
+                            <StackPanel>
+                                <TextBlock Text="File sharing" FontSize="14" FontWeight="ExtraBold"/>
+                                <TextBlock Text="The phone appears in File Explorer under This PC." Style="{StaticResource Caption}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </UniformGrid>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <ui:Ic Data="{StaticResource IcInfo}" Width="14" Height="14" Thickness="2" Foreground="{DynamicResource Text2}" Margin="0,0,8,0"/>
+                        <TextBlock Text="Needs USB debugging on the phone." Style="{StaticResource Caption}" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource Link}" Content="How" FontSize="12" Height="22" Click="UsbHelp_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <UniformGrid x:Name="Grid2" Columns="2">
 
                 <!-- Connection -->
                 <Border Style="{StaticResource Section}">
                     <StackPanel>
                         <TextBlock Text="Connection" Style="{StaticResource SectionTitle}"/>
-                        <DockPanel Style="{StaticResource Row}">
-                            <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.AutoUsbTethering}" Click="Tether_Click"
-                                      AutomationProperties.Name="Auto USB tethering" Margin="12,0,0,0"/>
-                            <StackPanel>
-                                <TextBlock Text="Auto USB tethering" Style="{StaticResource RowTitle}"/>
-                                <TextBlock Style="{StaticResource Caption}" Text="When you plug your phone into this laptop, turn on USB tethering so the laptop uses the phone's internet. Needs USB debugging on the phone."/>
-                            </StackPanel>
-                        </DockPanel>
-                        <Border Style="{StaticResource Rule}"/>
                         <DockPanel Style="{StaticResource Row}">
                             <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Settings.UseUsbLink}" Click="Save"
                                       AutomationProperties.Name="Use the USB cable" Margin="12,0,0,0"/>
@@ -94,7 +156,6 @@
                         </DockPanel>
                         <Border Style="{StaticResource Rule}"/>
                         <DockPanel Style="{StaticResource Row}">
-                            <Button DockPanel.Dock="Right" Style="{StaticResource Small}" Content="Turn on now" Click="TetherNow_Click" Margin="12,0,0,0"/>
                             <StackPanel>
                                 <TextBlock Text="USB" Style="{StaticResource RowTitle}"/>
                                 <TextBlock x:Name="UsbLine" Style="{StaticResource Caption}" Text="{Binding UsbStatus}"/>
@@ -170,6 +231,40 @@
                             <StackPanel>
                                 <TextBlock Text="Works with" Style="{StaticResource RowTitle}"/>
                                 <TextBlock Text="realme and OnePlus buds that use the realme Link / HeyMelody app (tested: realme Buds T310). Other buds simply won't show controls." Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Media -->
+                <Border Style="{StaticResource Section}">
+                    <StackPanel>
+                        <TextBlock Text="Media" Style="{StaticResource SectionTitle}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox x:Name="MediaShowToggle" DockPanel.Dock="Right" Style="{StaticResource Switch}" Checked="MediaShow_Changed" Unchecked="MediaShow_Changed"
+                                      AutomationProperties.Name="Show phone media on this PC" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Show phone media on this PC" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}" Text="A player card on Home and in the tray."/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <CheckBox x:Name="MediaKeysToggle" DockPanel.Dock="Right" Style="{StaticResource Switch}" Checked="MediaKeys_Changed" Unchecked="MediaKeys_Changed"
+                                      AutomationProperties.Name="Use keyboard media keys for the phone" Margin="12,0,0,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Use keyboard media keys for the phone" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Style="{StaticResource Caption}" Text="Phone music appears in the Windows media controls. Media keys then control your phone when it's the one playing."/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Clear" Tag="media" Click="HotkeyClear_Click" Margin="6,0,0,0"/>
+                            <TextBox DockPanel.Dock="Right" x:Name="HkMedia" Tag="media" Style="{StaticResource Field}" Width="150" IsReadOnly="True"
+                                     PreviewKeyDown="Hotkey_KeyDown" AutomationProperties.Name="Shortcut: play or pause the phone" FontFamily="{StaticResource Mono}"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Shortcut: play/pause phone" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="MediaHotkeyHint" Style="{StaticResource Caption}" Text="Works from anywhere while the phone is connected."/>
                             </StackPanel>
                         </DockPanel>
                     </StackPanel>

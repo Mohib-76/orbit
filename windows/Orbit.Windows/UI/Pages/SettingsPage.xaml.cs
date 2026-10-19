@@ -21,9 +21,12 @@ public partial class SettingsPage : UserControl
         BatteryBox.SelectedItem = BatteryBox.Items.OfType<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == Core.Settings.LowBatteryThreshold.ToString())
                                   ?? BatteryBox.Items[2];
         ShowHotkeys();
+        ShowUsbDefault();
+        ShowMedia();
+        Core.UsbChanged += () => { if (IsVisible) ShowUsbDefault(); };
         Core.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(OrbitCore.VersionWarning)) ShowVersionWarning(); };
         ShowVersionWarning();
-        SizeChanged += (_, _) => Grid2.Columns = ActualWidth < 900 ? 1 : 2;
+        SizeChanged += (_, _) => { Grid2.Columns = ActualWidth < 900 ? 1 : 2; UsbChoices.Columns = ActualWidth < 820 ? 1 : 3; };
         Core.Phone.PropertyChanged += (_, _) => Refresh();
         Core.PropertyChanged += (_, e) =>
         {
@@ -34,7 +37,7 @@ public partial class SettingsPage : UserControl
                 var dc = DataContext; DataContext = null; DataContext = dc;
             }
         };
-        IsVisibleChanged += (_, _) => { if (IsVisible) { Refresh(); RefreshBuds(); } };
+        IsVisibleChanged += (_, _) => { if (IsVisible) { Refresh(); RefreshBuds(); ShowUsbDefault(); ShowMedia(); } };
         Core.BudsChanged += () => { if (IsVisible) BudsPickStateOnly(); };
         Refresh();
         RefreshBuds();
@@ -113,14 +116,52 @@ public partial class SettingsPage : UserControl
         Core.SelectBuds(c.Mac, c.Name);
     }
 
-    void Tether_Click(object s, RoutedEventArgs e)
+    // ---------------- USB cable default, media
+
+    bool _usbLoading;
+
+    void ShowUsbDefault()
     {
-        Save(s, e);
-        if (Core.Settings.AutoUsbTethering) _ = Core.TetherNowAsync();
+        _usbLoading = true;
+        UsbCharging.IsChecked = Core.Settings.UsbMode == UsbModes.Charging;
+        UsbTethering.IsChecked = Core.Settings.UsbMode == UsbModes.Tethering;
+        UsbFiles.IsChecked = Core.Settings.UsbMode == UsbModes.Files;
+        _usbLoading = false;
+        var phone = Core.Settings.Phone?.Name;
+        UsbSyncedLine.Text = (phone != null ? $"Synced with {phone}. " : "") + "You can switch any time from Home or the tray.";
     }
 
-    async void TetherNow_Click(object s, RoutedEventArgs e) =>
-        MessageBox.Show(await Core.TetherNowAsync(), "USB tethering", MessageBoxButton.OK, MessageBoxImage.Information);
+    void UsbDefault_Checked(object s, RoutedEventArgs e)
+    {
+        if (_usbLoading || s is not FrameworkElement { Tag: string mode } || mode == Core.Settings.UsbMode) return;
+        Core.SetUsbDefault(mode);
+    }
+
+    void UsbHelp_Click(object s, RoutedEventArgs e) => App.OpenUrl(AppInfo.UsbDebuggingHelpUrl);
+
+    bool _mediaLoading;
+
+    void ShowMedia()
+    {
+        _mediaLoading = true;
+        MediaShowToggle.IsChecked = Core.Settings.MediaShowPhone;
+        MediaKeysToggle.IsChecked = Core.Settings.MediaKeys;
+        MediaKeysToggle.IsEnabled = Core.Settings.MediaShowPhone;
+        _mediaLoading = false;
+    }
+
+    void MediaShow_Changed(object s, RoutedEventArgs e)
+    {
+        if (_mediaLoading) return;
+        Core.SetMediaShowPhone(MediaShowToggle.IsChecked == true);
+        ShowMedia();
+    }
+
+    void MediaKeys_Changed(object s, RoutedEventArgs e)
+    {
+        if (_mediaLoading) return;
+        Core.SetMediaKeys(MediaKeysToggle.IsChecked == true);
+    }
 
     void Startup_Click(object s, RoutedEventArgs e) { Save(s, e); AutoStart.Apply(Core.Settings.StartWithWindows); }
 
@@ -216,13 +257,14 @@ public partial class SettingsPage : UserControl
 
     // ---------------- keyboard shortcuts
 
-    TextBox BoxFor(string which) => which switch { "noise" => HkNoise, "mirror" => HkMirror, _ => HkClipboard };
+    TextBox BoxFor(string which) => which switch { "noise" => HkNoise, "mirror" => HkMirror, "media" => HkMedia, _ => HkClipboard };
 
     void ShowHotkeys()
     {
         HkClipboard.Text = Show(Core.Settings.HotkeyClipboard);
         HkNoise.Text = Show(Core.Settings.HotkeyNoise);
         HkMirror.Text = Show(Core.Settings.HotkeyMirror);
+        HkMedia.Text = Show(Core.Settings.HotkeyMedia);
         static string Show(string s) => string.IsNullOrEmpty(s) ? "Off" : s;
     }
 
@@ -232,6 +274,7 @@ public partial class SettingsPage : UserControl
         {
             case "noise": Core.Settings.HotkeyNoise = value; break;
             case "mirror": Core.Settings.HotkeyMirror = value; break;
+            case "media": Core.Settings.HotkeyMedia = value; break;
             default: Core.Settings.HotkeyClipboard = value; break;
         }
         Core.Settings.Save();
@@ -259,7 +302,7 @@ public partial class SettingsPage : UserControl
         }
         // Keep shortcuts unique within Orbit.
         var text = hk.ToString();
-        foreach (var other in new[] { "clipboard", "noise", "mirror" })
+        foreach (var other in new[] { "clipboard", "noise", "mirror", "media" })
             if (other != which && BoxFor(other).Text == text) SetHotkey(other, "");
         SetHotkey(which, text);
     }

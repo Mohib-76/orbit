@@ -14,8 +14,10 @@ import android.util.Log
 import io.github.mohib76.orbit.buds.Buds
 import io.github.mohib76.orbit.buds.BudsService
 import io.github.mohib76.orbit.buds.BudsTileService
+import io.github.mohib76.orbit.media.Media
 import io.github.mohib76.orbit.mirror.Mirror
 import io.github.mohib76.orbit.mirror.MirrorTileService
+import io.github.mohib76.orbit.usb.Usb
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.json.JSONObject
@@ -84,6 +86,8 @@ object Hub {
         theme.value = prefs.theme
         prefs.pc?.let { ui.value = LinkUi(Conn.Waiting, it.name) }
         Buds.init(app)
+        Media.init(app)
+        Usb.init(app)
     }
 
     // ------------------------------------------------------------------ pairing
@@ -134,6 +138,8 @@ object Hub {
         MirrorTileService.refresh(app)
         NotifListener.instance?.sendActive(l)
         main.post { Buds.publish() }
+        Media.onConnected()
+        Usb.send()
         // Re-offer outgoing files that were interrupted.
         transfers.value.filter { it.outgoing && (it.state == TState.Queued || it.state == TState.Paused) }.forEach { offerFile(it) }
     }
@@ -142,6 +148,8 @@ object Hub {
         if (link !== l) return
         link = null
         main.post { Buds.onPeerGone() }
+        Media.onPeerGone()
+        Usb.onPeerGone()
         Mirror.onLinkGone()
         ui.update { if (prefs.pc != null) it.copy(conn = Conn.Waiting) else LinkUi(Conn.NotPaired) }
         transfers.update { list -> list.map { if (it.state == TState.Running) it.copy(state = TState.Paused) else it } }
@@ -161,11 +169,20 @@ object Hub {
             "orbit.buds.state" -> main.post { Buds.onPeerState(b) }
             "orbit.buds.cmd" -> main.post { Buds.onPeerCommand(b) }
             "orbit.media" -> main.post { Buds.onPeerMedia(b.optString("action")) }
+            "orbit.media.state" -> Media.onPeerState(b)
+            "orbit.media.art" -> Media.onPeerArt(b)
+            "orbit.media.cmd" -> Media.onCommand(b)
+            "orbit.usb.control" -> Usb.onControl(b)
             "orbit.mirror.state" -> Mirror.onState(b)
             "orbit.mirror.prepare" -> Mirror.onPrepare(l)
             "orbit.mirror.setup" -> Mirror.onSetupRequested(l)
             "orbit.settings" -> {
-                if (b.has("autoUsbTethering")) prefs.autoUsbTethering = b.getBoolean("autoUsbTethering")
+                // Older PCs only send autoUsbTethering.
+                val usbMode = b.optString("usbMode").ifEmpty {
+                    if (b.has("autoUsbTethering")) (if (b.getBoolean("autoUsbTethering")) Usb.TETHERING else Usb.CHARGING) else ""
+                }
+                if (usbMode in Usb.MODES) prefs.usbMode = usbMode
+                if (b.has("mediaWanted")) Media.onPeerWants(b.getBoolean("mediaWanted"))
                 if (b.has("budsEnabled") && b.getBoolean("budsEnabled") != prefs.budsEnabled)
                     main.post { setBudsEnabled(b.getBoolean("budsEnabled"), fromPeer = true) }
                 val name = b.optString("pcName")
@@ -183,8 +200,10 @@ object Hub {
 
     fun pushSettings() {
         link?.send("orbit.settings", JSONObject()
-            .put("autoUsbTethering", prefs.autoUsbTethering)
-            .put("budsEnabled", prefs.budsEnabled))
+            .put("autoUsbTethering", prefs.usbMode == Usb.TETHERING)
+            .put("usbMode", prefs.usbMode)
+            .put("budsEnabled", prefs.budsEnabled)
+            .put("mediaWanted", prefs.showPcMedia))
     }
 
     /** The Earbuds toggle. Synced with the PC so one switch turns the feature on or off everywhere. */

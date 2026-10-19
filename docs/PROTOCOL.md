@@ -33,7 +33,7 @@ or `orbit.data` (file bytes).
 |---|---|---|
 | `orbit.hello` | both | `{id, name, model?}` (first packet of a control link) |
 | `orbit.ping` / `orbit.pong` | both | `{}`. The PC pings every 20 s; either side drops the link after 45–50 s of silence |
-| `orbit.settings` | both | `{autoUsbTethering, pcName?, clipboardAutoSync?}` |
+| `orbit.settings` | both | `{autoUsbTethering, usbMode?, budsEnabled?, mediaWanted?, pcName?, clipboardAutoSync?}` |
 | `orbit.battery` | phone → PC | `{level, charging, chargeTimeMs}` |
 | `orbit.clipboard` | both | `{text}` |
 | `orbit.notification` | phone → PC | `{key, pkg, app, title, text, time, silent, icon?}` (`icon` = base64 PNG, sent once per app per connection) |
@@ -47,14 +47,45 @@ or `orbit.data` (file bytes).
 | `orbit.buds.state` | both | Sender's own link to the earbuds: `{enabled, playing, connected, name, mac, anc: "OFF"\|"TRANSPARENCY"\|"ANC"\|null, cycle, battery: [L,R,case], charging: [L,R,case], features: {"<id>": bool}, touch: [[side, gesture, action]…]}`. Sent on connect and on every change (debounced 150 ms) |
 | `orbit.buds.cmd` | both | Relay when only the receiver holds the buds: `{op: "anc", mode}` · `{op: "feature", id, on}` · `{op: "cycle", mask}` · `{op: "touch", side, gesture, action}` |
 | `orbit.media` | both | `{action: "play"\|"pause"}`, used by "Play here" |
-
+| `orbit.media.state` | both | The sender's own media players (see [Media](#media)): `{players: [{id, app, title, artist, album, playing, pos, len, canPlay, canPause, canNext, canPrev, canSeek, art}], active, controllable}` |
+| `orbit.media.art` | both | `{hash, jpeg}`: album art for players whose `art` is `hash`, as base64 JPEG (at most 320 px). Sent once per hash per connection, before the state that uses it |
+| `orbit.media.cmd` | both | `{player, op: "play"\|"pause"\|"toggle"\|"next"\|"prev"\|"seek", pos?}` (`pos` in ms, for `seek`) |
+| `orbit.usb.state` | phone → PC | `{cable, mode: "charging"\|"tethering"\|"files"\|"other"}`: the phone's own view of its USB port. Sent on connect and on every change |
+| `orbit.usb.control` | PC → phone | `{adb, switching, mirroring}`: whether the PC can switch modes (it sees this phone over USB adb), the mode it is switching to (`""` when idle), and whether USB mirroring blocks switching |
+| `orbit.usb.set` | phone → PC | `{mode}`: the user picked a USB mode on the phone; the PC switches it over adb |
 | `orbit.mirror.state` | PC → phone | `{active, viewOnly, transport: "USB"\|"Wi-Fi"}`. Sent when mirroring starts, stops or changes, and on connect. The phone shows its LIVE notification and tile from it |
 | `orbit.mirror.cmd` | phone → PC | `{op: "stop"}` · `{op: "viewOnly", on}` (the PC stops sending input) · `{op: "start"}` (the Mirror tile asks the PC to open its window) |
 | `orbit.mirror.prepare` | PC → phone | `{}`. Get wireless debugging ready: the phone turns it on if it may (`WRITE_SECURE_SETTINGS`) and answers with `orbit.mirror.info` |
 | `orbit.mirror.setup` | PC → phone | `{}`. "Open on phone": show the setup screen (or a notification that opens it). Answered with `orbit.mirror.info` |
 | `orbit.mirror.info` | phone → PC | `{sdk, devOptions, wirelessDebugging, wifi, usbDebugging, canToggle}` |
 
-`orbit.settings` also carries `budsEnabled`, so the Earbuds switch stays the same on both devices.
+`orbit.settings` also carries `budsEnabled`, so the Earbuds switch stays the same on both devices, and
+`usbMode` (`"charging"`, `"tethering"` or `"files"`), the mode the PC applies when the cable is plugged in.
+`autoUsbTethering` is still sent (true when `usbMode` is `"tethering"`) for older apps; a peer that sends only
+`autoUsbTethering` means `"tethering"` (true) or `"charging"` (false). `mediaWanted` is not synced: it says
+whether the sender wants the other side's `orbit.media.state` at all (its "show media" switch). Missing means true.
+
+## Media
+
+Each side publishes the media sessions it can see (Android `MediaSessionManager`, Windows
+`GlobalSystemMediaTransportControlsSessionManager`), leaving out the one Orbit itself creates to show the
+peer's player. `orbit.media.state` is sent on connect and on changes (debounced 250 ms), not on a timer.
+
+- `id` is stable per app (Android package name, Windows app user model ID); `app` is a display name.
+- `pos` is the position in ms when the packet was sent and `len` the length in ms (0 = unknown or live).
+  While `playing`, the receiver advances `pos` itself from the moment the packet arrived.
+- `art` is a short hash (`""` = no art); the bytes travel once in `orbit.media.art`.
+- `active` is the player the sender's system considers current. `controllable` is false when the sender's
+  user turned off remote control; the receiver then shows the player without buttons.
+- Track titles are user content: neither side logs them.
+
+## USB modes
+
+Android runs one of USB tethering (`rndis`), file transfer (`mtp`) or charging only at a time. The PC switches
+with `adb shell svc usb setFunctions rndis|mtp|` (empty = charging) and reads `svc usb getFunctions`. It applies
+`usbMode` once per plug-in: the phone counts as plugged in again only after it has been gone from adb for 15 s,
+so the reconnect that a mode switch causes doesn't count. A switch made from Android's own USB menu is shown,
+not undone.
 
 ## Screen mirroring
 

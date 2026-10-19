@@ -80,6 +80,34 @@ public static class Toasts
     public static void LowBattery(string phone, int level) =>
         Simple($"{phone} battery is at {level}%", "Plug it in soon.");
 
+    public static void FileSharingOn(string phone)
+    {
+        try
+        {
+            new ToastContentBuilder()
+                .AddArgument("action", "openphone")
+                .AddText("File sharing on")
+                .AddText($"{phone} is in File Explorer.")
+                .AddButton(new ToastButton().SetContent("Open").AddArgument("action", "openphone"))
+                .Show(t => t.Tag = "usb");
+        }
+        catch (Exception ex) { Log.Write("toast: " + ex.Message); }
+    }
+
+    public static void UsbSwitchFailed()
+    {
+        try
+        {
+            new ToastContentBuilder()
+                .AddArgument("action", "usbhelp")
+                .AddText("Couldn't switch USB mode")
+                .AddText("Turn on USB debugging on your phone.")
+                .AddButton(new ToastButton().SetContent("How").AddArgument("action", "usbhelp"))
+                .Show(t => t.Tag = "usb");
+        }
+        catch (Exception ex) { Log.Write("toast: " + ex.Message); }
+    }
+
     public static void FileOffer(Transfer t, string phone)
     {
         try
@@ -132,7 +160,7 @@ public static class Toasts
 public static class ClipboardHost
 {
     const int WM_CLIPBOARDUPDATE = 0x031D, WM_HOTKEY = 0x0312;
-    const int HOTKEY_SEND_CLIPBOARD = 1, HOTKEY_CYCLE_ANC = 2, HOTKEY_MIRROR = 3;
+    const int HOTKEY_SEND_CLIPBOARD = 1, HOTKEY_CYCLE_ANC = 2, HOTKEY_MIRROR = 3, HOTKEY_MEDIA = 4;
     /// <summary>Clips bigger than this aren't synced automatically.</summary>
     public const int MaxClipChars = 1_000_000;
 
@@ -144,7 +172,7 @@ public static class ClipboardHost
     static bool _settingText;
 
     /// <param name="onCopied">Text and whether the copying app marked it private (password managers).</param>
-    public static void Start(Action<string, bool> onCopied, Action onHotkey, Action onCycleAnc, Action onMirror)
+    public static void Start(Action<string, bool> onCopied, Action onHotkey, Action onCycleAnc, Action onMirror, Action onMedia)
     {
         var p = new HwndSourceParameters("OrbitClipboard") { ParentWindow = new IntPtr(-3) /* HWND_MESSAGE */, Width = 0, Height = 0 };
         _src = new HwndSource(p);
@@ -158,17 +186,18 @@ public static class ClipboardHost
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_SEND_CLIPBOARD) onHotkey();
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_CYCLE_ANC) onCycleAnc();
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_MIRROR) onMirror();
+            else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_MEDIA) onMedia();
             return IntPtr.Zero;
         });
         AddClipboardFormatListener(_src.Handle);
     }
 
     /// <summary>(Re)registers the hotkeys. Returns the ones Windows refused (already used by another app).</summary>
-    public static List<string> ApplyHotkeys(string clipboard, string noise, string mirror)
+    public static List<string> ApplyHotkeys(string clipboard, string noise, string mirror, string media)
     {
         var failed = new List<string>();
         if (_src == null) return failed;
-        foreach (var (id, text) in new[] { (HOTKEY_SEND_CLIPBOARD, clipboard), (HOTKEY_CYCLE_ANC, noise), (HOTKEY_MIRROR, mirror) })
+        foreach (var (id, text) in new[] { (HOTKEY_SEND_CLIPBOARD, clipboard), (HOTKEY_CYCLE_ANC, noise), (HOTKEY_MIRROR, mirror), (HOTKEY_MEDIA, media) })
         {
             UnregisterHotKey(_src.Handle, id);
             if (Hotkey.Parse(text) is not { } hk) continue;

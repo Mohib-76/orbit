@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,7 @@ import androidx.core.graphics.drawable.toBitmap
 import io.github.mohib76.orbit.ClipSendActivity
 import io.github.mohib76.orbit.Conn
 import io.github.mohib76.orbit.Hub
+import io.github.mohib76.orbit.R
 import io.github.mohib76.orbit.NotifListener
 import io.github.mohib76.orbit.PairOffer
 import io.github.mohib76.orbit.TState
@@ -316,7 +318,10 @@ private fun HomeTab(
                     PillButton("Send clipboard", Icons.Clip, Modifier.weight(1f)) { ctx.sendClipboardNow() }
                     PillButton("Send file", Icons.Upload, Modifier.weight(1f), bg = c.bg, fg = c.primaryText, onClick = pickFiles)
                 }
+                UsbModeBlock()
             }
+
+            PcMediaCard()
 
             if (budsOn) BudsCard(openBuds, requestBt)
 
@@ -499,7 +504,10 @@ private fun SettingsTab(resumeTick: Int, openFilter: () -> Unit, requestBt: () -
     var autoClip by remember { mutableStateOf(p.clipboardAutoReceive) }
     var mirror by remember { mutableStateOf(p.mirrorNotifications) }
     var autoAccept by remember { mutableStateOf(p.autoAcceptFiles) }
-    var tether by remember(settingsVersion) { mutableStateOf(p.autoUsbTethering) }
+    val usbDefault = remember(settingsVersion) { p.usbMode }
+    var usbSheet by remember { mutableStateOf(false) }
+    var showPcMedia by remember(settingsVersion) { mutableStateOf(p.showPcMedia) }
+    var pcControl by remember(settingsVersion) { mutableStateOf(p.pcControlsMedia) }
     val budsOn = remember(settingsVersion) { p.budsEnabled }
     val budsLocal by io.github.mohib76.orbit.buds.Buds.local.collectAsState()
     var chooseBuds by remember { mutableStateOf(false) }
@@ -535,11 +543,29 @@ private fun SettingsTab(resumeTick: Int, openFilter: () -> Unit, requestBt: () -
             }
 
             Column {
-                SectionLabel("Connection")
-                SettingRow("Auto USB tethering",
-                    "When you plug into your laptop, it turns on USB tethering so the laptop uses this phone's internet. Needs USB debugging on (Developer options).") {
-                    OrbitSwitch(tether, "Auto USB tethering") { tether = it; p.autoUsbTethering = it; Hub.pushSettings() }
+                SectionLabel(stringResource(R.string.usb_section))
+                SettingRow(stringResource(R.string.usb_when_connected), stringResource(R.string.usb_synced_with, ui.pcName),
+                    onClick = { usbSheet = true }) {
+                    Text(usbModeName(usbDefault), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.primaryText)
+                    Spacer(Modifier.width(4.dp))
+                    Icon(Icons.Chevron, null, Modifier.size(18.dp), tint = c.text2)
                 }
+            }
+
+            Column {
+                SectionLabel(stringResource(R.string.media_section))
+                SettingRow(stringResource(R.string.media_show_pc), stringResource(R.string.media_show_pc_desc)) {
+                    val label = stringResource(R.string.media_show_pc)
+                    OrbitSwitch(showPcMedia, label) { showPcMedia = it; io.github.mohib76.orbit.media.Media.setShowPc(it) }
+                }
+                SettingRow(stringResource(R.string.media_pc_control), stringResource(R.string.media_pc_control_desc, ui.pcName)) {
+                    val label = stringResource(R.string.media_pc_control)
+                    OrbitSwitch(pcControl, label) { pcControl = it; io.github.mohib76.orbit.media.Media.setPcControl(it) }
+                }
+            }
+
+            Column {
+                SectionLabel("Connection")
                 SettingRow("Developer options", "Open to turn on USB debugging", onClick = {
                     try { ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) } catch (_: Exception) { }
                 }) { Icon(Icons.Chevron, null, Modifier.size(18.dp), tint = c.text2) }
@@ -639,6 +665,7 @@ private fun SettingsTab(resumeTick: Int, openFilter: () -> Unit, requestBt: () -
         )
     }
     if (chooseBuds) BudsChooser { chooseBuds = false }
+    if (usbSheet) UsbDefaultSheet(ui.pcName) { usbSheet = false }
     if (chooseTheme) {
         AlertDialog(
             onDismissRequest = { chooseTheme = false },
