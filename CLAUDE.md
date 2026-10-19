@@ -10,6 +10,14 @@ This is a public, AGPL-3.0 open-source project: don't commit personal data (devi
 addresses, IPs, names, local paths), secrets (signing keys, passwords), or third-party binaries
 (`windows/Orbit.Windows/ThirdParty/**` is fetched by `tools/fetch-thirdparty.ps1`).
 
+## Branches and skills
+- Feature branches are cut from `dev` and come back through a PR into `dev`. `main` only holds released code: a
+  `release/X.Y.Z` branch from `dev` is merged into `main`, tagged `vX.Y.Z`, and `main` is merged back into `dev`.
+- Project skills in `.claude/skills/`: `/start-work` (branch from `dev`, docs plan), `/create-pr` (privacy scan,
+  docs, builds, tests, review, PR into `dev`), `/review-pr <n>` (security/privacy first, quality comments only),
+  `/create-release` (docs and website audit, version bump, tag, publish, report). Shared helpers live in
+  `.claude/skills/_shared/` (`docs-map.md`, `privacy-scan.sh`).
+
 ## Architecture
 - **The phone is the TLS server** (TCP 47800, UDP discovery 47801). **The PC always dials out**: adb forward (127.0.0.1:47810), then every interface gateway, then a manual address, then the last IP, then a UDP broadcast. This is deliberate (no Windows Firewall rules, instant on tether/hotspot). Don't reverse it.
 - Wire format: newline-delimited JSON `{"type":"orbit.x","body":{}}`, mutual TLS with self-signed certs pinned at pairing. File bytes go on a separate TLS connection (`orbit.data`) the PC opens; transfers resume by offset.
