@@ -138,15 +138,55 @@ public class BudsProtocolTests
     {
         var s = new BudsSnapshot
         {
-            Connected = true, Name = "Buds", Mac = "00:11:22:33:44:55", Anc = AncMode.Transparency, CycleMask = 0x0B,
-            Battery = new[] { 50, 60, -1 }, Charging = new[] { false, true, false },
-            Features = new() { [29] = true }, Touch = new() { [(1, 0x0201)] = 1 }
+            Connected = true, Control = true, Driver = HeyMelodyDriver.DriverId, Name = "Buds", Mac = "00:11:22:33:44:55",
+            Noise = "TRANSPARENCY", NoiseModes = HeyMelodyDriver.NoiseModes, CycleMask = 0x0B,
+            Battery = new[] { 50, 60, -1 }, Charging = new[] { false, true, false }, BatteryMain = 55,
+            Toggles = new[] { new BudsToggle("29", "Bass boost", "", true) }, Touch = new() { [(1, 0x0201)] = 1 }
         };
-        var r = BudsSnapshot.FromJson(s.ToJson());
-        Assert.Equal(s.Anc, r.Anc);
+        var r = BudsSnapshot.FromJson((JsonObject)JsonNode.Parse(s.ToJson().ToJsonString())!);
+        Assert.True(r.Control);
+        Assert.Equal(s.Driver, r.Driver);
+        Assert.Equal(s.Noise, r.Noise);
+        Assert.Equal(s.NoiseModes, r.NoiseModes);
         Assert.Equal(s.Battery, r.Battery);
         Assert.Equal(s.Charging, r.Charging);
-        Assert.True(r.Features[29]);
+        Assert.Equal(55, r.BatteryMain);
+        Assert.Equal(s.Toggles, r.Toggles);
         Assert.Equal(1, r.Touch[(1, 0x0201)]);
+    }
+
+    [Fact]
+    public void SnapshotReadsOlderVersions()
+    {
+        // Before drivers: "connected" meant the control channel, features were HeyMelody ids.
+        var old = (JsonObject)JsonNode.Parse("""{"connected":true,"name":"realme Buds T310","mac":null,"anc":"ANC","cycle":0,"battery":[90,85,-1],"charging":[false,false,false],"features":{"29":true,"6":false},"touch":[]}""")!;
+        var s = BudsSnapshot.FromJson(old);
+        Assert.True(s.Control);
+        Assert.Equal(HeyMelodyDriver.DriverId, s.Driver);
+        Assert.Equal(new[] { "OFF", "TRANSPARENCY", "ANC" }, s.NoiseModes.Select(m => m.Id));
+        Assert.Equal(new[] { "6", "29" }, s.Toggles.Select(t => t.Id));
+        Assert.Equal(-1, s.BatteryMain);
+    }
+
+    [Fact]
+    public void BasicBudsHaveNoControls()
+    {
+        var s = BudsSnapshot.FromJson(new BudsSnapshot { Connected = true, BatteryMain = 70 }.ToJson());
+        Assert.False(s.Control);
+        Assert.Null(s.Driver);
+        Assert.Empty(s.NoiseModes);
+        Assert.Null(s.NextNoise());
+        Assert.Equal("70%", s.BatterySummary);
+    }
+
+    [Fact]
+    public void CyclesAndAppliesOps()
+    {
+        var s = new BudsSnapshot { Control = true, Noise = "ANC", NoiseModes = HeyMelodyDriver.NoiseModes, Toggles = new[] { new BudsToggle("29", "Bass", "", false) } };
+        Assert.Equal("OFF", s.NextNoise());
+        Assert.Equal("TRANSPARENCY", s.Apply(new JsonObject { ["op"] = "anc", ["mode"] = "TRANSPARENCY" }).Noise);
+        Assert.Equal("ANC", s.Apply(new JsonObject { ["op"] = "anc", ["mode"] = "BOGUS" }).Noise);
+        // Older phones send numeric ids.
+        Assert.True(s.Apply((JsonObject)JsonNode.Parse("""{"op":"feature","id":29,"on":true}""")!).Toggles.Single().On);
     }
 }

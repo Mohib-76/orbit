@@ -4,9 +4,9 @@ import java.io.ByteArrayOutputStream
 import java.util.UUID
 
 // Protocol facts from Gadgetbridge's Oppo/realme support (see THIRD_PARTY_NOTICES.md).
-// realme / OnePlus "Heymelody" earbuds over classic Bluetooth RFCOMM.
+// realme / OnePlus / OPPO "HeyMelody" earbuds over classic Bluetooth RFCOMM; the driver is HeyMelody.kt.
 
-/** ANC modes and their wire values. */
+/** ANC modes and their wire values. `name` is the noise mode id on the Orbit link. */
 enum class AncMode(val code: Int, val label: String) {
     OFF(0x01, "Off"),
     TRANSPARENCY(0x02, "Transparency"),
@@ -55,6 +55,8 @@ enum class Feature(val id: Int, val title: String, val subtitle: String) {
     WIND(26, "Wind-noise reduction", "Cuts wind noise on the mics"),
     DUAL(17, "Dual-device connection", "Stay connected to your phone and PC at once"),
     HQ(24, "High-quality audio", "Hi-res codec when the device supports it");
+
+    fun toggle(on: Boolean) = BudsToggle(id.toString(), title, subtitle, on)
 
     companion object {
         fun fromId(id: Int) = entries.firstOrNull { it.id == id }

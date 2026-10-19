@@ -136,7 +136,7 @@ public partial class App : Application
         if (!Core.BudsEnabled) return;
         if (!Core.Buds.Connected) { _tray?.Balloon("Earbuds not connected", "Connect your buds to this PC or your phone."); return; }
         Core.BudsCycleAnc();
-        _tray?.Balloon("Noise control", Core.Buds.Anc?.Label() ?? "");
+        _tray?.Balloon("Noise control", Core.Buds.NoiseLabel ?? "Not available on these buds");
     }
 
     /// <summary>Switches the phone's USB mode, asking first if that would cut this PC's internet.</summary>

@@ -22,14 +22,6 @@ public partial class TrayFlyout : Window
         {
             if (e.Data.GetData(DataFormats.FileDrop) is string[] f) { Core.SendFiles(f); Hide(); }
         };
-        foreach (var m in AncModes.All)
-        {
-            var rb = new RadioButton { Style = (Style)FindResource("Segment"), GroupName = "flyAnc", Content = m.Label(), Height = 28, FontSize = 11 };
-            rb.Checked += (_, _) => { if (!_binding && Core.Buds.Anc != m) Core.BudsSetAnc(m); };
-            System.Windows.Automation.AutomationProperties.SetName(rb, m.Label());
-            _modes[m] = rb;
-            BudsModes.Children.Add(rb);
-        }
         Core.BudsChanged += RefreshBuds;
         Core.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(OrbitCore.BudsEnabled)) RefreshBuds(); };
         UsbSwitchHost.Content = new UsbModeSwitch(compact: true);
@@ -43,8 +35,9 @@ public partial class TrayFlyout : Window
         RefreshUsb();
     }
 
-    readonly Dictionary<AncMode, RadioButton> _modes = new();
     readonly System.Windows.Threading.DispatcherTimer _mediaTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    readonly Dictionary<string, RadioButton> _modes = new();
+    string _modesKey = "";
     bool _binding;
 
     void RefreshUsb()
@@ -118,8 +111,26 @@ public partial class TrayFlyout : Window
         BudsInfo.Text = !s.Connected ? " · not connected"
             : $" · {s.BatterySummary}{(media ? "" : Core.PlayingHere ? " · on this PC" : phonePlaying ? " · on phone" : "")}";
         BudsPlayHere.Visibility = pcHas && !Core.PlayingHere && phonePlaying ? Visibility.Visible : Visibility.Collapsed;
+
+        BudsModesBox.Visibility = s.NoiseModes.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var key = string.Join(",", s.NoiseModes.Select(m => m.Id));
+        if (key != _modesKey)
+        {
+            _modesKey = key;
+            BudsModes.Children.Clear();
+            _modes.Clear();
+            BudsModes.Columns = Math.Max(1, s.NoiseModes.Count);
+            foreach (var m in s.NoiseModes)
+            {
+                var rb = new RadioButton { Style = (Style)FindResource("Segment"), GroupName = "flyAnc", Content = m.Label, Height = 28, FontSize = 11 };
+                rb.Checked += (_, _) => { if (!_binding && Core.Buds.Noise != m.Id) Core.BudsSetAnc(m.Id); };
+                System.Windows.Automation.AutomationProperties.SetName(rb, m.Label);
+                _modes[m.Id] = rb;
+                BudsModes.Children.Add(rb);
+            }
+        }
         _binding = true;
-        foreach (var (m, rb) in _modes) { rb.IsChecked = s.Anc == m; rb.IsEnabled = s.Connected; }
+        foreach (var (id, rb) in _modes) { rb.IsChecked = s.Noise == id; rb.IsEnabled = s.Control; }
         _binding = false;
     }
 

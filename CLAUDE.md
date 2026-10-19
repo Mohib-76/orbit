@@ -10,6 +10,14 @@ This is a public, AGPL-3.0 open-source project: don't commit personal data (devi
 addresses, IPs, names, local paths), secrets (signing keys, passwords), or third-party binaries
 (`windows/Orbit.Windows/ThirdParty/**` is fetched by `tools/fetch-thirdparty.ps1`).
 
+## Branches and skills
+- Feature branches are cut from `dev` and come back through a PR into `dev`. `main` only holds released code: a
+  `release/X.Y.Z` branch from `dev` is merged into `main`, tagged `vX.Y.Z`, and `main` is merged back into `dev`.
+- Project skills in `.claude/skills/`: `/start-work` (branch from `dev`, docs plan), `/create-pr` (privacy scan,
+  docs, builds, tests, review, PR into `dev`), `/review-pr <n>` (security/privacy first, quality comments only),
+  `/create-release` (docs and website audit, version bump, tag, publish, report). Shared helpers live in
+  `.claude/skills/_shared/` (`docs-map.md`, `privacy-scan.sh`).
+
 ## Architecture
 - **The phone is the TLS server** (TCP 47800, UDP discovery 47801). **The PC always dials out**: adb forward (127.0.0.1:47810), then every interface gateway, then a manual address, then the last IP, then a UDP broadcast. This is deliberate (no Windows Firewall rules, instant on tether/hotspot). Don't reverse it.
 - Wire format: newline-delimited JSON `{"type":"orbit.x","body":{}}`, mutual TLS with self-signed certs pinned at pairing. File bytes go on a separate TLS connection (`orbit.data`) the PC opens; transfers resume by offset.
@@ -17,7 +25,7 @@ addresses, IPs, names, local paths), secrets (signing keys, passwords), or third
 - **New feature = new packet types.** Add them to `docs/PROTOCOL.md`, handle them in `OrbitCore.Handle` (Windows) and `Hub.handle` (Android), and keep both sides symmetric where it makes sense. Unknown packet types must be ignored, not fatal.
 - **Settings that must match on both devices** (`usbMode`, `budsEnabled`) travel in `orbit.settings`; copy that pattern. (`autoUsbTethering` is still sent for 1.0 apps.)
 - USB modes (charging / tethering / file sharing) are switched by the PC over adb (`OrbitCore.Usb.cs`); the phone reports its port from the `USB_STATE` broadcast (`usb/Usb.kt`). Never switch when the current mode can't be read. Media controls: `OrbitCore.Media.cs` + `Core/Media/` and `media/Media.kt`; each side must leave its own session (the peer's player) out of what it publishes.
-- Earbuds: both apps talk RFCOMM to the buds directly, and only when the OS already has the buds connected (never page them). Each side publishes `orbit.buds.state`; if only one side holds the buds, the other relays `orbit.buds.cmd`. Protocol facts come from Gadgetbridge's Oppo/realme support (AGPL-3.0); see `THIRD_PARTY_NOTICES.md`.
+- Earbuds: two levels. Any buds get the OS's view (connected, one battery level: Android's hidden `getBatteryLevel` / `BATTERY_LEVEL_CHANGED`, Windows' `DEVPKEY_Bluetooth_Battery` on the Hands-Free node) plus "Play here". Brands Orbit knows get a **driver** (`BudsDriver.kt` / `IBudsDriver.cs`; today only `HeyMelody` for realme/OnePlus/OPPO) that talks RFCOMM to the buds, only when the OS already has them connected (never page them). Each side publishes `orbit.buds.state`, which describes its controls (`noiseModes`, `toggles`); if only one side holds the controls (`control`), the other relays `orbit.buds.cmd`. The UI shows only what the buds reported. HeyMelody protocol facts come from Gadgetbridge's Oppo/realme support (AGPL-3.0); see `THIRD_PARTY_NOTICES.md`.
 - Screen mirroring uses scrcpy's own server (`windows/Orbit.Windows/ThirdParty/scrcpy`, v5.0.1, plus its LGPL FFmpeg DLLs). The PC runs it through adb and decodes; the phone app only shows the LIVE notice/tile and relays Stop / View only (`orbit.mirror.*`). The version string passed to the server must match the bundled jar (`MirrorSession.ServerVersion`). Read scrcpy's `app/src/control_msg.c` and `demuxer.c` before changing `Core/Mirror/`.
 - Privacy rules: logs must never contain notification text, clipboard contents or track titles; diagnostics exports redact device names and addresses (`Diagnostics.cs` / `Diagnostics.kt`).
 

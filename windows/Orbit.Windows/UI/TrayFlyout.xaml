@@ -126,7 +126,7 @@
                                         <Run x:Name="BudsName" FontWeight="ExtraBold"/><Run x:Name="BudsInfo" Foreground="{DynamicResource Text2}" FontWeight="SemiBold"/>
                                     </TextBlock>
                                 </DockPanel>
-                                <Border Background="{DynamicResource Surface2}" CornerRadius="7" Padding="1" Margin="0,8,0,0">
+                                <Border x:Name="BudsModesBox" Background="{DynamicResource Surface2}" CornerRadius="7" Padding="1" Margin="0,8,0,0">
                                     <UniformGrid x:Name="BudsModes" Columns="3"/>
                                 </Border>
                             </StackPanel>

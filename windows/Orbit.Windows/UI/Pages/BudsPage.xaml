@@ -73,8 +73,8 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Noise control -->
-                <Border Style="{StaticResource CardBox}" Padding="20,18" Margin="10">
+                <!-- Noise control (only for buds that report modes) -->
+                <Border x:Name="NoiseCard" Style="{StaticResource CardBox}" Padding="20,18" Margin="10">
                     <StackPanel>
                         <DockPanel>
                             <TextBlock DockPanel.Dock="Right" Text="cycles modes" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0"/>
@@ -116,11 +116,11 @@
                 <Border x:Name="EmptyCard" Style="{StaticResource CardBox}" Padding="24" Margin="10">
                     <StackPanel>
                         <TextBlock x:Name="EmptyTitle" FontSize="15" FontWeight="ExtraBold"/>
-                        <TextBlock x:Name="EmptyBody" Style="{StaticResource Caption}" FontSize="13" Margin="0,6,0,0"/>
+                        <TextBlock x:Name="EmptyBody" Style="{StaticResource Caption}" FontSize="13" Margin="0,6,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
-                <StackPanel Orientation="Horizontal" Margin="14,8">
+                <StackPanel x:Name="FootnoteRow" Orientation="Horizontal" Margin="14,8">
                     <ui:Ic Data="{StaticResource IcRetry}" Foreground="{DynamicResource Text2}" Width="16" Height="16" Margin="0,0,10,0"/>
                     <TextBlock x:Name="Footnote" Style="{StaticResource Caption}" FontSize="13"/>
                 </StackPanel>
