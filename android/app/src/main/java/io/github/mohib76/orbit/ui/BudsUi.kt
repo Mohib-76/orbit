@@ -67,17 +67,18 @@ import io.github.mohib76.orbit.buds.Buds
 import io.github.mohib76.orbit.buds.BudsProtocol
 import io.github.mohib76.orbit.buds.BudsState
 import io.github.mohib76.orbit.buds.BudsTileService
-import io.github.mohib76.orbit.buds.Feature
+import io.github.mohib76.orbit.buds.HeyMelody
 import io.github.mohib76.orbit.buds.TouchAction
 import io.github.mohib76.orbit.buds.TouchKey
 
-private fun modeIcon(m: AncMode) = when (m) { AncMode.OFF -> Icons.ModeOff; AncMode.TRANSPARENCY -> Icons.ModeTrans; AncMode.ANC -> Icons.ModeAnc }
+private fun modeIcon(id: String) = when (id) { "OFF" -> Icons.ModeOff; "TRANSPARENCY" -> Icons.ModeTrans; else -> Icons.ModeAnc }
 
 private fun budsSummary(s: BudsState, playingHere: Boolean): String {
     if (!s.connected) return "Not connected"
     val parts = mutableListOf<String>()
     if (s.battery[0] >= 0) parts += "L ${s.battery[0]}%"
     if (s.battery[1] >= 0) parts += "R ${s.battery[1]}%"
+    if (!s.hasSideBattery && s.batteryMain >= 0) parts += "${s.batteryMain}%"
     if (playingHere) parts += "playing here"
     return parts.joinToString(" · ").ifEmpty { "Connected" }
 }
@@ -139,7 +140,7 @@ fun BudsCard(onOpen: () -> Unit, requestBt: () -> Unit) {
             }
             Icon(Icons.Chevron, null, Modifier.size(18.dp), tint = c.text)
         }
-        NoiseSegments(s, compact = true)
+        if (s.noiseModes.isNotEmpty()) NoiseSegments(s, compact = true)
     }
     if (choose) BudsChooser { choose = false }
 }
@@ -147,23 +148,23 @@ fun BudsCard(onOpen: () -> Unit, requestBt: () -> Unit) {
 @Composable
 fun NoiseSegments(s: BudsState, compact: Boolean) {
     val c = LocalOrbit.current
-    val on = s.connected
+    val on = s.control
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(if (compact) 16.dp else 28.dp))
             .background(if (compact) c.bg else c.surf).padding(if (compact) 4.dp else 6.dp).alpha(if (on) 1f else 0.5f),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        AncMode.entries.forEach { m ->
-            val sel = m == s.anc
+        s.noiseModes.forEach { m ->
+            val sel = m.id == s.noise
             Column(
                 Modifier.weight(1f).height(if (compact) 44.dp else 88.dp)
                     .clip(RoundedCornerShape(if (compact) 12.dp else 22.dp))
                     .background(if (sel) c.primary else Color.Transparent)
-                    .selectable(selected = sel, enabled = true, role = Role.RadioButton) { Buds.setAnc(m) },
+                    .selectable(selected = sel, enabled = true, role = Role.RadioButton) { Buds.setAnc(m.id) },
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
             ) {
                 val fg = if (sel) c.onPrimary else c.text
-                if (!compact) { Icon(modeIcon(m), null, Modifier.size(24.dp), tint = fg); Spacer(Modifier.height(6.dp)) }
+                if (!compact) { Icon(modeIcon(m.id), null, Modifier.size(24.dp), tint = fg); Spacer(Modifier.height(6.dp)) }
                 Text(m.label, fontSize = 13.sp, fontWeight = if (sel) FontWeight.ExtraBold else FontWeight.Bold, color = fg, maxLines = 1)
             }
         }
@@ -181,7 +182,7 @@ fun BudsScreen(onBack: () -> Unit) {
     val ui by Hub.ui.collectAsState()
     val s = Buds.effective(local, peer)
     var choose by remember { mutableStateOf(false) }
-    val dim = if (s.connected) 1f else 0.5f
+    val dim = if (s.control) 1f else 0.5f
 
     Column(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding()) {
         Row(Modifier.height(64.dp).padding(horizontal = 12.dp).padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -234,39 +235,35 @@ fun BudsScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Battery
+            // Battery: left / right / case from the driver, else the one level the OS has.
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Left", "Right", "Case").forEachIndexed { i, label ->
+                if (!s.hasSideBattery && s.connected && s.batteryMain >= 0)
+                    BatteryTile("Battery", s.batteryMain, if (s.batteryMain <= 15) "Low" else "In use", Modifier.weight(1f))
+                else listOf("Left", "Right", "Case").forEachIndexed { i, label ->
                     val level = if (s.connected) s.battery[i] else -1
-                    Column(Modifier.weight(1f).clip(RoundedCornerShape(20.dp)).background(c.surf).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.text2)
-                        Text(if (level < 0) "—" else "$level%", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = if (level < 0) c.text2 else c.text)
-                        Progress(level.coerceAtLeast(0) / 100f, c.green)
-                        Text(
-                            when { level < 0 && i == 2 -> "Open lid"; level < 0 -> "—"; s.charging[i] -> "Charging"; else -> if (i == 2) "In case" else "In use" },
-                            fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = c.text2, maxLines = 1
-                        )
-                    }
+                    val note = when { level < 0 && i == 2 -> "Open lid"; level < 0 -> "—"; s.charging[i] -> "Charging"; else -> if (i == 2) "In case" else "In use" }
+                    BatteryTile(label, level, note, Modifier.weight(1f))
                 }
             }
 
-            SectionLabel("Noise control")
-            NoiseSegments(s, compact = false)
-            if (s.cycleMask != 0 && TouchAction.NOISE_CONTROL.code in s.touch.values) CycleRow(s)
+            if (s.noiseModes.isNotEmpty()) {
+                SectionLabel("Noise control")
+                NoiseSegments(s, compact = false)
+                if (s.driver == HeyMelody.ID && s.cycleMask != 0 && TouchAction.NOISE_CONTROL.code in s.touch.values) CycleRow(s)
+            }
 
-            val supported = Feature.entries.filter { it in s.features }
-            if (supported.isNotEmpty()) {
+            if (s.toggles.isNotEmpty()) {
                 SectionLabel("Sound")
                 Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(c.surf).alpha(dim)) {
-                    supported.forEachIndexed { i, f ->
+                    s.toggles.forEachIndexed { i, f ->
                         if (i > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(c.surfHi))
-                        Row(Modifier.fillMaxWidth().clickable { Buds.setFeature(f, s.features[f] != true) }.padding(horizontal = 16.dp, vertical = 12.dp),
+                        Row(Modifier.fillMaxWidth().clickable { Buds.setFeature(f.id, !f.on) }.padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f).padding(end = 12.dp)) {
                                 Text(f.title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = c.text)
-                                Text(f.subtitle, fontSize = 12.sp, color = c.text2, lineHeight = 16.sp)
+                                if (f.subtitle.isNotEmpty()) Text(f.subtitle, fontSize = 12.sp, color = c.text2, lineHeight = 16.sp)
                             }
-                            OrbitSwitch(s.features[f] == true, f.title) { Buds.setFeature(f, it) }
+                            OrbitSwitch(f.on, f.title) { Buds.setFeature(f.id, it) }
                         }
                     }
                 }
@@ -277,7 +274,9 @@ fun BudsScreen(onBack: () -> Unit) {
                 TapGrid(s)
             }
 
-            Row(Modifier.padding(horizontal = 4.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            ControlsNote(s)
+
+            if (s.driver != null) Row(Modifier.padding(horizontal = 4.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Sync, null, Modifier.size(18.dp), tint = c.text2)
                 Spacer(Modifier.width(12.dp))
                 Text("Settings live on the buds, so changes here also show on ${ui.pcName.ifEmpty { "your PC" }}.", fontSize = 13.sp, color = c.text2, lineHeight = 18.sp)
@@ -292,6 +291,38 @@ private fun Progress(value: Float, color: Color) {
     val c = LocalOrbit.current
     Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(c.surfHi)) {
         Box(Modifier.fillMaxWidth(value.coerceIn(0f, 1f)).height(6.dp).clip(RoundedCornerShape(3.dp)).background(color))
+    }
+}
+
+@Composable
+private fun BatteryTile(label: String, level: Int, note: String, modifier: Modifier) {
+    val c = LocalOrbit.current
+    Column(modifier.clip(RoundedCornerShape(20.dp)).background(c.surf).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.text2)
+        Text(if (level < 0) "—" else "$level%", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = if (level < 0) c.text2 else c.text)
+        Progress(level.coerceAtLeast(0) / 100f, c.green)
+        Text(note, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = c.text2, maxLines = 1)
+    }
+}
+
+/** Why controls are missing: buds Orbit has no driver for, a channel it can't open, or still reading. */
+@Composable
+private fun ControlsNote(s: BudsState) {
+    val c = LocalOrbit.current
+    val (title, body) = when {
+        !s.connected -> return
+        s.control -> if (s.noiseModes.isEmpty() && s.toggles.isEmpty() && s.touch.isEmpty())
+            "Reading your buds…" to "This takes a second the first time." else return
+        s.driver == null -> "Battery and playback" to
+            "Orbit doesn't have controls for these buds yet. Noise control and sound settings work with realme, OnePlus and OPPO buds."
+        else -> "Can't reach the buds' controls" to
+            "Another earbuds app may be using them. Close it, or put the buds in the case and take them out again."
+    }
+    Tile(Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.text)
+            Text(body, fontSize = 13.sp, color = c.text2, lineHeight = 18.sp)
+        }
     }
 }
 
@@ -351,7 +382,7 @@ private fun TapGrid(s: BudsState) {
     val c = LocalOrbit.current
     val gestures = listOf(BudsProtocol.TAP_2 to "Double tap", BudsProtocol.TAP_3 to "Triple tap", BudsProtocol.HOLD to "Touch & hold")
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(c.surf).padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp)
-        .alpha(if (s.connected) 1f else 0.5f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        .alpha(if (s.control) 1f else 0.5f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Spacer(Modifier.width(92.dp))
             Text("Left", Modifier.weight(1f), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = c.text2)

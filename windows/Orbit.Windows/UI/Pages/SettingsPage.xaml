@@ -153,7 +153,7 @@
                                       AutomationProperties.Name="Earbuds" Margin="12,0,0,0"/>
                             <StackPanel>
                                 <TextBlock Text="Earbuds" Style="{StaticResource RowTitle}"/>
-                                <TextBlock Style="{StaticResource Caption}" Text="Battery, noise control, sound and tap settings for your realme buds. Turns on or off on your phone too."/>
+                                <TextBlock Style="{StaticResource Caption}" Text="Battery and playback for any buds; noise control, sound and tap settings for realme, OnePlus and OPPO buds. Turns on or off on your phone too."/>
                             </StackPanel>
                         </DockPanel>
                         <Border Style="{StaticResource Rule}"/>
@@ -169,7 +169,7 @@
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel>
                                 <TextBlock Text="Works with" Style="{StaticResource RowTitle}"/>
-                                <TextBlock Text="realme and OnePlus buds that use the realme Link / HeyMelody app (tested: realme Buds T310). Other buds simply won't show controls." Style="{StaticResource Caption}"/>
+                                <TextBlock Text="Full controls: realme, OnePlus and OPPO buds that use the realme Link / HeyMelody app (tested: realme Buds T310). Other buds show battery and playback." Style="{StaticResource Caption}"/>
                             </StackPanel>
                         </DockPanel>
                     </StackPanel>
