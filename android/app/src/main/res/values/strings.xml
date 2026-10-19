@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Media controls -->
+    <string name="media_playing_on">Playing on %1$s</string>
+    <string name="media_app_on_pc">%1$s on PC</string>
+    <string name="media_on_pc">%1$s · on %2$s</string>
+    <string name="media_live">Live</string>
+    <string name="media_play">Play</string>
+    <string name="media_pause">Pause</string>
+    <string name="media_previous">Previous</string>
+    <string name="media_next">Next</string>
+    <string name="media_seek">Seek</string>
+    <string name="media_channel">PC media</string>
+    <string name="media_section">Media</string>
+    <string name="media_show_pc">Show PC media on this phone</string>
+    <string name="media_show_pc_desc">The Home card and the system media player</string>
+    <string name="media_pc_control">Let the PC control media here</string>
+    <string name="media_pc_control_desc">Play, pause and skip from %1$s</string>
+
+    <!-- USB modes -->
+    <string name="usb_cable">USB cable</string>
+    <string name="usb_mode_charging">Charging</string>
+    <string name="usb_mode_tethering">Tethering</string>
+    <string name="usb_mode_files">Files</string>
+    <string name="usb_charging_only">Charging only</string>
+    <string name="usb_tethering">USB tethering</string>
+    <string name="usb_file_sharing">File sharing</string>
+    <string name="usb_desc_charging">The cable just charges. Orbit keeps working over Wi-Fi or hotspot.</string>
+    <string name="usb_desc_tethering">The laptop gets internet from this phone.</string>
+    <string name="usb_desc_files">Browse this phone’s files in File Explorer on the laptop.</string>
+    <string name="usb_status_tethering">Laptop online through this phone</string>
+    <string name="usb_status_files">Your files are open on %1$s</string>
+    <string name="usb_status_charging">Charging only. Orbit stays on over Wi-Fi</string>
+    <string name="usb_status_other">The phone is in another USB mode</string>
+    <string name="usb_status_switching">Switching… reconnecting in a moment</string>
+    <string name="usb_status_mirroring">Stop mirroring to change USB mode</string>
+    <string name="usb_status_debug_off">Turn on USB debugging to choose</string>
+    <string name="usb_status_no_pc">Connect to %1$s to switch</string>
+    <string name="usb_how">How</string>
+    <string name="usb_section">USB cable</string>
+    <string name="usb_when_connected">When the cable is connected</string>
+    <string name="usb_synced_with">Synced with %1$s</string>
+    <string name="usb_also_changes">Also changes it on %1$s.</string>
+    <string name="usb_needs_debugging">Needs USB debugging on this phone.</string>
+    <string name="usb_confirm_title">Turn off USB tethering?</string>
+    <string name="usb_confirm_body">%1$s gets its internet from this phone. It will be offline while %2$s is on.</string>
+    <string name="usb_confirm_hint">Pick Tethering on Home to get it back online.</string>
+    <string name="usb_confirm_switch">Switch to %1$s</string>
+    <string name="dont_ask_again">Don’t ask again</string>
+    <string name="cancel">Cancel</string>
+</resources>

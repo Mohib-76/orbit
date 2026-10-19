@@ -87,6 +87,10 @@ public sealed class PhoneNotification : Observable
     public string Package { get; init; } = "";
     public string Title { get; init; } = "";
     public string Text { get; init; } = "";
+    /// <summary>Title and text on one line each, for the compact lists (Home, tray).</summary>
+    public string TitleLine => OneLine(Title);
+    public string TextLine => OneLine(Text);
+    static string OneLine(string s) => System.Text.RegularExpressions.Regex.Replace(s, @"\s*[\r\n]+\s*", " · ").Trim(' ', '·');
     public DateTime Time { get; init; } = DateTime.Now;
     public string? IconPath { get; init; }
     public ImageSource? Icon { get; init; }

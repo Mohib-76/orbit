@@ -50,7 +50,8 @@ public partial class App : Application
         ApplyTheme(Core.Settings.Theme);
         AutoStart.Apply(Core.Settings.StartWithWindows);
         Toasts.Init(OnToast);
-        ClipboardHost.Start((text, sensitive) => Core.OnLocalClipboard(text, sensitive), SendClipboardNow, CycleNoiseMode, () => OpenMirror());
+        ClipboardHost.Start((text, sensitive) => Core.OnLocalClipboard(text, sensitive), SendClipboardNow, CycleNoiseMode, () => OpenMirror(),
+            TogglePhoneMedia);
         ApplyHotkeys();
         Core.MirrorRequested += () => OpenMirror();
         Core.Start();
@@ -62,7 +63,7 @@ public partial class App : Application
 
     /// <summary>Registers the hotkeys from Settings; returns the ones another app already uses.</summary>
     public List<string> ApplyHotkeys() =>
-        ClipboardHost.ApplyHotkeys(Core.Settings.HotkeyClipboard, Core.Settings.HotkeyNoise, Core.Settings.HotkeyMirror);
+        ClipboardHost.ApplyHotkeys(Core.Settings.HotkeyClipboard, Core.Settings.HotkeyNoise, Core.Settings.HotkeyMirror, Core.Settings.HotkeyMedia);
 
     protected override void OnExit(ExitEventArgs e)
     {
@@ -138,6 +139,30 @@ public partial class App : Application
         _tray?.Balloon("Noise control", Core.Buds.NoiseLabel ?? "Not available on these buds");
     }
 
+    /// <summary>Switches the phone's USB mode, asking first if that would cut this PC's internet.</summary>
+    public async Task RequestUsbMode(string mode, Window? owner)
+    {
+        if (mode == Core.UsbMode || Core.UsbSwitchingTo != null) return;
+        if (Core.UsbMode == UsbModes.Tethering && mode != UsbModes.Tethering && !Core.Settings.UsbSkipTetherConfirm
+            && OrbitCore.OnlineThroughUsbTethering())
+        {
+            // The tray flyout hides when it loses focus, so it can't own the dialog.
+            bool ownable = owner is { IsVisible: true } && owner is not TrayFlyout;
+            var dlg = new UsbConfirmWindow(Core.Phone.Name, mode);
+            if (ownable) dlg.Owner = owner;
+            else { dlg.WindowStartupLocation = WindowStartupLocation.CenterScreen; dlg.Topmost = true; }
+            if (dlg.ShowDialog() != true) return;
+            if (dlg.DontAskAgain) { Core.Settings.UsbSkipTetherConfirm = true; Core.Settings.Save(); }
+        }
+        await Core.SetUsbModeAsync(mode);
+    }
+
+    public void TogglePhoneMedia()
+    {
+        if (Core.PhonePlayer == null) { _tray?.Balloon("Nothing playing on your phone", "Start something on the phone first."); return; }
+        Core.TogglePhoneMedia();
+    }
+
     public void PickAndSendFiles()
     {
         var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Title = "Send files to your phone" };
@@ -162,11 +187,19 @@ public partial class App : Application
             case "showfile" when a.TryGetValue("path", out string? p2):
                 Process.Start("explorer.exe", $"/select,\"{p2}\"");
                 break;
+            case "openphone": Core.OpenPhoneInExplorer(); break;
+            case "usbhelp": OpenUrl(AppInfo.UsbDebuggingHelpUrl); break;
             default:
                 a.TryGetValue("page", out string? page);
                 ShowMain(page);
                 break;
         }
+    }
+
+    public static void OpenUrl(string url)
+    {
+        try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch (Exception ex) { Log.Write("open url: " + ex.Message); }
     }
 
     public void ApplyTheme(string theme)

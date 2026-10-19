@@ -21,11 +21,13 @@ pinned at pairing:
 | Files | Only files you send |
 | Screen image, audio and your input | Only while you're mirroring; the phone always shows a LIVE notice with Stop |
 | Earbuds state (battery, noise mode, settings) | When the earbuds feature is on |
+| What is playing (app, title, artist, album, album art, position) | While connected, unless the other device turned off showing media. Never written to the log |
+| USB mode of the phone's port (charging, tethering, file sharing) | While connected |
 | Device names, model, app and protocol version | When connecting |
 
 ## What is stored, and where
 
-- **Windows:** `%APPDATA%\Orbit`: settings, this PC's TLS key, the paired phone's fingerprint, cached app icons, and a local log (`orbit.log`). The log records connection events and errors, never notification text or clipboard contents.
+- **Windows:** `%APPDATA%\Orbit`: settings, this PC's TLS key, the paired phone's fingerprint, cached app icons, and a local log (`orbit.log`). The log records connection events and errors, never notification text, clipboard contents or track titles.
 - **Android:** the app's private storage: settings, the phone's TLS key and the paired PC's fingerprint. Received files go to `Download/Orbit`.
 - Clipboard history is kept in memory on the PC only (last 10 items) and is gone when Orbit quits.
 

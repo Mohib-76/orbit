@@ -29,7 +29,8 @@ data class OrbitColors(
     val bg: Color, val surf: Color, val surfHi: Color, val text: Color, val text2: Color,
     val primary: Color, val primaryText: Color, val onPrimary: Color, val pc: Color, val onPc: Color,
     val green: Color, val greenInk: Color, val amber: Color, val nav: Color, val navInd: Color,
-    val danger: Color, val outline: Color
+    val danger: Color, val outline: Color,
+    val pcLine: Color, val disabled: Color, val muted: Color
 )
 
 val LightOrbit = OrbitColors(
@@ -37,7 +38,7 @@ val LightOrbit = OrbitColors(
     text2 = Color(0xFF46474F), primary = Color(0xFF4B4FE6), primaryText = Color(0xFF3B3FD0), onPrimary = Color.White,
     pc = Color(0xFFE1E0FF), onPc = Color(0xFF14157A), green = Color(0xFF1DB46A), greenInk = Color(0xFF0B6E3F),
     amber = Color(0xFF8A5300), nav = Color(0xFFF1F0FA), navInd = Color(0xFFE1E0FF), danger = Color(0xFFA12A20),
-    outline = Color(0xFF77778A)
+    outline = Color(0xFF77778A), pcLine = Color(0xFFC9C8F5), disabled = Color(0xFFB4B3C6), muted = Color(0xFFA3A2BB)
 )
 
 val DarkOrbit = OrbitColors(
@@ -45,7 +46,7 @@ val DarkOrbit = OrbitColors(
     text2 = Color(0xFFC7C5D0), primary = Color(0xFFBFC1FF), primaryText = Color(0xFFBFC1FF), onPrimary = Color(0xFF1C1E86),
     pc = Color(0xFF2E3190), onPc = Color(0xFFE1E0FF), green = Color(0xFF3DD68C), greenInk = Color(0xFF6FE3A8),
     amber = Color(0xFFFFC567), nav = Color(0xFF1E1F26), navInd = Color(0xFF2E3190), danger = Color(0xFFFF9C92),
-    outline = Color(0xFF918F9A)
+    outline = Color(0xFF918F9A), pcLine = Color(0xFF4446A8), disabled = Color(0xFF5A5A68), muted = Color(0xFF6C6B80)
 )
 
 val LocalOrbit = staticCompositionLocalOf { LightOrbit }
@@ -120,4 +121,12 @@ object Icons {
     val Phone = stroke("phone", "M9.5 2.5h5A2.5 2.5 0 0 1 17 5v14a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 7 19V5a2.5 2.5 0 0 1 2.5-2.5z", "M11 18.5h2")
     val Sync = stroke("sync", "M20 11a8 8 0 0 0-14.5-4.5L4 8", "M4 4v4h4", "M4 13a8 8 0 0 0 14.5 4.5L20 16", "M20 20v-4h-4")
     val Wifi = stroke("wifi", "M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0", "M12 19.5h.01")
+    val Cable = stroke("cable", "M9 2v6M15 2v6", "M7 8h10v4a5 5 0 0 1-10 0z", "M12 17v5", width = 2.2f)
+    val Info = stroke("info", "M12 8v5M12 16h.01", "M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18z", width = 2f)
+    val Switching = stroke("switching", "M20 11a8 8 0 0 0-14.5-4.5L4 8", "M4 4v4h4", width = 2f)
+    val Bolt = stroke("bolt", "M13 2 5 14h6l-1 8 8-12h-6z", fill = true)
+    val Play = stroke("play", "M7 4v16l13-8z", fill = true)
+    val Pause = stroke("pause", "M6 4h4v16H6z", "M14 4h4v16h-4z", fill = true)
+    val Next = stroke("next", "M15 5h2v14h-2z", "M4 5v14l10-7z", fill = true)
+    val Prev = stroke("prev", "M7 5h2v14H7z", "M20 5v14l-10-7z", fill = true)
 }

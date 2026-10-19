@@ -32,4 +32,9 @@
     <SolidColorBrush x:Key="ToggleOff" Color="#8A8B9C"/>
     <SolidColorBrush x:Key="PhoneBody" Color="#000000"/>
     <SolidColorBrush x:Key="PhoneScreen" Color="#3B3FD0"/>
+    <SolidColorBrush x:Key="SegSel" Color="#3A3B52"/>
+    <SolidColorBrush x:Key="Chip" Color="#262633"/>
+    <SolidColorBrush x:Key="MutedInk" Color="#6A6B80"/>
+    <SolidColorBrush x:Key="DisabledInk" Color="#5A5B6E"/>
+    <SolidColorBrush x:Key="LiveRed" Color="#FF6B5E"/>
 </ResourceDictionary>

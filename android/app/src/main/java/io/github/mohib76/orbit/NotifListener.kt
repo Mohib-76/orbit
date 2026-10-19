@@ -30,6 +30,7 @@ class NotifListener : NotificationListenerService() {
     override fun onListenerConnected() {
         instance = this
         OrbitService.start(this)
+        io.github.mohib76.orbit.media.Media.startLocal()
     }
     override fun onListenerDisconnected() { instance = null }
 

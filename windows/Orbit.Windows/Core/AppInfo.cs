@@ -7,5 +7,6 @@ public static class AppInfo
     public const string IssuesUrl = RepoUrl + "/issues/new/choose";
     public const string ReleasesUrl = RepoUrl + "/releases";
     public const string PrivacyUrl = RepoUrl + "/blob/main/PRIVACY.md";
+    public const string UsbDebuggingHelpUrl = RepoUrl + "/blob/main/docs/TROUBLESHOOTING.md#turn-on-usb-debugging";
     public const string License = "GNU Affero General Public License v3.0";
 }

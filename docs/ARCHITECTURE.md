@@ -20,12 +20,31 @@ pairing. Pairing proves possession of a one-time token from the QR code with an 
 fingerprints, so a man-in-the-middle can't relay it. `orbit.hello` carries a protocol version so
 mismatched apps can tell the user which side to update.
 
-## Auto USB tethering
+## USB modes
 
-Android doesn't let ordinary apps switch tethering on. The **PC** does it instead, through `adb`
-(bundled with the Windows app): when an authorized phone with Orbit installed is plugged in, it runs
-`svc usb setFunctions rndis`, which makes Android start USB tethering. Orbit only ever turns tethering
-**on**, and leaves it alone if it's already on. It needs USB debugging on the phone.
+While the cable is in, the phone's USB port does one of three things: **charging only**, **USB tethering**
+(the laptop goes online through the phone) or **file sharing** (MTP: the phone shows up in File Explorer).
+Android runs only one at a time and doesn't let ordinary apps switch, so the **PC** does it through `adb`
+(bundled with the Windows app): `svc usb setFunctions rndis`, `mtp`, or nothing for charging. It needs USB
+debugging on the phone.
+
+- The user picks a default ("When the cable is connected", synced between both apps); the PC applies it once
+  per plug-in and never switches when it can't read the current mode.
+- Either side can switch any time from Home or the tray. The phone asks the PC (`orbit.usb.set`).
+- The phone reports its port from Android's sticky `USB_STATE` broadcast, so a mode picked from Android's own
+  USB menu shows up on both sides and isn't undone.
+- Leaving tethering asks first when the laptop is online through the phone. USB mirroring blocks switching,
+  since a switch makes USB reconnect for a moment.
+
+## Media controls
+
+Each side publishes the media sessions its system knows about (Android `MediaSessionManager`, through the
+notification access Orbit already has; Windows `GlobalSystemMediaTransportControlsSessionManager`) and runs
+play / pause / skip / seek for the other. The phone shows the PC's player on Home and as a system media
+player (a `MediaSession` with a media-style notification; it goes away after 10 minutes paused). The PC
+shows the phone's player on Home and in the tray, and can put it in the Windows media controls through a
+silent `MediaPlayer`'s `SystemMediaTransportControls`, so media keys reach the phone while it plays. Each side
+leaves its own session out of what it publishes, so nothing echoes back. Album art travels once per track.
 
 ## Earbuds
 
@@ -65,8 +84,10 @@ windows/Orbit.Windows/        WPF app (.NET 8)
   Core/OrbitCore.cs           discovery, pairing, session, clipboard, notifications
   Core/OrbitCore.Transfers.cs file transfer with resume
   Core/OrbitCore.Buds.cs      earbuds (direct + relayed), media handoff
+  Core/OrbitCore.Media.cs     media controls both ways (Core/Media/: sessions, Windows media controls)
+  Core/OrbitCore.Usb.cs       USB modes: charging, tethering, file sharing
   Core/OrbitCore.Mirror*.cs   screen mirroring: sessions, device choice, wireless pairing
-  Core/Adb.cs                 USB: adb track-devices, forward, tethering
+  Core/Adb.cs                 USB: adb track-devices, forward, shell
   Core/PhoneLink.cs           wire format, TLS dialing, protocol version
   Core/Hotkeys.cs             configurable global shortcuts
   Core/Diagnostics.cs         redacted diagnostics export, reset
@@ -84,6 +105,8 @@ android/app/src/main/java/io/github/mohib76/orbit/
   NotifListener.kt            notification mirroring
   Diagnostics.kt              diagnostics share, reset, local addresses
   buds/                       earbuds protocol, controller, service, tile
+  media/                      media sessions both ways, the PC media player
+  usb/                        USB port state, USB mode requests
   mirror/                     LIVE notification, Mirror tile, wireless-debugging helpers
   ui/                         Compose screens (design tokens in Theme.kt)
 tools/fetch-thirdparty.ps1    downloads and verifies scrcpy/FFmpeg/adb binaries

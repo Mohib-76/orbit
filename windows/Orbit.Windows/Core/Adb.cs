@@ -6,7 +6,7 @@ namespace Orbit.Core;
 
 /// <summary>
 /// Watches USB-connected Android devices through adb. Used for: USB link to Orbit
-/// (adb forward), one-click pairing over USB, and switching on USB tethering.
+/// (adb forward), one-click pairing over USB, and switching the USB mode (see OrbitCore.Usb).
 /// </summary>
 public sealed class Adb
 {
@@ -147,18 +147,5 @@ public sealed class Adb
     {
         var (_, o) = await ShellAsync(serial, $"pm path {PhonePackage}");
         return o.Contains("package:");
-    }
-
-    /// <summary>
-    /// Switches the phone's USB function to RNDIS, which makes Android start USB tethering.
-    /// Only ever turns tethering on; never off.
-    /// </summary>
-    public async Task<string> EnsureUsbTetheringAsync(string serial)
-    {
-        var (_, funcs) = await ShellAsync(serial, "svc usb getFunctions");
-        if (funcs.Contains("rndis") || funcs.Contains("ncm")) return "already on";
-        var (code, o) = await ShellAsync(serial, "svc usb setFunctions rndis");
-        Log.Write($"adb tether {serial}: setFunctions rndis -> {code} {o}");
-        return code == 0 ? "turned on" : "failed: " + o;
     }
 }

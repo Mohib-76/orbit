@@ -48,8 +48,18 @@ public sealed class Settings
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "Orbit");
     public bool AutoAcceptFiles { get; set; } = true;
 
-    /// <summary>Turn on the phone's USB tethering whenever it is plugged in (needs USB debugging).</summary>
-    public bool AutoUsbTethering { get; set; } = true;
+    /// <summary>Old switch, replaced by <see cref="UsbMode"/>. Read once to migrate, then null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? AutoUsbTethering { get; set; }
+    /// <summary>USB mode to apply when the phone is plugged in: charging | tethering | files (needs USB debugging; synced).</summary>
+    public string UsbMode { get; set; } = "tethering";
+    /// <summary>Skip the "Turn off USB tethering?" question.</summary>
+    public bool UsbSkipTetherConfirm { get; set; }
+
+    /// <summary>Show the phone's now-playing card on Home and in the tray.</summary>
+    public bool MediaShowPhone { get; set; } = true;
+    /// <summary>Put the phone's player in the Windows media controls, so media keys reach it while it plays.</summary>
+    public bool MediaKeys { get; set; } = true;
     /// <summary>Earbuds feature (kept in sync with the phone).</summary>
     public bool BudsEnabled { get; set; } = true;
     public string? BudsMac { get; set; }
@@ -72,6 +82,7 @@ public sealed class Settings
     public string HotkeyClipboard { get; set; } = "Ctrl+Alt+C";
     public string HotkeyNoise { get; set; } = "Ctrl+Alt+B";
     public string HotkeyMirror { get; set; } = "Ctrl+Alt+M";
+    public string HotkeyMedia { get; set; } = "Ctrl+Alt+P";
 
     /// <summary>Use the ADB link over USB for Orbit itself (fast pairing, works without Wi-Fi).</summary>
     public bool UseUsbLink { get; set; } = true;
@@ -102,7 +113,16 @@ public sealed class Settings
         try
         {
             if (File.Exists(Paths.SettingsFile))
-                return JsonSerializer.Deserialize<Settings>(File.ReadAllText(Paths.SettingsFile)) ?? new Settings();
+            {
+                var loaded = JsonSerializer.Deserialize<Settings>(File.ReadAllText(Paths.SettingsFile)) ?? new Settings();
+                if (loaded.AutoUsbTethering is { } tether)
+                {
+                    loaded.UsbMode = tether ? "tethering" : "charging";
+                    loaded.AutoUsbTethering = null;
+                }
+                loaded.UsbMode = UsbModes.Normalize(loaded.UsbMode);
+                return loaded;
+            }
         }
         catch (Exception ex) { Log.Write("settings load failed: " + ex.Message); }
         var s = new Settings();

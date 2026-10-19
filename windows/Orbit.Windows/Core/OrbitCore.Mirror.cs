@@ -294,6 +294,9 @@ public sealed partial class OrbitCore
             ["viewOnly"] = Mirror.ViewOnly,
             ["transport"] = Mirror.Transport,
         });
+        // USB mirroring blocks switching the USB mode.
+        SendUsbControl();
+        RaiseUsb();
     }
 
     void OnMirrorCommand(JsonObject b)
