@@ -4,6 +4,8 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
 ### Added
 - Media controls both ways: see what's playing on the other device (title, artist, album art, position) and play, pause, skip or seek it. On the PC: a card on Home, a row in the tray, a play/pause shortcut (Ctrl+Alt+P) and, optionally, the phone's player in the Windows media controls so media keys reach it. On the phone: a card on Home and a system media player for the PC's playback.
 - USB modes: choose what the cable does (charging only, USB tethering or file sharing) and switch any time from Home or the tray on either device. File sharing opens the phone in File Explorer. Asks before turning off tethering while the laptop is online through the phone.

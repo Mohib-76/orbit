@@ -29,7 +29,7 @@ What Orbit is designed to guarantee, so you can tell whether something is a vuln
 
 Known trade-offs (by design, not vulnerabilities):
 
-- **USB debugging** (needed for USB pairing, auto tethering and mirroring) gives any computer you
+- **USB debugging** (needed for USB pairing, USB modes and mirroring) gives any computer you
   authorize full control of the phone. Only authorize your own PC, and turn it off if you don't need it.
 - `WRITE_SECURE_SETTINGS` is granted to Orbit over adb for wireless mirroring.
 - Anyone using your unlocked PC can see mirrored notifications. Use *Hide notification text* or

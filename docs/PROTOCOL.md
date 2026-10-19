@@ -16,6 +16,19 @@ Each connection carries **newline-delimited JSON**: `{"type": "orbit.x", "body":
 The first line on a connection decides what it is: `orbit.hello` (control), `orbit.pair` (pairing),
 or `orbit.data` (file bytes).
 
+## Discovery
+
+On a shared Wi-Fi the PC broadcasts one UDP datagram (the same JSON, no newline needed) to port 47801 on each
+interface's broadcast address and listens for 0.9 s:
+
+| Type | Direction | Body |
+|---|---|---|
+| `orbit.discover` | PC → broadcast | `{id}` (the PC's device id) |
+| `orbit.identity` | phone → PC (unicast reply) | `{id, name, model, proto, app, port}` |
+
+The phone answers only a PC it is paired with, or the one whose QR code it has just scanned; anyone else gets
+no reply. The PC then dials `port` over TLS as usual, so discovery never carries anything secret.
+
 ## Trust
 
 - A device's identity is the SHA-256 fingerprint of its certificate (lowercase hex of the DER bytes).
@@ -26,6 +39,9 @@ or `orbit.data` (file bytes).
   3. PC checks it, then → `orbit.pair.ok {proof = HMAC(token, "pc|phoneNonce|phoneFp|pcFp")}`.
   4. Both sides store each other's fingerprint. Every later connection must present exactly that certificate.
 - Binding both fingerprints into the HMACs stops a man-in-the-middle from relaying a pairing.
+- The phone answers a connection it won't accept with one packet, then closes it: `orbit.reject` (an
+  `orbit.hello` from a PC that isn't the paired one: wrong id or certificate) or `orbit.pair.reject` (an
+  `orbit.pair` with no matching scanned QR code, an expired one, or while another pairing is in progress).
 
 ## Control packets
 

@@ -42,9 +42,23 @@ Another app may already use it. *Settings → Keyboard shortcuts* says so; pick 
 - **Over Wi-Fi:** run the one-time wireless setup in Orbit; phone and PC must be on the same Wi-Fi. Android doesn't offer wireless debugging over the phone's own hotspot.
 - Black areas are screens apps mark as secure (banking, passwords). That's Android protecting them.
 
+## Media from the other device doesn't show
+
+- PC: Settings → Media → *Show phone media on this PC*. Phone: Settings → Media → *Show PC media on this phone*.
+- The phone reads its players through notification access: make sure it's on for Orbit (see above).
+- Phone music in the Windows media controls (and media keys) needs *Use keyboard media keys for the phone* on the PC.
+- If the phone can't be controlled from the PC, check *Let the PC control media here* on the phone.
+
+## The USB mode won't switch
+
+- The PC switches the phone's USB mode over adb, so USB debugging must be on and this PC authorized ([how](#turn-on-usb-debugging)).
+- Switching is blocked while the phone is mirrored over USB: a switch makes USB reconnect for a moment. Stop mirroring first.
+- Orbit never switches when it can't read the phone's current mode. Unplug and plug in again.
+- Turning tethering off cuts the laptop's internet if it gets it through the phone; Orbit asks first.
+
 ## Earbuds don't show controls
 
-- Only realme / OnePlus buds that use the realme Link or HeyMelody app are supported.
+- Any Bluetooth buds show battery and *Play here*. Noise control, sound and tap settings are only for realme / OnePlus / OPPO buds that use the realme Link or HeyMelody app.
 - The buds must be paired with the device over Bluetooth and connected.
 - Close other apps that control the buds (including the vendor app): only one app per device can hold their control channel.
 - Android needs the *Nearby devices* (Bluetooth) permission.
