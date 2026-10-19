@@ -39,7 +39,8 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/PROTOCOL.md](docs/PR
 
 ## Pull requests
 
-1. Fork, create a branch, and keep the change focused.
+1. Fork, create a branch **from `dev`**, keep the change focused, and open the pull request **against `dev`**.
+   `main` only holds released code; it's updated when a release is cut.
 2. Make sure `dotnet test` and `gradlew testDebugUnitTest lintDebug` pass; CI runs them too.
 3. Describe what you tested and on which devices.
 4. By contributing, you agree your work is licensed under the AGPL-3.0, like the rest of Orbit.

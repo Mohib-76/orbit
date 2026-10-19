@@ -1,3 +1,5 @@
+<!-- Pull requests go into `dev` (not `main`); see CONTRIBUTING.md. -->
+
 ## What and why
 
 <!-- What does this change, and what problem does it solve? Link the issue if there is one. -->

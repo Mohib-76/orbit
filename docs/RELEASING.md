@@ -37,15 +37,30 @@ Unsigned installers trigger SmartScreen warnings until they build reputation. Op
 get free signing through [SignPath Foundation](https://signpath.org); otherwise use any Authenticode
 certificate and sign `Orbit.exe` and `OrbitSetup-*.exe` in the release workflow.
 
+## Branches
+
+Work happens on branches cut from `dev`, and pull requests go into `dev`. `main` only moves at release time,
+through a `release/X.Y.Z` branch cut from `dev` and merged into `main` with a pull request; the tag goes on that
+merge, and `main` is then merged back into `dev`. A hotfix may target `main` directly, and is merged back into
+`dev` the same way.
+
+With Claude Code, the project skills do this: `/start-work`, `/create-pr`, `/review-pr <n>` and `/create-release`
+(in `.claude/skills/`).
+
 ## Each release
+
+On a `release/X.Y.Z` branch from `dev`:
 
 1. Update the version in **both** places:
    - `windows/Orbit.Windows/Orbit.Windows.csproj` → `<Version>`
    - `android/app/build.gradle.kts` → `versionName`, and **increase** `versionCode`
 2. If the wire protocol changed incompatibly, bump `Proto.Version` (C#) and `Proto.VERSION` (Kotlin) together.
-3. Move the *Unreleased* notes in `CHANGELOG.md` under the new version.
-4. Commit, then tag and push: `git tag v1.2.0 && git push origin v1.2.0`.
-5. The **Release** workflow builds and tests both apps, makes the installer, zip, APK and `SHA256SUMS.txt`, and drafts a GitHub release. Review the draft, then publish it.
+3. Move the *Unreleased* notes in `CHANGELOG.md` under the new version, and make sure the README, the docs and
+   the website (`site/`) describe the new features.
+4. Commit "Release X.Y.Z", open a pull request into `main`, and merge it once CI passes.
+5. Tag the merge on `main` and push the tag: `git tag -a v1.2.0 -m "Orbit 1.2.0" origin/main && git push origin v1.2.0`.
+6. The **Release** workflow builds and tests both apps, makes the installer, zip, APK and `SHA256SUMS.txt`, and drafts a GitHub release. Check the assets and that the APK is signed with the release key, then publish it.
+7. Merge `main` back into `dev` (a fast-forward when nothing new landed on `dev` meanwhile).
 
 ## Local builds
 
