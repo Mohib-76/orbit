@@ -48,7 +48,13 @@ leaves its own session out of what it publishes, so nothing echoes back. Album a
 
 ## Earbuds
 
-realme / OnePlus "HeyMelody"-family buds speak a vendor protocol over classic Bluetooth RFCOMM
+There are two levels. **Any** Bluetooth buds get what the OS knows: connected or not, one battery level
+(Android's `BATTERY_LEVEL_CHANGED` / hidden `getBatteryLevel`, Windows' `DEVPKEY_Bluetooth_Battery`) and
+**Play here**. Brands Orbit knows also get a **driver** (`BudsDriver.kt` / `IBudsDriver.cs`) for their
+controls; `orbit.buds.state` says which controls the buds reported, and both apps only show those. Buds are
+picked by their Bluetooth device type (earbuds / headphones). Today there is one driver, `HeyMelody`:
+
+realme / OnePlus / OPPO "HeyMelody"-family buds speak a vendor protocol over classic Bluetooth RFCOMM
 (UUID `0000079a-d102-11e1-9b23-00025b00a5a5`, "OPPOv1" framing). The protocol knowledge comes from
 [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge)'s Oppo/realme support, cross-checked
 against the vendor app. Both apps speak it **directly**: Android uses `BluetoothSocket`, Windows uses
