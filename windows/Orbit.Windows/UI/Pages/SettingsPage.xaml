@@ -461,6 +461,16 @@
                                 <TextBlock x:Name="VersionWarningText" Style="{StaticResource Caption}" Foreground="{DynamicResource AmberInk}" Visibility="Collapsed"/>
                             </StackPanel>
                         </DockPanel>
+                        <StackPanel x:Name="PhoneAppRow" Visibility="Collapsed">
+                            <Border Style="{StaticResource Rule}"/>
+                            <DockPanel Style="{StaticResource Row}">
+                                <Button x:Name="PhoneAppBtn" DockPanel.Dock="Right" Style="{StaticResource Small}" Content="Update over USB" Click="PhoneApp_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Orbit on your phone" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock x:Name="PhoneAppText" Style="{StaticResource Caption}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </StackPanel>
                         <Border Style="{StaticResource Rule}"/>
                         <DockPanel Style="{StaticResource Row}">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">

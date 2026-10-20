@@ -68,11 +68,10 @@
     var platform = /Android/i.test(ua) ? 'android' : /Windows/i.test(ua) ? 'windows' : /iPhone|iPad|Macintosh/i.test(ua) ? 'apple' : 'other';
     var secondary = document.querySelector('.dl-secondary');
     var mark = function (id) { var c = document.getElementById(id); if (!c) return; c.classList.add('mine'); c.querySelector('.this').hidden = false; };
+    // The Android download is hidden for now (the Windows app installs it over USB), so phones get the
+    // Windows download plus a note. Restore the Android swap with the button in index.html.
     if (platform === 'android') {
-      document.querySelector('.ico-win').hidden = true; document.querySelector('.ico-and').hidden = false;
-      document.querySelector('.dl-primary-label').textContent = 'Download for Android';
-      document.querySelector('.dl-primary-sub').textContent = 'Android 10 or newer, APK';
-      document.querySelector('.dl-secondary-label').textContent = 'Get the Windows app';
+      document.getElementById('platform-note').textContent = 'Open this page on your Windows PC: Orbit for Windows installs the phone app over USB.';
       mark('dl-and');
     } else if (platform === 'windows') {
       mark('dl-win');
@@ -88,11 +87,11 @@
           if (/-android\.apk$/i.test(a.name)) apk = a;
         });
         if (rel.tag_name) document.querySelectorAll('.rel-version').forEach(function (el) { el.textContent = rel.tag_name; });
+        var andLink = document.getElementById('and-link');
         if (win) document.getElementById('win-link').href = win.browser_download_url;
-        if (apk) document.getElementById('and-link').href = apk.browser_download_url;
-        var p = platform === 'android' ? apk : win, s = platform === 'android' ? win : apk;
-        if (p) primary.href = p.browser_download_url;
-        if (s && secondary) secondary.href = s.browser_download_url;
+        if (apk && andLink) andLink.href = apk.browser_download_url;
+        if (win) primary.href = win.browser_download_url;
+        if (apk && secondary) secondary.href = apk.browser_download_url;
       })
       .catch(function () { /* keep the Releases page links */ });
   }

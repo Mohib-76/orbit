@@ -26,6 +26,11 @@ public partial class SettingsPage : UserControl
         Core.UsbChanged += () => { if (IsVisible) ShowUsbDefault(); };
         Core.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(OrbitCore.VersionWarning)) ShowVersionWarning(); };
         ShowVersionWarning();
+        Core.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(OrbitCore.PhoneApp) or nameof(OrbitCore.CanInstallPhoneApp)) ShowPhoneApp();
+        };
+        ShowPhoneApp();
         SizeChanged += (_, _) => { Grid2.Columns = ActualWidth < 900 ? 1 : 2; UsbChoices.Columns = ActualWidth < 820 ? 1 : 3; };
         Core.Phone.PropertyChanged += (_, _) => Refresh();
         Core.PropertyChanged += (_, e) =>
@@ -253,6 +258,28 @@ public partial class SettingsPage : UserControl
     {
         VersionWarningText.Text = Core.VersionWarning;
         VersionWarningText.Visibility = Core.VersionWarning.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// Offer "Update over USB" while a phone with an older Orbit is plugged in, or "Install over USB" when the
+    /// plugged-in phone has none (a new or reset phone; the Pair page with its button isn't shown once paired).
+    /// </summary>
+    void ShowPhoneApp()
+    {
+        var bundled = OrbitCore.BundledApk != null;
+        var older = bundled && Core.PhoneApp == PhoneAppState.Older;
+        var missing = bundled && Core.PhoneApp == PhoneAppState.Missing;
+        PhoneAppRow.Visibility = older || missing || Core.PhoneAppInstalling ? Visibility.Visible : Visibility.Collapsed;
+        if (older) PhoneAppText.Text = $"Orbit {Core.PhoneAppVersion} is on your phone; this PC has {Proto.AppVersion}.";
+        if (missing) PhoneAppText.Text = "The phone plugged in doesn't have Orbit. Installing it pairs this PC with it.";
+        PhoneAppBtn.Content = missing ? "Install over USB" : "Update over USB";
+        PhoneAppBtn.IsEnabled = Core.CanInstallPhoneApp;
+    }
+
+    async void PhoneApp_Click(object sender, RoutedEventArgs e)
+    {
+        PhoneAppText.Text = "Installing Orbit on your phone… If the phone asks to allow it, tap Allow.";
+        PhoneAppText.Text = await Core.InstallPhoneAppAsync();
     }
 
     // ---------------- keyboard shortcuts

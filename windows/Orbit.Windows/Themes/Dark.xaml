@@ -37,4 +37,13 @@
     <SolidColorBrush x:Key="MutedInk" Color="#6A6B80"/>
     <SolidColorBrush x:Key="DisabledInk" Color="#5A5B6E"/>
     <SolidColorBrush x:Key="LiveRed" Color="#FF6B5E"/>
+    <!-- Mirror window -->
+    <SolidColorBrush x:Key="MirrorStage" Color="#0E0E14"/>
+    <SolidColorBrush x:Key="MirrorScrim" Color="#E616161F"/>
+    <SolidColorBrush x:Key="MirrorLive" Color="#3DD68C"/>
+    <SolidColorBrush x:Key="MirrorPending" Color="#F5B841"/>
+    <SolidColorBrush x:Key="MirrorAlert" Color="#FF7A6E"/>
+    <SolidColorBrush x:Key="MirrorAlertSoft" Color="#3A1C1A"/>
+    <SolidColorBrush x:Key="MirrorToolInk" Color="#E4E4EE"/>
+    <SolidColorBrush x:Key="MirrorRing" Color="#3A3B6E"/>
 </ResourceDictionary>

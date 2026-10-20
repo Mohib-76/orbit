@@ -11,7 +11,7 @@
     <RootNamespace>Orbit</RootNamespace>
     <AssemblyName>Orbit</AssemblyName>
     <ApplicationIcon>Assets\orbit.ico</ApplicationIcon>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <TieredPGO>true</TieredPGO>
     <InvariantGlobalization>false</InvariantGlobalization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -51,6 +51,12 @@
   <ItemGroup Condition="Exists('$(AdbSourceDir)\adb.exe')">
     <None Include="$(AdbSourceDir)\adb.exe;$(AdbSourceDir)\AdbWinApi.dll;$(AdbSourceDir)\AdbWinUsbApi.dll"
           Link="adb\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Install over USB: the matching Android APK, shipped as phone\Orbit.apk. build.ps1 and the release workflow
+       pass its path (-p:OrbitPhoneApk=...); plain dev builds leave it out and the app hides the install button. -->
+  <ItemGroup Condition="'$(OrbitPhoneApk)' != '' And Exists('$(OrbitPhoneApk)')">
+    <None Include="$(OrbitPhoneApk)" Link="phone\Orbit.apk" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Screen mirroring: scrcpy's device server and FFmpeg decoder DLLs (see ThirdParty/scrcpy/README.md). -->
