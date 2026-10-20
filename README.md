@@ -37,9 +37,13 @@ or the same Wi-Fi. End-to-end encrypted, no account, no cloud.
 **Requirements:** Windows 10 (1809) or 11, x64 · Android 10 or newer.
 
 1. **Windows:** download `OrbitSetup-<version>.exe` from [Releases](https://github.com/Mohib-76/orbit/releases) and run it. Orbit lives in the tray.
-2. **Android:** download `Orbit-<version>-android.apk` from the same release and install it (allow installs from your browser or file manager when asked).
+2. **Android, easiest:** turn on [USB debugging](docs/TROUBLESHOOTING.md#turn-on-usb-debugging), plug the phone in and
+   click **Install on phone** on the PC's pairing screen. Orbit installs the phone app and pairs in one go.
+   **Or** download `Orbit-<version>-android.apk` from the same release and install it (allow installs from your
+   browser or file manager when asked). Some phones block that with "App blocked to protect your device";
+   install over USB instead ([why](docs/TROUBLESHOOTING.md#app-blocked-to-protect-your-device)).
 3. Open Orbit on the phone and grant the permissions it asks for (notification access and "stay connected" matter most).
-4. Pair: plug in with USB debugging on and click **Pair over USB** on the PC, or tap **Scan QR code** on the phone and point it at the PC.
+4. Pair, if you didn't install over USB: plug in with USB debugging on and click **Pair over USB** on the PC, or tap **Scan QR code** on the phone and point it at the PC.
 
 Check the SHA-256 of what you downloaded against `SHA256SUMS.txt` in the release.
 

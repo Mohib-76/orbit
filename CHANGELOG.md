@@ -4,6 +4,9 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
 
 ## [Unreleased]
 
+### Added
+- Install over USB: the Windows app now carries the Android app. Plug in the phone with USB debugging on and click **Install on phone** on the pairing screen; Orbit installs and pairs in one go. This works where Android blocks installing Orbit from a browser ("App blocked to protect your device"). When the phone has an older Orbit, Settings offers **Update over USB**.
+
 ## [1.1.0] - 2026-10-19
 
 ### Added

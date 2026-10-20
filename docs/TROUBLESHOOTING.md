@@ -20,6 +20,24 @@ Needed for Pair over USB, USB modes (charging, tethering, file sharing) and scre
 
 Orbit's PC Settings → Connection → USB shows whether the phone is authorized.
 
+## "App blocked to protect your device"
+
+Android shows this when you install the Orbit APK from a browser, messaging app or file manager on phones where
+Google Play Protect's fraud protection is on (India, Brazil, Singapore, Thailand and other countries). It blocks
+any app that can read notifications, which Orbit needs for notification mirroring. The APK itself is fine.
+
+- **Install over USB instead:** turn on [USB debugging](#turn-on-usb-debugging), plug the phone into the PC, open
+  Orbit on the PC and click **Install on phone** on the pairing screen. Installs from the PC aren't blocked, and
+  Orbit pairs right after.
+- If the phone asks to allow an install from USB, tap Allow. On Xiaomi, Redmi and POCO also turn on
+  **Install via USB** in Developer options.
+
+## Notification access is greyed out ("Restricted setting")
+
+Android 13 and newer restrict notification access for apps installed from a browser or file manager. Open
+**Settings → Apps → Orbit**, tap **⋮** (top right) → **Allow restricted settings**, then turn notification access
+on. Apps installed over USB with **Install on phone** aren't restricted.
+
 ## Notifications don't show on the PC
 
 - Phone: *Settings → Notification access* must say **Granted**, and *Mirror notifications* must be on. Check *Mirrored apps* too.
