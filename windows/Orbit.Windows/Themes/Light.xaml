@@ -45,4 +45,5 @@
     <SolidColorBrush x:Key="MirrorAlert" Color="#D93A2E"/>
     <SolidColorBrush x:Key="MirrorAlertSoft" Color="#FCE8E6"/>
     <SolidColorBrush x:Key="MirrorToolInk" Color="#16161F"/>
+    <SolidColorBrush x:Key="MirrorRing" Color="#C4C5D6"/>
 </ResourceDictionary>

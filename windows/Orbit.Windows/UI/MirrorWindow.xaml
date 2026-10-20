@@ -152,7 +152,7 @@
                                 <Border x:Name="ConnectingPanel" Background="{DynamicResource MirrorScrim}" Visibility="Collapsed">
                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24">
                                         <Grid Width="64" Height="64" HorizontalAlignment="Center">
-                                            <Ellipse Stroke="{DynamicResource Track}" StrokeThickness="2"/>
+                                            <Ellipse Stroke="{DynamicResource MirrorRing}" StrokeThickness="2"/>
                                             <Ellipse Width="20" Height="20" Fill="{DynamicResource Accent}"/>
                                             <Canvas Width="64" Height="64" RenderTransformOrigin="0.5,0.5">
                                                 <Canvas.RenderTransform><RotateTransform x:Name="Spin"/></Canvas.RenderTransform>
