@@ -36,6 +36,15 @@ crossed out).
   has no dark artboard, make the dark copy from the canvas's own palettes (WinDashboard's `light`/`dark` tables for
   Windows screens, AndHome's for Android), mapping each light color to its dark role.
 
+## Film
+
+A 12-second muted loop right after the hero shows four features in motion (clipboard, notifications, files,
+mirroring). It's rendered from the owner's Remotion project (`OrbitIntro`, outside this repo): compositions
+`OrbitLoop` (dark) and `OrbitLoopLight` (light), at 1280x720, as MP4 (H.264, plays everywhere) and a poster JPEG
+each, saved in `site/media/` (`npm run render:web` in that project, then copy from `out/web/`). It plays only while on screen, swaps with the theme, loads nothing until
+it's near, has a Pause button (WCAG 2.2.2), and starts paused on its poster under reduced motion. Re-render it
+when a feature it shows changes.
+
 ## System
 
 - **Palette (light / dark):** ground `#F5F5F8` / `#0C0C12`, ink `#121219` / `#F1F1F6`, muted `#55566A` / `#A6A7BA`,
@@ -53,6 +62,7 @@ crossed out).
 
 ```
 hero      badge, h1, one line, download buttons / Windows dashboard with the Android home screen in front
+film      the 12 s feature loop, framed 16:9, with a Pause button
 features  bento of screens: clipboard, files (share sheet), mirroring (full width), notifications,
           earbuds, tray, phone shortcuts
 connect   one line / the route race

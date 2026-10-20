@@ -197,6 +197,17 @@ footer{border-top:1px solid var(--line);padding-block:56px 40px;content-visibili
 .phn{grid-column:10/-1;grid-row:1;margin-bottom:-28px}
 @media (max-width:760px){.win{grid-column:1/-1}.phn{grid-column:8/-1;grid-row:2;margin:-34% 4px 0 0;padding:5px;border-radius:30px}.phn img{border-radius:25px}}
 
+/* Film: the features in motion (rendered from the OrbitIntro Remotion project, one per theme) */
+.v-film{padding-block:clamp(16px,3vw,40px) 0}
+.film{position:relative;margin:0;border-radius:24px;overflow:hidden;border:1px solid var(--line-strong);box-shadow:var(--shadow);background:var(--surface);aspect-ratio:16/9}
+.film-v{display:block;width:100%;height:100%;object-fit:cover}
+.film-btn{position:absolute;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line-strong);background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--ink);font:700 13px/1 var(--f);cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:border-color .3s,scale .2s}
+@media (hover:hover){.film-btn:hover{border-color:var(--accent)}}
+.film-btn:active{scale:.96}
+.film-btn .i-play{display:none}
+.film-btn[aria-pressed="true"] .i-play{display:block}.film-btn[aria-pressed="true"] .i-pause{display:none}
+@media (max-width:640px){.film{border-radius:16px}.film-btn{right:8px;bottom:8px;min-height:32px;padding:0 9px}.film-btn-l{display:none}}
+
 /* Features: one screen per tile */
 .bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--gut);margin-top:clamp(32px,4vw,56px)}
 .tile{position:relative;overflow:hidden;border-radius:24px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;min-height:420px;transition:box-shadow .5s var(--ease),opacity .9s var(--ease),translate .9s var(--ease)}

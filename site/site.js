@@ -97,6 +97,33 @@
       .catch(function () { /* keep the Releases page links */ });
   }
 
+  // Film: plays only while on screen and in the current theme; never loads before it's near. A pause button
+  // stops it for good (WCAG 2.2.2); under reduced motion it starts paused on its poster.
+  var film = document.querySelector('.film');
+  if (film) {
+    var vids = [].slice.call(film.querySelectorAll('video')), btn = film.querySelector('.film-btn');
+    var label = btn.querySelector('.film-btn-l'), stopped = reduce, near = false, seen = false;
+    var current = function () { for (var i = 0; i < vids.length; i++) if (vids[i].offsetParent) return vids[i]; return vids[0]; };
+    var sync = function () {
+      var v = current();
+      vids.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });
+      btn.setAttribute('aria-pressed', String(stopped));
+      label.textContent = stopped ? 'Play' : 'Pause';
+      btn.setAttribute('aria-label', stopped ? 'Play the video' : 'Pause the video');
+      if (!near) return;
+      if (v.preload !== 'auto') v.preload = 'auto';
+      if (!stopped && seen) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else if (!v.paused) v.pause();
+    };
+    btn.addEventListener('click', function () { stopped = !stopped; near = true; seen = true; sync(); });
+    if (hasIO) {
+      new IntersectionObserver(function (e) { near = near || e[0].isIntersecting; sync(); }, { rootMargin: '400px 0px' }).observe(film);
+      new IntersectionObserver(function (e) { seen = e[0].isIntersecting; sync(); }, { threshold: 0.35 }).observe(film);
+    } else { near = seen = true; }
+    if (themeBtn) themeBtn.addEventListener('click', function () { setTimeout(sync, 0); });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+    sync();
+  }
+
   // Feature tiles slide up as they arrive (tiles already on screen stay put).
   if (hasIO && !reduce) {
     var tio = new IntersectionObserver(function (entries) {
