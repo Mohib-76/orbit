@@ -111,12 +111,14 @@ Make the fixes in the docs' existing style. Keep a list: "README: added Media co
 ## 5. Landing page (`site/index.html`)
 
 The page fetches the latest version from the GitHub API and links to `releases/latest`, so no version edits are
-needed. Update content only when the release adds a **major user-facing feature** (one that deserves a card next
-to Clipboard / Notifications / Files / Screen mirroring / Earbuds / Battery) or removes one:
+needed. Update content only when the release adds a **major user-facing feature** (one that deserves a tile next
+to Clipboard / Files / Screen mirroring / Notifications / Earbuds in the features bento) or removes one. Read
+`docs/SITE_DESIGN.md` first:
 
-- Add/adjust a `<article class="feat reveal">` card: same markup, a 24×24 stroke icon in the existing SVG style
-  (`stroke-width="2"`, round caps), a 1–3 word `<h3>`, one short sentence `<p>` in the same voice. Keep the
-  `--d` stagger pattern (0.00 / 0.06 / 0.12s per row) and an even grid.
+- Add/adjust an `<article class="tile …">` in `.bento`: a 1–3 word `<h3>`, one short line `<p>`, and a screen of the
+  feature rendered from the design canvas as WebP in `site/img/` (sample data only: replace personal or real-world
+  details in a local copy before rendering). Keep each bento row's spans adding up to 12 (`t5` + `t7`, `t6` + `t6`, `t12`).
+  No screen designed yet: ask the owner for one rather than drawing a fake UI.
 - Update `<meta name="description">`, `og:description` and the hero copy if they list features.
 - Don't change the design, fonts, colors or scripts; don't add trackers or external resources.
 - Check it renders: headless screenshot with Edge/Chrome, e.g.
