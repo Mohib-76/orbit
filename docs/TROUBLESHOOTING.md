@@ -83,4 +83,5 @@ Another app may already use it. *Settings → Keyboard shortcuts* says so; pick 
 
 ## Orbit says one app needs updating
 
-Both apps must speak the same protocol. Install the latest release on the device the message names.
+Both apps must speak the same protocol. Install the latest release on the device the message names. For the
+phone, plug it into the PC and use **Settings → Orbit on your phone → Update over USB** in Orbit for Windows.

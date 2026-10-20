@@ -59,7 +59,7 @@ On a `release/X.Y.Z` branch from `dev`:
    the website (`site/`) describe the new features.
 4. Commit "Release X.Y.Z", open a pull request into `main`, and merge it once CI passes.
 5. Tag the merge on `main` and push the tag: `git tag -a v1.2.0 -m "Orbit 1.2.0" origin/main && git push origin v1.2.0`.
-6. The **Release** workflow builds and tests both apps, makes the installer, zip, APK and `SHA256SUMS.txt`, and drafts a GitHub release. Check the assets and that the APK is signed with the release key, then publish it.
+6. The **Release** workflow builds and tests both apps (Android first: the Windows app bundles the signed APK as `phone\Orbit.apk` for Install over USB), makes the installer, zip, APK and `SHA256SUMS.txt`, and drafts a GitHub release. Check the assets and that the APK is signed with the release key, then publish it.
 7. Merge `main` back into `dev` (a fast-forward when nothing new landed on `dev` meanwhile).
 
 ## Local builds
