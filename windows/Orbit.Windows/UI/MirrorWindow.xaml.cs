@@ -177,11 +177,11 @@ public partial class MirrorWindow : Window
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
             FrameworkElement mark = done
-                ? new Ic { Data = (Geometry)FindResource("IcCheck"), Width = 14, Height = 14, Thickness = 3, Foreground = (Brush)FindResource("Live") }
+                ? new Ic { Data = (Geometry)FindResource("IcCheck"), Width = 14, Height = 14, Thickness = 3, Foreground = (Brush)FindResource("MirrorLive") }
                 : new System.Windows.Shapes.Ellipse
                 {
                     Width = 8, Height = 8, Margin = new Thickness(3, 0, 3, 0),
-                    Fill = active ? (Brush)FindResource("Pending") : (Brush)FindResource("Track")
+                    Fill = active ? (Brush)FindResource("MirrorPending") : (Brush)FindResource("Track")
                 };
             mark.VerticalAlignment = VerticalAlignment.Center;
             row.Children.Add(mark);
@@ -495,7 +495,7 @@ public partial class MirrorWindow : Window
             if (path != null) ShowFlash("Recording…  Ctrl Shift R stops");
         }
         RecordBtn.IsChecked = Recorder.IsRecording;
-        RecordIcon.IconFill = Recorder.IsRecording ? (Brush)FindResource("Alert") : null;
+        RecordIcon.IconFill = Recorder.IsRecording ? (Brush)FindResource("MirrorAlert") : null;
     }
 
     void StopRecording()
