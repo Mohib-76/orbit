@@ -46,6 +46,8 @@
                     <StackPanel>
                         <DockPanel>
                             <Border Style="{StaticResource IconChip}" Margin="0,0,12,0"><ui:Ic Data="{StaticResource IcUsb}"/></Border>
+                            <Button x:Name="InstallBtn" DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="Install on phone"
+                                    Visibility="Collapsed" Click="Install_Click"/>
                             <Button x:Name="UsbBtn" DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="Pair over USB"
                                     IsEnabled="{Binding CanPairOverUsb}" Click="PairUsb_Click"/>
                             <StackPanel VerticalAlignment="Center">
@@ -53,6 +55,8 @@
                                 <TextBlock Text="{Binding UsbStatus}" Style="{StaticResource Caption}"/>
                             </StackPanel>
                         </DockPanel>
+                        <TextBlock x:Name="InstallHint" Style="{StaticResource Caption}" Margin="44,8,0,0" TextWrapping="Wrap" Visibility="Collapsed"
+                                   Text="Orbit isn't on this phone yet. Install it from here: no download, and Android won't block it. Pairing follows."/>
                         <TextBlock x:Name="UsbResult" Style="{StaticResource Caption}" Margin="44,8,0,0" Foreground="{DynamicResource SoftInk}"/>
                     </StackPanel>
                 </Border>

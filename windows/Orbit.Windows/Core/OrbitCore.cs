@@ -513,6 +513,7 @@ public sealed partial class OrbitCore : Observable
         if (serial == null)
         {
             _usbSerial = null; _usbForwardActive = false;
+            await RefreshPhoneAppAsync(null);
         }
         Ui.Run(UpdateUsbStatus);
         if (serial != null && _usbSerial == null) await OnUsbDeviceOnlineAsync(serial);
@@ -529,6 +530,7 @@ public sealed partial class OrbitCore : Observable
                 if (code == 0) { _usbSerial = serial; _usbForwardActive = true; _kick.Release(); }
             }
             Ui.Run(() => { CanPairOverUsb = hasOrbit; UpdateUsbStatus(); });
+            await RefreshPhoneAppAsync(serial);
             await OnUsbOnlineAsync(serial);
         }
         catch (Exception ex) { Log.Write("usb online: " + ex.Message); }
@@ -542,6 +544,7 @@ public sealed partial class OrbitCore : Observable
         else if (Adb.AnyUnauthorized()) UsbStatus = "Phone on USB · tap Allow on the debugging prompt";
         else UsbStatus = "No phone on USB";
         if (serial == null) CanPairOverUsb = false;
+        Raise(nameof(CanInstallPhoneApp));
     }
 
     // =====================================================================

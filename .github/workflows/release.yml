@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   windows:
+    # The Windows app ships the signed APK so it can install Orbit on the phone over USB.
+    needs: android
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +24,19 @@ jobs:
       - name: Fetch third-party binaries
         shell: pwsh
         run: ./tools/fetch-thirdparty.ps1
+      - uses: actions/download-artifact@v4
+        with:
+          name: android
+          path: apk
       - name: Test
         run: dotnet test windows/Orbit.Tests -c Release
       - name: Publish (self-contained)
         shell: pwsh
         run: |
           $v = "${{ github.ref_name }}".TrimStart('v')
-          dotnet publish windows/Orbit.Windows -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=true -p:Version=$v -o dist/windows
+          $apk = (Resolve-Path "apk/Orbit-$v-android.apk").Path
+          dotnet publish windows/Orbit.Windows -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=true -p:Version=$v "-p:OrbitPhoneApk=$apk" -o dist/windows
+          if (-not (Test-Path dist/windows/phone/Orbit.apk)) { throw "The phone app wasn't bundled" }
           Compress-Archive dist/windows/* "dist/Orbit-$v-windows-x64.zip"
       - name: Installer
         shell: pwsh

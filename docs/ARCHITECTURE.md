@@ -20,6 +20,15 @@ pairing. Pairing proves possession of a one-time token from the QR code with an 
 fingerprints, so a man-in-the-middle can't relay it. `orbit.hello` carries a protocol version so
 mismatched apps can tell the user which side to update.
 
+## Install over USB
+
+The Windows app carries the Android app built from the same release (`phone\Orbit.apk`, bundled by the release
+workflow and `build.ps1`). When an authorized phone without Orbit is plugged in, the pairing screen offers
+**Install on phone**: `adb install -r --user current`, then the usual Pair over USB. When the phone's
+`versionName` (from `dumpsys package`) is older than the PC's, Settings offers **Update over USB**. Installs
+through adb aren't subject to Play Protect's sideloading block or Android's restricted settings, which both
+apply to apps that can read notifications. Plain `dotnet build` output has no APK, so the button stays hidden.
+
 ## USB modes
 
 While the cable is in, the phone's USB port does one of three things: **charging only**, **USB tethering**
@@ -92,6 +101,7 @@ windows/Orbit.Windows/        WPF app (.NET 8)
   Core/OrbitCore.Buds.cs      earbuds (direct + relayed), media handoff
   Core/OrbitCore.Media.cs     media controls both ways (Core/Media/: sessions, Windows media controls)
   Core/OrbitCore.Usb.cs       USB modes: charging, tethering, file sharing
+  Core/OrbitCore.PhoneApp.cs  install / update the bundled phone app over USB
   Core/OrbitCore.Mirror*.cs   screen mirroring: sessions, device choice, wireless pairing
   Core/Adb.cs                 USB: adb track-devices, forward, shell
   Core/PhoneLink.cs           wire format, TLS dialing, protocol version

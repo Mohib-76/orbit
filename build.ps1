@@ -23,12 +23,7 @@ if (-not $env:JAVA_HOME) {
 
 $version = ([xml](Get-Content "$root\windows\Orbit.Windows\Orbit.Windows.csproj")).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
 
-Write-Host "== Windows app $version" -ForegroundColor Cyan
-$sc = if ($SelfContained -or $Installer) { "true" } else { "false" }
-dotnet publish "$root\windows\Orbit.Windows" -c Release -r win-x64 --self-contained $sc `
-    -p:PublishReadyToRun=true -o "$dist\windows"
-if ($LASTEXITCODE) { throw "Windows build failed" }
-
+# Android first: the Windows app bundles the APK to install it on the phone over USB.
 Write-Host "== Android app" -ForegroundColor Cyan
 Push-Location "$root\android"
 try {
@@ -36,6 +31,12 @@ try {
     if ($LASTEXITCODE) { throw "Android build failed" }
 } finally { Pop-Location }
 Copy-Item "$root\android\app\build\outputs\apk\release\app-release.apk" "$dist\Orbit.apk" -Force
+
+Write-Host "== Windows app $version" -ForegroundColor Cyan
+$sc = if ($SelfContained -or $Installer) { "true" } else { "false" }
+dotnet publish "$root\windows\Orbit.Windows" -c Release -r win-x64 --self-contained $sc `
+    -p:PublishReadyToRun=true "-p:OrbitPhoneApk=$dist\Orbit.apk" -o "$dist\windows"
+if ($LASTEXITCODE) { throw "Windows build failed" }
 
 if ($Installer) {
     $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe", "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe") |

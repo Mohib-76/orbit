@@ -67,7 +67,9 @@ features  bento of screens: clipboard, files (share sheet), mirroring (full widt
           earbuds, tray, phone shortcuts
 connect   one line / the route race
 privacy   "No account. No cloud. No tracking." / the direct-line drawing
-install   two download cards (your platform marked), links to releases and troubleshooting
+install   two cards (your platform marked), links to releases and troubleshooting. For now only Windows has a
+          download: Play Protect blocks browser installs of the APK in some countries, so the Android card says the
+          Windows app installs it over USB (the hero's Android button and link are commented out, ready to restore)
 footer    wordmark, credits, project links
 404       "No route to this page." / the race with no lane answering
 ```
