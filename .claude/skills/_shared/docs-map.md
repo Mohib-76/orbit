@@ -16,7 +16,8 @@ plain sentences, no marketing).
 | Build, toolchain, CI, release steps | `CONTRIBUTING.md`, `docs/RELEASING.md`, `build.ps1` comments, `README.md` "Build from source" |
 | A new library, bundled binary or borrowed code | `THIRD_PARTY_NOTICES.md` (+ `licenses/`), `tools/fetch-thirdparty.ps1` with a SHA-256 for binaries |
 | Architecture rules, file layout, new partial classes / folders, conventions | `CLAUDE.md` (the notes every Claude session reads) |
-| A major user-facing feature (one that would earn a card on the website) | `site/index.html` (features grid, meta description, `og:description`); done at release time by `create-release` |
+| A major user-facing feature (one that would earn a card on the website) | `site/index.html` (a screen tile in the features bento, meta description, `og:description`); done at release time by `create-release`. Follow `docs/SITE_DESIGN.md` (screens from the design canvas, sample data only, one line of text per tile) |
+| The website's layout, look or motion | `docs/SITE_DESIGN.md` |
 | Android user-visible strings | `android/app/src/main/res/values/strings.xml` |
 
 Never put anything from `CLAUDE.local.md` (or any `*.local.md`) into these files.

@@ -30,7 +30,13 @@ official scrcpy release and verifies its SHA-256 before extracting them.
 
 | Component | License | Notes |
 |---|---|---|
-| [Manrope](https://github.com/sharanda/manrope) font | SIL Open Font License 1.1 (`licenses/Manrope-OFL.txt`) | Copyright 2018 The Manrope Project Authors. |
+| [Manrope](https://github.com/sharanda/manrope) font | SIL Open Font License 1.1 (`licenses/Manrope-OFL.txt`) | Copyright 2018 The Manrope Project Authors. Also self-hosted by the website (`site/fonts/`). |
+
+## Website (`site/`)
+
+| Component | License | Notes |
+|---|---|---|
+| [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) font | SIL Open Font License 1.1 (`licenses/JetBrainsMono-OFL.txt`) | Copyright 2020 The JetBrains Mono Project Authors. Self-hosted in `site/fonts/`. |
 
 ## Protocol knowledge and acknowledgements
 
