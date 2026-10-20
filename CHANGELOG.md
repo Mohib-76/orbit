@@ -4,6 +4,9 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
 
 ## [Unreleased]
 
+### Changed
+- The screen mirroring window on Windows follows the app's light or dark theme instead of always being dark.
+
 ## [1.1.0] - 2026-10-19
 
 ### Added
