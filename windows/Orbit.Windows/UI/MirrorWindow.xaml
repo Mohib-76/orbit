@@ -9,24 +9,13 @@
         <WindowChrome CaptionHeight="44" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
-    <!-- The mirror is always dark so the phone's screen is the focus. -->
+    <!-- Follows the app theme like every other window; its own brushes are the Mirror* keys in Themes/Light.xaml and Dark.xaml. -->
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Themes/Dark.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-            <SolidColorBrush x:Key="Stage" Color="#0E0E14"/>
-            <SolidColorBrush x:Key="Scrim" Color="#E616161F"/>
-            <SolidColorBrush x:Key="Live" Color="#3DD68C"/>
-            <SolidColorBrush x:Key="Pending" Color="#F5B841"/>
-            <SolidColorBrush x:Key="Alert" Color="#FF7A6E"/>
-            <SolidColorBrush x:Key="AlertSoft" Color="#3A1C1A"/>
-            <SolidColorBrush x:Key="ToolInk" Color="#E4E4EE"/>
-
             <Style x:Key="Tool" TargetType="ButtonBase">
                 <Setter Property="Width" Value="40"/>
                 <Setter Property="Height" Value="40"/>
-                <Setter Property="Foreground" Value="{DynamicResource ToolInk}"/>
+                <Setter Property="Foreground" Value="{DynamicResource MirrorToolInk}"/>
                 <Setter Property="Focusable" Value="False"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="ToolTipService.InitialShowDelay" Value="250"/>
@@ -125,7 +114,7 @@
             </ToggleButton>
             <Border x:Name="StatsChip" DockPanel.Dock="Right" Padding="10,4" CornerRadius="999" Background="{DynamicResource Card}" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
-                    <Ellipse Width="7" Height="7" Fill="{DynamicResource Live}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <Ellipse Width="7" Height="7" Fill="{DynamicResource MirrorLive}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock x:Name="StatsText" FontFamily="{StaticResource Mono}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Text2}"/>
                 </StackPanel>
             </Border>
@@ -153,17 +142,17 @@
                             </Border.Effect>
                         </Border>
                         <Border x:Name="Bezel" Background="Black" CornerRadius="40" Padding="8" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
-                            <Grid x:Name="Screen" Width="320" Height="690" Background="{DynamicResource Stage}" Cursor="Arrow">
+                            <Grid x:Name="Screen" Width="320" Height="690" Background="{DynamicResource MirrorStage}" Cursor="Arrow">
                                 <Image x:Name="Video" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"
                                        MouseLeftButtonDown="Video_LeftDown" MouseLeftButtonUp="Video_LeftUp" MouseMove="Video_Move"
                                        MouseRightButtonDown="Video_RightDown" MouseRightButtonUp="Video_RightUp"
                                        MouseDown="Video_MouseDown" MouseWheel="Video_Wheel" LostMouseCapture="Video_LostCapture"/>
 
                                 <!-- Connecting -->
-                                <Border x:Name="ConnectingPanel" Background="{DynamicResource Scrim}" Visibility="Collapsed">
+                                <Border x:Name="ConnectingPanel" Background="{DynamicResource MirrorScrim}" Visibility="Collapsed">
                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24">
                                         <Grid Width="64" Height="64" HorizontalAlignment="Center">
-                                            <Ellipse Stroke="#3A3B6E" StrokeThickness="2"/>
+                                            <Ellipse Stroke="{DynamicResource MirrorRing}" StrokeThickness="2"/>
                                             <Ellipse Width="20" Height="20" Fill="{DynamicResource Accent}"/>
                                             <Canvas Width="64" Height="64" RenderTransformOrigin="0.5,0.5">
                                                 <Canvas.RenderTransform><RotateTransform x:Name="Spin"/></Canvas.RenderTransform>
@@ -185,10 +174,10 @@
                                 </Border>
 
                                 <!-- Paused -->
-                                <Border x:Name="LostPanel" Background="{DynamicResource Scrim}" Visibility="Collapsed">
+                                <Border x:Name="LostPanel" Background="{DynamicResource MirrorScrim}" Visibility="Collapsed">
                                     <StackPanel VerticalAlignment="Center" Margin="28,0">
-                                        <Border Width="56" Height="56" CornerRadius="28" Background="{DynamicResource AlertSoft}" HorizontalAlignment="Center">
-                                            <TextBlock Text="!" FontSize="26" FontWeight="ExtraBold" Foreground="{DynamicResource Alert}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border Width="56" Height="56" CornerRadius="28" Background="{DynamicResource MirrorAlertSoft}" HorizontalAlignment="Center">
+                                            <TextBlock Text="!" FontSize="26" FontWeight="ExtraBold" Foreground="{DynamicResource MirrorAlert}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <TextBlock Text="Stream paused" FontSize="16" FontWeight="ExtraBold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
                                         <TextBlock x:Name="LostText" FontSize="13" Foreground="{DynamicResource Text2}" TextWrapping="Wrap" TextAlignment="Center"

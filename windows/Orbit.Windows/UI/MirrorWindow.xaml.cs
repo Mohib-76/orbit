@@ -176,20 +176,23 @@ public partial class MirrorWindow : Window
         foreach (var (done, active, text) in rows)
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
-            FrameworkElement mark = done
-                ? new Ic { Data = (Geometry)FindResource("IcCheck"), Width = 14, Height = 14, Thickness = 3, Foreground = (Brush)FindResource("Live") }
-                : new System.Windows.Shapes.Ellipse
-                {
-                    Width = 8, Height = 8, Margin = new Thickness(3, 0, 3, 0),
-                    Fill = active ? (Brush)FindResource("Pending") : (Brush)FindResource("Track")
-                };
+            // Resource references, not FindResource copies, so the rows follow a theme switch while connecting.
+            FrameworkElement mark;
+            if (done)
+            {
+                mark = new Ic { Data = (Geometry)FindResource("IcCheck"), Width = 14, Height = 14, Thickness = 3 };
+                mark.SetResourceReference(ForegroundProperty, "MirrorLive");
+            }
+            else
+            {
+                mark = new System.Windows.Shapes.Ellipse { Width = 8, Height = 8, Margin = new Thickness(3, 0, 3, 0) };
+                mark.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, active ? "MirrorPending" : "MirrorRing");
+            }
             mark.VerticalAlignment = VerticalAlignment.Center;
             row.Children.Add(mark);
-            row.Children.Add(new TextBlock
-            {
-                Text = text, FontSize = 13, Margin = new Thickness(8, 0, 0, 0),
-                Foreground = (Brush)FindResource(done || active ? "Text" : "Text2")
-            });
+            var label = new TextBlock { Text = text, FontSize = 13, Margin = new Thickness(8, 0, 0, 0) };
+            label.SetResourceReference(TextBlock.ForegroundProperty, done || active ? "Text" : "Text2");
+            row.Children.Add(label);
             Checklist.Children.Add(row);
         }
     }
@@ -495,14 +498,15 @@ public partial class MirrorWindow : Window
             if (path != null) ShowFlash("Recording…  Ctrl Shift R stops");
         }
         RecordBtn.IsChecked = Recorder.IsRecording;
-        RecordIcon.IconFill = Recorder.IsRecording ? (Brush)FindResource("Alert") : null;
+        if (Recorder.IsRecording) RecordIcon.SetResourceReference(Ic.IconFillProperty, "MirrorAlert");
+        else RecordIcon.ClearValue(Ic.IconFillProperty);
     }
 
     void StopRecording()
     {
         var path = Recorder.Stop();
         RecordBtn.IsChecked = false;
-        RecordIcon.IconFill = null;
+        RecordIcon.ClearValue(Ic.IconFillProperty);
         if (path != null) Toasts.Saved("Recording saved", path);
     }
 
