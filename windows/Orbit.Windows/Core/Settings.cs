@@ -29,6 +29,17 @@ public sealed class PairedPhone
     public DateTime PairedAt { get; set; } = DateTime.Now;
 }
 
+/// <summary>A button on the phone's Remote screen that runs a command or script on this PC.</summary>
+public sealed class RemoteCommand
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = "";
+    /// <summary>A program, script or document path, or a command line for cmd.exe.</summary>
+    public string Command { get; set; } = "";
+    /// <summary>The phone asks "Run …?" before sending it.</summary>
+    public bool Ask { get; set; }
+}
+
 public sealed class Settings
 {
     public string DeviceId { get; set; } = Guid.NewGuid().ToString("N");
@@ -83,6 +94,20 @@ public sealed class Settings
     public string HotkeyNoise { get; set; } = "Ctrl+Alt+B";
     public string HotkeyMirror { get; set; } = "Ctrl+Alt+M";
     public string HotkeyMedia { get; set; } = "Ctrl+Alt+P";
+
+    public string HotkeyLink { get; set; } = "Ctrl+Alt+L";
+
+    /// <summary>Phone remote: what the paired phone may do on this PC. The phone only shows what's allowed here.</summary>
+    public bool RemoteVolume { get; set; } = true;
+    public bool RemoteLock { get; set; } = true;
+    public bool RemoteSleep { get; set; } = true;
+    /// <summary>Shut down and Restart: off until switched on, and they always ask on the phone first.</summary>
+    public bool RemoteShutdown { get; set; }
+    public bool RemoteRestart { get; set; }
+    /// <summary>Links shared from the phone: "open" right away, or "ask" with a notification first.</summary>
+    public string LinksFromPhone { get; set; } = "open";
+    /// <summary>Commands the phone can run on this PC, by id. Nothing else can run.</summary>
+    public List<RemoteCommand> RemoteCommands { get; set; } = new();
 
     /// <summary>Use the ADB link over USB for Orbit itself (fast pairing, works without Wi-Fi).</summary>
     public bool UseUsbLink { get; set; } = true;

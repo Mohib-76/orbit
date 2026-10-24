@@ -4,6 +4,12 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
 
 ## [Unreleased]
 
+### Added
+- Links: share a link to **Open on <PC>** on the phone and it opens in the PC's browser. Copy a link on the PC and click **Open on phone** in the tray (or press Ctrl+Alt+L); it arrives on the phone as a notification with Open, Copy and Share.
+- Phone remote: control the PC from the phone's new **Control <PC>** screen and Home card. Change or mute the PC's volume (also under the PC's music on Home), lock it, put it to sleep, shut it down or restart it, and run your own commands set up on the PC.
+- Settings › Phone remote on Windows: choose what the phone may do (volume, lock, sleep, shut down, restart), whether links from the phone open right away or ask first, and add commands (a program, script or command line). Shut down and Restart are off until you switch them on and always ask on the phone first, and every remote action shows a notification on the PC.
+- New packets `orbit.url`, `orbit.remote.caps`, `orbit.remote.run`, `orbit.remote.result`, `orbit.volume.state` and `orbit.volume.set`. Older apps ignore them (protocol version unchanged).
+
 ### Changed
 - The website has a new design: a scroll-animated hero, a features overview, an interactive connection diagram, security, install steps and an FAQ, with rewritten copy. The README has matching wording and light and dark screenshots.
 

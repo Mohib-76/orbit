@@ -44,6 +44,7 @@ import io.github.mohib76.orbit.ui.Icons
 import io.github.mohib76.orbit.ui.LocalOrbit
 import io.github.mohib76.orbit.ui.OrbitTheme
 import io.github.mohib76.orbit.ui.PillButton
+import io.github.mohib76.orbit.remote.Links
 
 /** "Share → Orbit": a bottom sheet that sends files (or text, to the PC clipboard). */
 class ShareActivity : ComponentActivity() {
@@ -112,7 +113,14 @@ class ShareActivity : ComponentActivity() {
                     Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.surf).padding(14.dp)) {
                         Ellipsized(text, 14, c.text, lines = 5)
                     }
-                    PillButton("Copy to PC clipboard", Icons.Clip, Modifier.fillMaxWidth()) {
+                    val url = remember(text) { Links.find(text) }
+                    if (url != null) PillButton(getString(R.string.open_on, ui.pcName), Icons.Link, Modifier.fillMaxWidth()) {
+                        val ok = Links.send(url)
+                        Toast.makeText(this@ShareActivity, if (ok) Links.sentMessage(this@ShareActivity) else getString(R.string.pc_not_connected),
+                            Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                    PillButton(getString(R.string.copy_to_pc_clipboard), Icons.Clip, Modifier.fillMaxWidth(), filled = url == null) {
                         val ok = Hub.sendClipboard(text)
                         Toast.makeText(this@ShareActivity, if (ok) "Sent to ${ui.pcName}" else "PC not connected", Toast.LENGTH_SHORT).show()
                         finish()

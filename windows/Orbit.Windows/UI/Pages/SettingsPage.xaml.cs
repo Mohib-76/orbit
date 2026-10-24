@@ -66,6 +66,7 @@ public partial class SettingsPage : UserControl
     }
 
     void Mirror_Click(object s, RoutedEventArgs e) => App.Current.OpenMirror();
+    void Remote_Click(object s, RoutedEventArgs e) => App.Current.ShowMain("remote");
     void MirrorSetup_Click(object s, RoutedEventArgs e) => App.Current.OpenMirrorSetup();
 
     void Save(object s, RoutedEventArgs e) { Core.Settings.Save(); Core.SendSettings(); }
@@ -284,7 +285,7 @@ public partial class SettingsPage : UserControl
 
     // ---------------- keyboard shortcuts
 
-    TextBox BoxFor(string which) => which switch { "noise" => HkNoise, "mirror" => HkMirror, "media" => HkMedia, _ => HkClipboard };
+    TextBox BoxFor(string which) => which switch { "noise" => HkNoise, "mirror" => HkMirror, "media" => HkMedia, "link" => HkLink, _ => HkClipboard };
 
     void ShowHotkeys()
     {
@@ -292,6 +293,7 @@ public partial class SettingsPage : UserControl
         HkNoise.Text = Show(Core.Settings.HotkeyNoise);
         HkMirror.Text = Show(Core.Settings.HotkeyMirror);
         HkMedia.Text = Show(Core.Settings.HotkeyMedia);
+        HkLink.Text = Show(Core.Settings.HotkeyLink);
         static string Show(string s) => string.IsNullOrEmpty(s) ? "Off" : s;
     }
 
@@ -302,6 +304,7 @@ public partial class SettingsPage : UserControl
             case "noise": Core.Settings.HotkeyNoise = value; break;
             case "mirror": Core.Settings.HotkeyMirror = value; break;
             case "media": Core.Settings.HotkeyMedia = value; break;
+            case "link": Core.Settings.HotkeyLink = value; break;
             default: Core.Settings.HotkeyClipboard = value; break;
         }
         Core.Settings.Save();
@@ -329,7 +332,7 @@ public partial class SettingsPage : UserControl
         }
         // Keep shortcuts unique within Orbit.
         var text = hk.ToString();
-        foreach (var other in new[] { "clipboard", "noise", "mirror", "media" })
+        foreach (var other in new[] { "clipboard", "noise", "mirror", "media", "link" })
             if (other != which && BoxFor(other).Text == text) SetHotkey(other, "");
         SetHotkey(which, text);
     }

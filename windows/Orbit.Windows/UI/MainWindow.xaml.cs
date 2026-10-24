@@ -30,6 +30,9 @@ public partial class MainWindow : Window
         Refresh();
         RefreshBadge();
 
+        // Settings is already checked while Phone remote (its sub-page) shows, so Checked won't fire: go back on click.
+        NavSettings.Click += (_, _) => { if (_current == "remote") Show("settings"); };
+
         DragEnter += OnDragEnter;
         DragLeave += (_, _) => DropOverlay.Visibility = Visibility.Collapsed;
         Drop += OnDrop;
@@ -40,21 +43,27 @@ public partial class MainWindow : Window
         var nav = page switch
         {
             "clipboard" => NavClipboard, "notifications" => NavNotifications, "files" => NavFiles,
-            "buds" when Core.BudsEnabled => NavBuds, "settings" => NavSettings, _ => NavHome
+            "buds" when Core.BudsEnabled => NavBuds, "settings" or "remote" => NavSettings, _ => NavHome
         };
+        // Settings › Phone remote lives under the Settings tab.
+        if (page == "remote" && nav.IsChecked == true) { Show(page); return; }
+        if (page == "remote") { _pendingSub = page; nav.IsChecked = true; return; }
         if (nav.IsChecked == true) Show(page); else nav.IsChecked = true;
     }
 
     void Nav_Checked(object sender, RoutedEventArgs e)
     {
         // Fires during InitializeComponent for the default tab, before Host exists.
-        if (Host != null && sender is RadioButton { Tag: string tag }) Show(tag);
+        if (Host != null && sender is RadioButton { Tag: string tag }) Show(_pendingSub ?? tag);
+        _pendingSub = null;
     }
 
-    void Show(string page)
+    string? _pendingSub;
+
+    public void Show(string page)
     {
         _current = page;
-        if (Core.Settings.Phone == null && page != "settings") page = "pair";
+        if (Core.Settings.Phone == null && page is not ("settings" or "remote")) page = "pair";
         if (!_pages.TryGetValue(page, out var view))
         {
             view = page switch
@@ -65,6 +74,7 @@ public partial class MainWindow : Window
                 "files" => new FilesPage(),
                 "buds" => new BudsPage(),
                 "settings" => new SettingsPage(),
+                "remote" => new RemoteSettingsPage(),
                 _ => new HomePage()
             };
             view.DataContext = Core;

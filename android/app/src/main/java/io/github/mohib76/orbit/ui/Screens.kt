@@ -211,6 +211,12 @@ fun MainScreen(
     val c = LocalOrbit.current
     var filter by remember { mutableStateOf(false) }
     var about by remember { mutableStateOf(false) }
+    var remote by remember { mutableStateOf(false) }
+    if (remote) {
+        RemoteScreen { remote = false }
+        androidx.activity.compose.BackHandler { remote = false }
+        return
+    }
     if (filter) {
         AppFilterScreen { filter = false }
         androidx.activity.compose.BackHandler { filter = false }
@@ -229,7 +235,7 @@ fun MainScreen(
     Column(Modifier.fillMaxSize().background(c.bg)) {
         Box(Modifier.weight(1f).statusBarsPadding()) {
             when (tab) {
-                0 -> HomeTab(pickFiles, { onTab(1) }, { onTab(2) }, { filter = true }, { onShowBuds(true) }, requestBt)
+                0 -> HomeTab(pickFiles, { onTab(1) }, { onTab(2) }, { filter = true }, { onShowBuds(true) }, requestBt) { remote = true }
                 1 -> ClipboardTab()
                 2 -> FilesTab(pickFiles)
                 else -> SettingsTab(resumeTick, { filter = true }, requestBt) { about = true }
@@ -267,7 +273,7 @@ private fun BottomNav(tab: Int, onTab: (Int) -> Unit) {
 @Composable
 private fun HomeTab(
     pickFiles: () -> Unit, openClipboard: () -> Unit, openFiles: () -> Unit, openFilter: () -> Unit,
-    openBuds: () -> Unit, requestBt: () -> Unit
+    openBuds: () -> Unit, requestBt: () -> Unit, openRemote: () -> Unit
 ) {
     val c = LocalOrbit.current
     val ctx = LocalContext.current
@@ -324,6 +330,8 @@ private fun HomeTab(
             PcMediaCard()
 
             if (budsOn) BudsCard(openBuds, requestBt)
+
+            PcControlCard(openRemote)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Tile(Modifier.weight(1f).heightIn(min = 168.dp), onClick = openClipboard) {

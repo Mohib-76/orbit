@@ -59,6 +59,24 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="orbit" android:host="pair" />
             </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/share_targets" />
+        </activity>
+
+        <!-- Share › "Open on <PC>": a link from any app opens in the PC's browser. -->
+        <activity
+            android:name=".remote.OpenOnPcActivity"
+            android:exported="true"
+            android:label="@string/open_on_pc"
+            android:icon="@drawable/ic_share_pc"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Orbit.Invisible">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -143,6 +161,7 @@
         <receiver android:name=".ActionReceiver" android:exported="false" />
         <receiver android:name=".media.Media$MediaActionReceiver" android:exported="false" />
         <receiver android:name=".mirror.MirrorReceiver" android:exported="false" />
+        <receiver android:name=".remote.LinkReceiver" android:exported="false" />
 
         <service
             android:name=".mirror.MirrorTileService"
