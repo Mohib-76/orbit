@@ -1,39 +1,34 @@
-// Orbit website. One requestAnimationFrame clock drives the route race; it runs only while the race is on
-// screen and never under reduced motion (the HTML already paints the finished, locked state).
+// Orbit website. Plain script, no dependencies. Every animation is skipped under reduced motion; the film plays
+// only while on screen and the route diagram runs one finite pass at a time.
 (function () {
   var REPO = 'Mohib-76/orbit';
   var root = document.documentElement;
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hasIO = 'IntersectionObserver' in window;
+  var $ = function (s, c) { return (c || document).querySelector(s); };
+  var $$ = function (s, c) { return [].slice.call((c || document).querySelectorAll(s)); };
+  var onMedia = function (q, fn) { var m = matchMedia(q); if (m.addEventListener) m.addEventListener('change', fn); else if (m.addListener) m.addListener(fn); };
 
   // Theme toggle (the saved choice is applied in <head>).
-  var themeBtn = document.getElementById('theme');
+  var themeBtn = $('#theme');
+  var isDark = function () { return (root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark'; };
+  var syncThemeColor = function () {
+    $$('meta[name="theme-color"]').forEach(function (m) { m.setAttribute('content', isDark() ? '#07070C' : '#FAFAFC'); m.removeAttribute('media'); });
+  };
+  if (root.hasAttribute('data-theme')) syncThemeColor();
   if (themeBtn) themeBtn.addEventListener('click', function () {
-    var cur = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    var next = cur === 'dark' ? 'light' : 'dark';
+    var next = isDark() ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
     try { localStorage.setItem('orbit-theme', next); } catch (e) {}
+    syncThemeColor();
   });
 
-  // Nav: a border once the page has scrolled, and the section in view marked.
-  var nav = document.getElementById('nav'), top = document.getElementById('top');
+  // Nav: glass background once scrolled; section in view marked.
+  var nav = $('#nav'), top = $('#top');
   if (hasIO && nav && top) new IntersectionObserver(function (e) { nav.classList.toggle('scrolled', !e[0].isIntersecting); }).observe(top);
-  // The header takes the band's dark colors while it sits over the privacy band.
-  var band = document.querySelector('.band');
-  // Phones: the section row steps aside while scrolling down and returns on the way up.
-  var lastY = 0, ticking2 = false;
-  addEventListener('scroll', function () {
-    if (ticking2) return; ticking2 = true;
-    requestAnimationFrame(function () {
-      ticking2 = false; var y = scrollY;
-      if (Math.abs(y - lastY) > 6) { root.classList.toggle('nav-away', y > 240 && y > lastY); lastY = y; }
-      if (band && nav) { var r = band.getBoundingClientRect(), edge = nav.offsetHeight; nav.classList.toggle('on-band', r.top < edge && r.bottom > edge); }
-    });
-  }, { passive: true });
-  // Anchors land below the header, whose height changes on phones.
-  if (nav) { var navh = function () { if (!root.classList.contains('nav-away')) root.style.setProperty('--nav0', nav.offsetHeight + 'px'); root.style.setProperty('--navh', nav.offsetHeight + 12 + 'px'); }; navh(); addEventListener('resize', navh, { passive: true }); }
+  else if (nav) nav.classList.add('scrolled');
   var links = {};
-  document.querySelectorAll('.nav-links a[href^="#"]').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  $$('.nav-links a[href^="#"]').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
   if (hasIO) {
     var spy = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
@@ -42,71 +37,115 @@
         if (e.isIntersecting) {
           for (var k in links) links[k].removeAttribute('aria-current');
           a.setAttribute('aria-current', 'location');
-        } else if (a.hasAttribute('aria-current')) a.removeAttribute('aria-current');
+        } else a.removeAttribute('aria-current');
       });
-    }, { rootMargin: '-40% 0px -55% 0px' });
+    }, { rootMargin: '-45% 0px -50% 0px' });
     Object.keys(links).forEach(function (id) { var s = document.getElementById(id); if (s) spy.observe(s); });
   }
 
-  // In-page links glide (CSS smooth scrolling would also slow every scripted scroll); instant under reduced motion.
+  // In-page links: CSS scrolls smoothly; move focus to the target too so keyboard and screen-reader users follow.
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href^="#"]');
-    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
-    var id = a.getAttribute('href').slice(1), el = id ? document.getElementById(id) : null;
+    if (!a || e.defaultPrevented) return;
+    var id = a.getAttribute('href').slice(1), el = id && id !== 'top' ? document.getElementById(id) : null;
     if (!el) return;
-    e.preventDefault();
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-    if (history.pushState) history.pushState(null, '', '#' + id);
-    if (id === 'top') return;
-    el.setAttribute('tabindex', '-1'); el.focus({ preventScroll: true });
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+    setTimeout(function () { el.focus({ preventScroll: true }); }, 0);
   });
 
-  // Your platform first; direct download links from the latest release when GitHub answers.
-  var primary = document.querySelector('.dl-primary');
-  if (primary) {
-    var ua = navigator.userAgent || '';
-    var platform = /Android/i.test(ua) ? 'android' : /Windows/i.test(ua) ? 'windows' : /iPhone|iPad|Macintosh/i.test(ua) ? 'apple' : 'other';
-    var secondary = document.querySelector('.dl-secondary');
-    var mark = function (id) { var c = document.getElementById(id); if (!c) return; c.classList.add('mine'); c.querySelector('.this').hidden = false; };
-    // The Android download is hidden for now (the Windows app installs it over USB), so phones get the
-    // Windows download plus a note. Restore the Android swap with the button in index.html.
-    if (platform === 'android') {
-      document.getElementById('platform-note').textContent = 'Open this page on your Windows PC: Orbit for Windows installs the phone app over USB.';
-      mark('dl-and');
-    } else if (platform === 'windows') {
-      mark('dl-win');
-    } else if (platform === 'apple') {
-      document.getElementById('platform-note').textContent = 'Orbit runs on Windows and Android. Open this page on those devices to install it.';
-    }
-    fetch('https://api.github.com/repos/' + REPO + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
-      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-      .then(function (rel) {
-        var win = null, apk = null;
-        (rel.assets || []).forEach(function (a) {
-          if (/^OrbitSetup.*\.exe$/i.test(a.name)) win = a;
-          if (/-android\.apk$/i.test(a.name)) apk = a;
-        });
-        if (rel.tag_name) document.querySelectorAll('.rel-version').forEach(function (el) { el.textContent = rel.tag_name; });
-        var andLink = document.getElementById('and-link');
-        if (win) document.getElementById('win-link').href = win.browser_download_url;
-        if (apk && andLink) andLink.href = apk.browser_download_url;
-        if (win) primary.href = win.browser_download_url;
-        if (apk && secondary) secondary.href = apk.browser_download_url;
-      })
-      .catch(function () { /* keep the Releases page links */ });
+  // Phone menu.
+  var menuBtn = $('#menu-btn'), menu = $('#menu');
+  if (menuBtn && menu) {
+    var setMenu = function (open) {
+      menu.hidden = !open;
+      menuBtn.setAttribute('aria-expanded', String(open));
+      menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      nav.classList.toggle('scrolled', open || scrollY > 4);
+    };
+    menuBtn.addEventListener('click', function () { setMenu(menu.hidden); });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
+    onMedia('(min-width: 961px)', function (m) { if (m.matches) setMenu(false); });
   }
 
-  // Film: plays only while on screen and in the current theme; never loads before it's near. A pause button
+  // Platform first; direct download links from the latest release when GitHub answers.
+  var ua = navigator.userAgent || '';
+  var platform = /Android/i.test(ua) ? 'android' : /Windows/i.test(ua) ? 'windows' : /iPhone|iPad|Macintosh|Linux/i.test(ua) ? 'other' : 'unknown';
+  var mark = function (id) { var c = document.getElementById(id); if (!c) return; c.classList.add('mine'); $('.this', c).hidden = false; };
+  var note = $('#platform-note');
+  // The Android download is hidden for now (the Windows app installs it over USB), so phones get a note.
+  if (platform === 'android') { mark('dl-and'); if (note) note.textContent = 'Open this page on your Windows PC. Orbit for Windows installs the phone app over USB.'; }
+  else if (platform === 'windows') mark('dl-win');
+  else if (platform === 'other' && note) note.textContent = 'Orbit runs on Windows and Android. Open this page on your Windows PC to install it.';
+  if (window.fetch) fetch('https://api.github.com/repos/' + REPO + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (rel) {
+      var win = null, apk = null;
+      (rel.assets || []).forEach(function (a) {
+        if (/^OrbitSetup.*\.exe$/i.test(a.name)) win = a;
+        if (/-android\.apk$/i.test(a.name)) apk = a;
+      });
+      if (rel.tag_name) $$('.rel-version').forEach(function (el) { el.textContent = rel.tag_name; el.setAttribute('translate', 'no'); });
+      if (win) { $$('.dl-primary').forEach(function (a) { a.href = win.browser_download_url; }); var w = $('#win-link'); if (w) w.href = win.browser_download_url; }
+      var andLink = $('#and-link');
+      if (apk && andLink) andLink.href = apk.browser_download_url;
+    })
+    .catch(function () { /* keep the Releases page links */ });
+
+  // Scroll reveal.
+  var reveal = $$('[data-reveal]');
+  if (hasIO && !reduce) {
+    var rio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); rio.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+    reveal.forEach(function (el) { rio.observe(el); });
+  } else reveal.forEach(function (el) { el.classList.add('in'); });
+
+  // Hero: as it scrolls away the rings turn and the product frame straightens (transform only, rAF-batched).
+  var hero = $('#hero'), stage = $('#stage3d');
+  if (hero && stage && !reduce) {
+    var heroOn = true, queued = false;
+    var paint = function () {
+      queued = false;
+      var vh = innerHeight, r = stage.getBoundingClientRect();
+      var p = Math.min(1, Math.max(0, scrollY / (vh * 0.9)));
+      var p2 = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.75)));
+      hero.style.setProperty('--p', p.toFixed(4));
+      stage.style.setProperty('--p2', p2.toFixed(4));
+    };
+    var queue = function () { if (!queued && heroOn) { queued = true; requestAnimationFrame(paint); } };
+    if (hasIO) new IntersectionObserver(function (e) { heroOn = e[0].isIntersecting; queue(); }).observe(hero);
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue, { passive: true });
+    paint();
+  } else if (stage) stage.style.setProperty('--p2', 1);
+
+  // Spotlight on tiles, following the pointer (fine pointers only).
+  if (matchMedia('(pointer: fine)').matches) $$('.tile').forEach(function (t) {
+    var x = 0, y = 0, pending = false;
+    t.addEventListener('pointermove', function (e) {
+      x = e.clientX; y = e.clientY;
+      if (pending) return; pending = true;
+      requestAnimationFrame(function () {
+        pending = false;
+        var r = t.getBoundingClientRect();
+        t.style.setProperty('--mx', (x - r.left) + 'px');
+        t.style.setProperty('--my', (y - r.top) + 'px');
+      });
+    });
+  });
+
+  // Film: plays only while on screen and in the current theme; never loads before it's near. The Pause button
   // stops it for good (WCAG 2.2.2); under reduced motion it starts paused on its poster.
-  var film = document.querySelector('.film');
+  var film = $('.film');
   if (film) {
-    var vids = [].slice.call(film.querySelectorAll('video')), btn = film.querySelector('.film-btn');
-    var label = btn.querySelector('.film-btn-l'), stopped = reduce, near = false, seen = false;
+    var vids = $$('video', film), btn = $('.film-btn', film);
+    var label = $('.film-btn-l', btn), stopped = reduce, near = false, seen = false;
     var current = function () { for (var i = 0; i < vids.length; i++) if (vids[i].offsetParent) return vids[i]; return vids[0]; };
     var sync = function () {
       var v = current();
       vids.forEach(function (o) { if (o !== v && !o.paused) o.pause(); });
-      btn.setAttribute('aria-pressed', String(stopped));
+      btn.setAttribute('data-stopped', String(stopped));
       label.textContent = stopped ? 'Play' : 'Pause';
       btn.setAttribute('aria-label', stopped ? 'Play the video' : 'Pause the video');
       if (!near) return;
@@ -119,79 +158,67 @@
       new IntersectionObserver(function (e) { seen = e[0].isIntersecting; sync(); }, { threshold: 0.35 }).observe(film);
     } else { near = seen = true; }
     if (themeBtn) themeBtn.addEventListener('click', function () { setTimeout(sync, 0); });
-    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+    onMedia('(prefers-color-scheme: dark)', sync);
     sync();
   }
 
-  // Feature tiles slide up as they arrive (tiles already on screen stay put).
-  if (hasIO && !reduce) {
-    var tio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.remove('wait'); tio.unobserve(e.target); } });
-    }, { rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.tile').forEach(function (t) {
-      if (t.getBoundingClientRect().top > innerHeight) { t.classList.add('wait'); tio.observe(t); }
-    });
-  }
-
-  // The route race.
-  var race = document.getElementById('race');
+  // Route diagram. The PC dials every lane at once; the chosen one answers and locks, the rest drop, then a few
+  // packets travel the locked lane once (under 5 s). The HTML already paints the finished, locked state.
+  var race = $('#race');
   if (!race) return;
-  var fail = race.getAttribute('data-mode') === 'fail';
   var COPY = [
-    ['Connected over the USB cable', 'Through the cable with adb, even with no network at all. It needs USB debugging on the phone.'],
-    ['Connected over your phone’s hotspot', 'With USB tethering or the phone’s hotspot, the phone is the PC’s gateway, so the PC dials it directly. That takes well under a second.'],
-    ['Connected over your Wi-Fi', 'On the same Wi-Fi, the PC sends a broadcast that only your paired phone answers.'],
-    ['Connected over the address you typed', 'On a VPN, or a guest Wi-Fi that keeps devices apart, type the phone’s address once in Orbit’s settings.']
+    ['Connected over the USB cable', 'Orbit connects through the cable with adb, even with no network at all. Requires USB debugging on the phone.'],
+    ['Connected over your phone’s hotspot', 'With USB tethering or a hotspot, your phone is the PC’s gateway, so Orbit reaches it directly, typically in well under a second.'],
+    ['Connected over your Wi-Fi', 'On a shared network, the PC sends a local broadcast that only your paired phone answers.'],
+    ['Connected over your manual address', 'On a VPN or a guest network that isolates devices, enter your phone’s address once in Orbit’s settings.']
   ];
-  var lanes = [].map.call(race.querySelectorAll('.lane'), function (g) {
-    var probe = g.querySelector('.lane-probe');
-    return { g: g, probe: probe, lock: g.querySelector('.lane-lock'), len: probe.getTotalLength() };
+  var lanes = $$('.lane', race).map(function (g) {
+    var probe = $('.lane-probe', g);
+    return { g: g, probe: probe, lock: $('.lane-lock', g), len: probe.getTotalLength() };
   });
-  var labels = race.querySelectorAll('.lane-label');
-  var pkts = [].slice.call(race.querySelectorAll('.pkt'));
-  var title = race.querySelector('.st-title'), text = race.querySelector('.st-text');
-  var buttons = [].slice.call(race.querySelectorAll('.setup'));
+  var labels = $$('.lane-label', race);
+  var pkts = $$('.pkt', race);
+  var title = $('.st-title', race), text = $('.st-text', race);
+  var buttons = $$('.route');
+  var replay = $('#replay');
 
-  var WIN = 650;                       // the answering lane reaches the phone
-  var CUT = 760;                       // the others stop dialling
-  var DUR = [1500, 1250, 1400, 1650];  // how far the others would have taken
-  var REACH = [0.78, 0.7, 0.74, 0.66]; // how far they get before they drop
-  var RETRY = 3000;                    // 404: dial again (the real app retries every 1.5 s)
+  var WIN = 650, CUT = 760;
+  var DUR = [1500, 1250, 1400, 1650], REACH = [0.78, 0.7, 0.74, 0.66];
+  var TRIP = 1300, GAP = 1100;
   var winner = +race.getAttribute('data-winner') || 0;
-  var t0 = 0, settled = !fail, onScreen = true, ticking = false, announced = true;
+  var t0 = 0, running = false, ticking = false, announced = true, played = false;
 
   var out4 = function (x) { return 1 - Math.pow(1 - x, 4); };
   var inOut = function (x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
   var clamp = function (x) { return x < 0 ? 0 : x > 1 ? 1 : x; };
   function draw(path, len, part) { path.style.strokeDasharray = len + ' ' + len; path.style.strokeDashoffset = len * (1 - part); }
-  function say(state, a, b) { race.setAttribute('data-state', state); title.textContent = a; if (b != null) text.textContent = b; }
+  function say(state, a, b) { race.setAttribute('data-state', state); title.textContent = a; text.textContent = b; }
 
   function locked(i) {
     lanes.forEach(function (L, j) {
       L.g.classList.toggle('won', j === i); L.probe.style.opacity = 0;
-      L.lock.style.opacity = j === i ? 1 : 0; L.lock.style.strokeDasharray = ''; L.lock.style.strokeWidth = '';
+      L.lock.style.opacity = j === i ? 1 : 0; L.lock.style.strokeWidth = '';
       labels[j].classList.toggle('won', j === i);
     });
     pkts.forEach(function (p) { p.style.opacity = 0; });
   }
 
   function start(i) {
-    winner = i;
+    winner = i; played = true;
     buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-lane') === i)); });
     if (reduce) { locked(i); say('done', COPY[i][0], COPY[i][1]); return; }
     lanes.forEach(function (L, j) { L.g.classList.remove('won'); L.lock.style.opacity = 0; labels[j].classList.remove('won'); });
     pkts.forEach(function (p) { p.style.opacity = 0; });
-    if (!fail) say('trying', 'Trying 4 routes at once', 'The PC dials every route together and keeps the first one that answers.');
-    t0 = performance.now(); settled = false; announced = false;
+    say('trying', 'Trying 4 routes at once', 'The PC dials every route in parallel and keeps the first one that answers.');
+    t0 = performance.now(); running = true; announced = false;
     kick();
   }
 
   function frame(now) {
     ticking = false;
     var t = now - t0;
-    if (fail && t > RETRY) { t0 = now; t = 0; }
     lanes.forEach(function (L, i) {
-      if (!fail && i === winner) {
+      if (i === winner) {
         draw(L.probe, L.len, out4(clamp(t / WIN)));
         L.probe.style.opacity = t < WIN ? 1 : 1 - clamp((t - WIN) / 240);
         if (t >= WIN) {
@@ -201,37 +228,48 @@
         }
         return;
       }
-      var cut = fail ? 1150 : CUT, part;
-      if (t < cut) part = out4(clamp(t / DUR[i])) * REACH[i];
-      else part = out4(clamp(cut / DUR[i])) * REACH[i] * (1 - inOut(clamp((t - cut) / 420)));
+      var part = t < CUT ? out4(clamp(t / DUR[i])) * REACH[i]
+        : out4(clamp(CUT / DUR[i])) * REACH[i] * (1 - inOut(clamp((t - CUT) / 420)));
       draw(L.probe, L.len, part);
-      L.probe.style.opacity = part > 0.003 ? (t < cut ? 1 : 0.55) : 0;
+      L.probe.style.opacity = part > 0.003 ? (t < CUT ? 1 : 0.55) : 0;
     });
-    if (!fail && !announced && t >= WIN) { announced = true; settled = true; say('done', COPY[winner][0], COPY[winner][1]); }
-    if (!fail && t >= WIN) packets(t - WIN - 300);
+    if (!announced && t >= WIN) { announced = true; say('done', COPY[winner][0], COPY[winner][1]); }
+    var pt = t - WIN - 300;
+    if (t >= WIN) packets(pt);
+    if (pt > GAP * (pkts.length - 1) + TRIP) { running = false; pkts.forEach(function (p) { p.style.opacity = 0; }); return; }
     kick();
   }
 
-  // Idle: clipboard and file go out to the phone, a notification comes back, along the locked lane.
+  // One pass: clipboard and file out to the phone, a notification back, along the locked lane.
   function packets(t) {
-    var L = lanes[winner], TRIP = 1500, GAP = 1700, LOOP = GAP * pkts.length;
+    var L = lanes[winner];
     pkts.forEach(function (p, j) {
       var c = t - j * GAP;
-      if (c < 0) { p.style.opacity = 0; return; }
-      c = c % LOOP;
-      if (c > TRIP) { p.style.opacity = 0; return; }
+      if (c < 0 || c > TRIP) { p.style.opacity = 0; return; }
       var f = inOut(c / TRIP), at = p.getAttribute('data-way') === 'in' ? 1 - f : f;
       var pt = L.lock.getPointAtLength(L.len * at);
       p.setAttribute('transform', 'translate(' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')');
-      p.style.opacity = Math.min(1, c / 180, (TRIP - c) / 180);
+      p.style.opacity = Math.min(1, c / 160, (TRIP - c) / 160);
     });
   }
 
-  function kick() { if (!ticking && onScreen && !reduce) { ticking = true; requestAnimationFrame(frame); } }
+  function kick() { if (!ticking && running && !reduce) { ticking = true; requestAnimationFrame(frame); } }
 
-  buttons.forEach(function (b) { b.addEventListener('click', function () { start(+b.getAttribute('data-lane')); }); });
-  if (hasIO) new IntersectionObserver(function (e) { onScreen = e[0].isIntersecting; kick(); }).observe(race);
-
-  if (fail) { if (reduce) { lanes.forEach(function (L) { L.probe.style.opacity = 0; }); } else { t0 = performance.now(); kick(); } }
-  else start(winner);
+  // A route picked while the diagram is below the fold (one column on phones) brings it into view.
+  buttons.forEach(function (b) { b.addEventListener('click', function () {
+    var r = race.getBoundingClientRect();
+    if (r.top > innerHeight - r.height * 0.5) race.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    start(+b.getAttribute('data-lane'));
+  }); });
+  if (replay) replay.addEventListener('click', function () { start(winner); });
+  if (hasIO && !reduce) {
+    // First time the diagram comes into view, play the race once, after the card has faded in.
+    var seenRace = new IntersectionObserver(function (e) {
+      if (!e[0].isIntersecting) return;
+      seenRace.disconnect();
+      setTimeout(function () { if (!played) start(winner); }, 600);
+    }, { threshold: 0.4 });
+    seenRace.observe(race);
+  }
+  else if (reduce && replay) replay.hidden = true;
 })();
