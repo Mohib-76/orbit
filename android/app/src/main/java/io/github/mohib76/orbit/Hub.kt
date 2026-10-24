@@ -19,6 +19,7 @@ import io.github.mohib76.orbit.mirror.Mirror
 import io.github.mohib76.orbit.mirror.MirrorTileService
 import io.github.mohib76.orbit.remote.Links
 import io.github.mohib76.orbit.remote.Remote
+import io.github.mohib76.orbit.remote.RemoteInput
 import io.github.mohib76.orbit.usb.Usb
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -158,6 +159,7 @@ object Hub {
         Usb.onPeerGone()
         Mirror.onLinkGone()
         Remote.onPeerGone()
+        RemoteInput.onPeerGone()
         ui.update { if (prefs.pc != null) it.copy(conn = Conn.Waiting) else LinkUi(Conn.NotPaired) }
         transfers.update { list -> list.map { if (it.state == TState.Running) it.copy(state = TState.Paused) else it } }
         OrbitService.instance?.refreshNotification()
@@ -187,6 +189,7 @@ object Hub {
             "orbit.remote.caps" -> Remote.onCaps(b)
             "orbit.volume.state" -> Remote.onVolume(b)
             "orbit.remote.result" -> Remote.onResult(b)
+            "orbit.focus" -> RemoteInput.onFocus(b)
             "orbit.settings" -> {
                 // Older PCs only send autoUsbTethering.
                 val usbMode = b.optString("usbMode").ifEmpty {

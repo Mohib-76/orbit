@@ -81,3 +81,42 @@ public class RemoteCommandTests
         finally { File.Delete(file); }
     }
 }
+
+public class InputTests
+{
+    [Theory]
+    [InlineData("next", "right")]
+    [InlineData("prev", "left")]
+    [InlineData("start", "f5")]
+    [InlineData("end", "esc")]
+    [InlineData("black", "b")]
+    public void SlidesUseTheStandardPresentationKeys(string op, string key) => Assert.Equal(key, OrbitCore.SlidesKey(op)?.key);
+
+    [Fact]
+    public void UnknownSlidesOpsAreIgnored() => Assert.Null(OrbitCore.SlidesKey("shutdown"));
+
+    [Theory]
+    [InlineData("esc", 0x1B)]
+    [InlineData("Delete", 0x2E)]
+    [InlineData("left", 0x25)]
+    [InlineData("c", 'C')]
+    [InlineData("7", '7')]
+    [InlineData("f5", 0x74)]
+    public void KeyNamesMapToVirtualKeys(string name, int vk) => Assert.Equal((ushort)vk, InputInjector.KeyCode(name));
+
+    [Theory]
+    [InlineData("ctrl")]
+    [InlineData("é")]
+    [InlineData("rm -rf")]
+    public void OtherKeyNamesAreRefused(string name) => Assert.Null(InputInjector.KeyCode(name));
+}
+
+public class SlidesStartTests
+{
+    [Fact]
+    public void StartIsCtrlF5InABrowser()
+    {
+        Assert.Empty(OrbitCore.SlidesKey("start")!.Value.mods);
+        Assert.Equal(new[] { "ctrl" }, OrbitCore.SlidesKey("start", browser: true)!.Value.mods);
+    }
+}

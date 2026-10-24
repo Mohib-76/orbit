@@ -68,6 +68,12 @@ Volume is the default playback device's master volume (Core Audio through NAudio
 device changes. The phone throttles slider moves to one packet per 60 ms and ignores the PC's echoes for a
 moment while the finger is down, so the slider doesn't jump.
 
+Touchpad, keyboard and slides input (`orbit.input`, `orbit.slides`) becomes `SendInput` on the PC. Pointer moves and
+scrolls are gathered on the phone and sent at most every 16 ms. Text goes as Unicode characters, so it doesn't
+depend on the PC's keyboard layout; the phone's keyboard field keeps a zero-width character at the start so
+Backspace still reaches Orbit when it looks empty. While one of those screens is open the phone asks for the
+PC's foreground app name (`orbit.focus`), never the window title.
+
 Links use `orbit.url` both ways. The phone offers "Open on <PC>" as a sharing shortcut (the share sheet's top
 row) and as a button in its Send to PC sheet; the PC watches the clipboard for a copied link and offers it in the
 tray. Both sides accept only `http(s)`.
@@ -120,6 +126,7 @@ windows/Orbit.Windows/        WPF app (.NET 8)
   Core/OrbitCore.Usb.cs       USB modes: charging, tethering, file sharing
   Core/OrbitCore.PhoneApp.cs  install / update the bundled phone app over USB
   Core/OrbitCore.Remote.cs    phone remote: links, volume, power buttons, commands (Core/Links.cs, Core/PcVolume.cs)
+  Core/OrbitCore.Input.cs     touchpad, keyboard and slides remote; foreground app (Core/InputInjector.cs: SendInput)
   Core/OrbitCore.Mirror*.cs   screen mirroring: sessions, device choice, wireless pairing
   Core/Adb.cs                 USB: adb track-devices, forward, shell
   Core/PhoneLink.cs           wire format, TLS dialing, protocol version
@@ -142,7 +149,7 @@ android/app/src/main/java/io/github/mohib76/orbit/
   media/                      media sessions both ways, the PC media player
   usb/                        USB port state, USB mode requests
   mirror/                     LIVE notification, Mirror tile, wireless-debugging helpers
-  remote/                     phone remote state, links (notification, Open on PC share target)
+  remote/                     phone remote state, links (notification, Open on PC share target), touchpad / keyboard / slides input
   ui/                         Compose screens (design tokens in Theme.kt)
 tools/fetch-thirdparty.ps1    downloads and verifies scrcpy/FFmpeg/adb binaries
 ```

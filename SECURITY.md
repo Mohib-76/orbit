@@ -30,6 +30,8 @@ What Orbit is designed to guarantee, so you can tell whether something is a vuln
   the PC's Settings › Phone remote and checked again on every request. The phone sends only a command's ID,
   never a command line, and every action shows a notification on the PC.
 - **Links can't run anything.** Both apps only open `http` and `https` links.
+- **Remote input is opt-in.** The touchpad and keyboard stay off until switched on in the PC's Settings ›
+  Phone remote, and the PC shows a notification whenever the phone starts using them.
 
 Known trade-offs (by design, not vulnerabilities):
 

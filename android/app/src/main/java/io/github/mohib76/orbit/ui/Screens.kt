@@ -212,8 +212,17 @@ fun MainScreen(
     var filter by remember { mutableStateOf(false) }
     var about by remember { mutableStateOf(false) }
     var remote by remember { mutableStateOf(false) }
+    var tool by remember { mutableStateOf<String?>(null) }
+    tool?.let { t ->
+        when (t) {
+            TOOL_SLIDES -> SlidesScreen { tool = null }
+            else -> InputScreen(keyboard = t == TOOL_KEYBOARD) { tool = null }
+        }
+        androidx.activity.compose.BackHandler { tool = null }
+        return
+    }
     if (remote) {
-        RemoteScreen { remote = false }
+        RemoteScreen({ remote = false }) { tool = it }
         androidx.activity.compose.BackHandler { remote = false }
         return
     }
@@ -235,7 +244,7 @@ fun MainScreen(
     Column(Modifier.fillMaxSize().background(c.bg)) {
         Box(Modifier.weight(1f).statusBarsPadding()) {
             when (tab) {
-                0 -> HomeTab(pickFiles, { onTab(1) }, { onTab(2) }, { filter = true }, { onShowBuds(true) }, requestBt) { remote = true }
+                0 -> HomeTab(pickFiles, { onTab(1) }, { onTab(2) }, { filter = true }, { onShowBuds(true) }, requestBt, { remote = true }) { tool = it }
                 1 -> ClipboardTab()
                 2 -> FilesTab(pickFiles)
                 else -> SettingsTab(resumeTick, { filter = true }, requestBt) { about = true }
@@ -273,7 +282,7 @@ private fun BottomNav(tab: Int, onTab: (Int) -> Unit) {
 @Composable
 private fun HomeTab(
     pickFiles: () -> Unit, openClipboard: () -> Unit, openFiles: () -> Unit, openFilter: () -> Unit,
-    openBuds: () -> Unit, requestBt: () -> Unit, openRemote: () -> Unit
+    openBuds: () -> Unit, requestBt: () -> Unit, openRemote: () -> Unit, openTool: (String) -> Unit
 ) {
     val c = LocalOrbit.current
     val ctx = LocalContext.current
@@ -331,7 +340,7 @@ private fun HomeTab(
 
             if (budsOn) BudsCard(openBuds, requestBt)
 
-            PcControlCard(openRemote)
+            PcControlCard(openRemote, openTool)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Tile(Modifier.weight(1f).heightIn(min = 168.dp), onClick = openClipboard) {

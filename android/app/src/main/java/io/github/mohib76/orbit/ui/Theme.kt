@@ -139,5 +139,11 @@ object Icons {
     val Shield = stroke("shield", "M12 3 5 6v5.5c0 4.2 3 7.6 7 8.5 4-.9 7-4.3 7-8.5V6z", width = 2f)
     val Terminal = stroke("terminal", "M5 5h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", "M8 10l3 2.5L8 15", "M13 15h3")
     val Remote = stroke("remote", "M5.5 5h13A1.5 1.5 0 0 1 20 6.5V16H4V6.5A1.5 1.5 0 0 1 5.5 5z", "M2 19h20", "M10 10.5l2-2 2 2")
+    val Touchpad = stroke("touchpad", "M6 4h12a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z", "M3 15h18M12 15v5")
+    val Keyboard = stroke("keyboard", "M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", "M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10")
+    val Slides = stroke("slides", "M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M12 16v4M8 20h8", "M10 8l4 2-4 2z")
+    val Mic = stroke("mic", "M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z", "M5 11a7 7 0 0 0 14 0M12 18v3", width = 2f)
+    val Square = stroke("square", "M8 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", fill = true)
+    val Exit = stroke("exit", "M9 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3", "M15 8l4 4-4 4", "M19 12H9", width = 2f)
     val Link = stroke("link", "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1", "M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1", width = 2f)
 }

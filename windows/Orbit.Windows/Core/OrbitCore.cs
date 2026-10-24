@@ -408,6 +408,8 @@ public sealed partial class OrbitCore : Observable
             _link = null;
             OnBudsPeerGone();
             OnMediaPeerGone();
+            StopFocusWatch();
+            InputInjector.ReleaseAll();
             OnUsbPeerGone();
             Log.Write("disconnected");
             Ui.Run(() =>
@@ -453,6 +455,9 @@ public sealed partial class OrbitCore : Observable
             case "orbit.url": OnPhoneUrl(b); break;
             case "orbit.volume.set": OnVolumeSet(b); break;
             case "orbit.remote.run": OnRemoteRun(b); break;
+            case "orbit.input": OnRemoteInput(b); break;
+            case "orbit.slides": OnSlides(b); break;
+            case "orbit.focus.watch": OnFocusWatch(b); break;
             case "orbit.settings":
                 if (b["budsEnabled"] is { } be && be.GetValue<bool>() != Settings.BudsEnabled)
                     SetBudsEnabled(be.GetValue<bool>(), fromPeer: true);

@@ -100,6 +100,42 @@
     <string name="remote_restarting">Restarting %1$s</string>
     <string name="remote_nothing">Nothing is allowed yet. On %1$s, open Orbit › Settings › Phone remote and choose what this phone can do.</string>
     <string name="remote_offline">Connect to %1$s to control it.</string>
+    <string name="remote_tools_off">Touchpad and keyboard are off. To use them, switch them on in Orbit on %1$s: Settings › Phone remote.</string>
+    <string name="back">Back</string>
+    <string name="remote_touchpad_keyboard">Touchpad, keyboard</string>
+    <string name="remote_slides_short">Slides</string>
+
+    <!-- Touchpad, keyboard, slides -->
+    <string name="input_touchpad">Touchpad</string>
+    <string name="input_keyboard">Keyboard</string>
+    <string name="input_moving_on">Moving the pointer on %1$s</string>
+    <string name="input_speed">Speed</string>
+    <string name="input_pad_desc">Touchpad. Slide to move, tap to click, two-finger tap to right-click, two-finger drag to scroll.</string>
+    <string name="input_hint_tap">Tap · click</string>
+    <string name="input_hint_right">2-finger tap · right-click</string>
+    <string name="input_hint_scroll">2-finger drag · scroll</string>
+    <string name="input_left_click">Left click</string>
+    <string name="input_right_click">Right click</string>
+    <string name="input_typing_into">Typing into %1$s on %2$s</string>
+    <string name="input_typing_on">Typing on %1$s</string>
+    <string name="input_each_letter">Each letter goes to the PC as you type</string>
+    <string name="input_voice">Voice typing works too</string>
+    <string name="input_voice_button">Voice typing</string>
+    <string name="slides_title">Slides remote</string>
+    <string name="slides_elapsed">Elapsed time</string>
+    <string name="slides_on">On</string>
+    <string name="input_key_held">Held for the next key</string>
+    <string name="input_speed_state">%1$d of 4</string>
+    <string name="slides_window_in_front">Works with the window in front</string>
+    <string name="slides_start">Start</string>
+    <string name="slides_black">Black</string>
+    <string name="slides_end">End</string>
+    <string name="slides_next">Next</string>
+    <string name="slides_prev">Previous</string>
+    <string name="slides_next_desc">Next slide</string>
+    <string name="slides_prev_desc">Previous slide</string>
+    <string name="slides_volume_keys">Volume buttons change slides</string>
+    <string name="slides_volume_keys_desc">Down: next · Up: previous. Only while this screen is open</string>
     <string name="remote_connected">Connected · %1$s</string>
     <string name="remote_not_connected">Not connected</string>
 </resources>

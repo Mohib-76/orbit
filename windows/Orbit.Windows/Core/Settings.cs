@@ -99,6 +99,10 @@ public sealed class Settings
 
     /// <summary>Phone remote: what the paired phone may do on this PC. The phone only shows what's allowed here.</summary>
     public bool RemoteVolume { get; set; } = true;
+    /// <summary>Touchpad and keyboard: off until switched on, since it can do anything you can at the keyboard.</summary>
+    public bool RemoteInput { get; set; }
+    /// <summary>Slides remote: arrow keys, F5, Esc and B to the window in front.</summary>
+    public bool RemoteSlides { get; set; } = true;
     public bool RemoteLock { get; set; } = true;
     public bool RemoteSleep { get; set; } = true;
     /// <summary>Shut down and Restart: off until switched on, and they always ask on the phone first.</summary>
