@@ -3,62 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Orbit: link your Android phone and Windows PC, no cloud</title>
-<meta name="description" content="Link your Android phone and Windows PC over a cable, your hotspot or Wi-Fi: clipboard, notifications, files, mirroring, media and earbuds. Free, no account.">
+<title>Orbit: Connect Your Android Phone and Windows PC</title>
+<meta name="description" content="Orbit connects your Android phone and Windows PC directly: clipboard, notifications, file transfer, screen mirroring, media and earbuds. Free, open source, no account and no cloud.">
 <link rel="canonical" href="https://mohib-76.github.io/orbit/">
-<meta name="theme-color" content="#4B4FE6">
+<meta name="theme-color" content="#FAFAFC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07070C" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Orbit">
-<meta property="og:title" content="Orbit: your phone and PC, in one orbit">
-<meta property="og:description" content="Clipboard, notifications, files, screen mirroring, media and earbuds between Android and Windows. Connects over whatever answers first. No account, no cloud.">
+<meta property="og:title" content="Orbit: Your Phone and PC, Working as One">
+<meta property="og:description" content="Clipboard, notifications, files, screen mirroring, media and earbuds between Android and Windows. Direct, encrypted and private: no account, no cloud.">
 <meta property="og:image" content="https://mohib-76.github.io/orbit/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Orbit for Windows and Orbit for Android side by side, with the line: your phone and PC, in one orbit">
+<meta property="og:image:alt" content="Orbit for Windows and Orbit for Android side by side">
 <meta property="og:url" content="https://mohib-76.github.io/orbit/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Orbit: your phone and PC, in one orbit">
+<meta name="twitter:title" content="Orbit: Your Phone and PC, Working as One">
 <meta name="twitter:description" content="Clipboard, notifications, files, screen mirroring, media and earbuds between Android and Windows. No account, no cloud.">
 <meta name="twitter:image" content="https://mohib-76.github.io/orbit/og-image.png">
 <link rel="preload" href="fonts/manrope.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="site.css">
 <script>
-  // Saved theme before first paint (no flash).
+  // Saved theme and JS flag before first paint (no flash, no hidden content without JS).
+  document.documentElement.classList.add('js');
   try { var t = localStorage.getItem('orbit-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Orbit","description":"Links an Android phone and a Windows PC: clipboard, notifications, files, battery, screen mirroring, media controls and earbuds, with no account and no cloud.","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10, Windows 11, Android 10 or newer","url":"https://mohib-76.github.io/orbit/","downloadUrl":"https://github.com/Mohib-76/orbit/releases/latest","license":"https://www.gnu.org/licenses/agpl-3.0.html","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"codeRepository":"https://github.com/Mohib-76/orbit"}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Orbit","description":"Connects an Android phone and a Windows PC: clipboard, notifications, files, battery, screen mirroring, media controls and earbuds, with no account and no cloud.","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10, Windows 11, Android 10 or newer","url":"https://mohib-76.github.io/orbit/","downloadUrl":"https://github.com/Mohib-76/orbit/releases/latest","license":"https://www.gnu.org/licenses/agpl-3.0.html","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"codeRepository":"https://github.com/Mohib-76/orbit"}
 </script>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2M6 10v4M10 10v4"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-cloud-off" viewBox="0 0 24 24"><path d="M3 3l18 18M8 7.5A6 6 0 0 1 17.7 10H18a4 4 0 0 1 2.4 7.2M16 19H7a5 5 0 0 1-2.6-9.3"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6M14 4l-4 16"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M7 17L17 7M8 7h9v9"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-win" viewBox="0 0 24 24"><path class="f" d="M3 5.5 10 4.5v7H3zM11 4.3 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></symbol>
+  <symbol id="i-android" viewBox="0 0 24 24"><path class="f" d="M7.2 4.2 6 2.4l.7-.4 1.2 1.9A8 8 0 0 1 12 3c1.5 0 2.9.3 4.1.9L17.3 2l.7.4-1.2 1.8A7 7 0 0 1 19.5 10h-15a7 7 0 0 1 2.7-5.8zM9 7.2a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zM4.5 11h15v8a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path class="f" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.56 9.56 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></symbol>
+  <symbol id="i-logo" viewBox="0 0 48 48"><circle class="f" cx="24" cy="24" r="8"/><path d="M28.4 7.58A17 17 0 1 0 40.42 19.6" stroke-width="3.4"/><circle class="f" cx="36.02" cy="11.98" r="4.4"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to Content</a>
 
 <header class="nav" id="nav">
   <div class="wrap nav-in">
-    <a class="brand" href="#top" aria-label="Orbit, back to top">
-      <svg width="30" height="30" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="8" fill="var(--accent)"/><path d="M28.4 7.58A17 17 0 1 0 40.42 19.6" fill="none" stroke="var(--accent)" stroke-width="3.4" stroke-linecap="round"/><circle cx="36.02" cy="11.98" r="4.4" fill="var(--accent)"/></svg>
-      orbit
+    <a class="brand" href="#top" aria-label="Orbit, back to top" translate="no">
+      <svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg>
+      <span>Orbit</span>
     </a>
-    <nav aria-label="Sections">
-      <ul class="nav-links">
-        <li><a href="#what">Features</a></li>
-        <li><a href="#connect">How it connects</a></li>
-        <li><a href="#privacy">Privacy</a></li>
-        <li><a href="#install">Install</a></li>
-      </ul>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#connect">Connectivity</a>
+      <a href="#security">Security</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-right">
       <button class="icon-btn" id="theme" type="button" aria-label="Switch between light and dark theme">
-        <svg class="theme-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
-        <svg class="theme-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="i theme-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        <svg class="i theme-sun" aria-hidden="true"><use href="#i-sun"/></svg>
       </button>
-      <a class="icon-btn" href="https://github.com/Mohib-76/orbit" aria-label="Orbit's source code on GitHub">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.56 9.56 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+      <a class="icon-btn hide-sm" href="https://github.com/Mohib-76/orbit" aria-label="Orbit source code on GitHub">
+        <svg class="i" aria-hidden="true"><use href="#i-github"/></svg>
       </a>
-      <a class="btn btn-primary" href="#install"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg><span>Download</span></a>
+      <a class="btn btn-primary btn-sm hide-sm" href="#install"><span>Download</span></a>
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+        <svg class="i" aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
     </div>
+  </div>
+  <div class="menu" id="menu" hidden>
+    <nav class="wrap" aria-label="Menu">
+      <a href="#features">Features</a>
+      <a href="#connect">Connectivity</a>
+      <a href="#security">Security</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/Mohib-76/orbit">Source Code</a>
+    </nav>
   </div>
 </header>
 
@@ -66,209 +110,346 @@
 <span id="top"></span>
 
 <!-- HERO -->
-<section class="v-hero" aria-labelledby="hero-title">
-  <div class="wrap">
-    <div class="v-hero-copy">
-      <span class="badge"><b>Free</b>Open source<span class="rel-version"></span></span>
-      <h1 id="hero-title">Your phone and PC, in one <em>orbit.</em></h1>
-      <p class="lede">Clipboard, notifications, files, mirroring and earbuds between Android and Windows. No account, no cloud.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary dl-primary" href="https://github.com/Mohib-76/orbit/releases/latest">
-          <span class="ico-win"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10 4.5v7H3zM11 4.3 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg></span><span class="ico-and" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.2 4.2 6 2.4l.7-.4 1.2 1.9A8 8 0 0 1 12 3c1.5 0 2.9.3 4.1.9L17.3 2l.7.4-1.2 1.8A7 7 0 0 1 19.5 10h-15a7 7 0 0 1 2.7-5.8zM9 7.2a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zM4.5 11h15v8a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2z"/></svg></span>
-          <span class="stack"><span class="dl-primary-label">Download for Windows</span><small class="dl-primary-sub">Windows 10 and 11, x64</small></span>
-        </a>
-        <!-- Android download hidden for now: Play Protect blocks browser installs of apps with notification access
-             in some countries, so the Windows app installs the phone app over USB. Restore when that's solved.
-        <a class="btn btn-ghost dl-secondary" href="https://github.com/Mohib-76/orbit/releases/latest"><span class="dl-secondary-label">Get the Android app</span><svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        -->
-      </div>
-      <p class="note" id="platform-note">The Windows app installs Orbit on your phone over USB.</p>
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <svg class="rings" viewBox="-500 -300 1000 600" focusable="false">
+      <g class="ring-spin">
+        <ellipse class="ring r1" rx="230" ry="88"/>
+        <ellipse class="ring r2" rx="350" ry="140"/>
+        <ellipse class="ring r3" rx="480" ry="200"/>
+        <circle class="sat s1" cx="230" cy="0" r="5"/>
+        <circle class="sat s2" cx="-247" cy="-100" r="4"/>
+        <circle class="sat s3" cx="340" cy="164" r="3.5"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="wrap hero-copy">
+    <a class="eyebrow enter" style="--d:0ms" href="https://github.com/Mohib-76/orbit/releases/latest">
+      <span class="eyebrow-tag">New</span>
+      <span>The phone app now installs over USB</span>
+      <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg>
+    </a>
+    <h1 id="hero-title">
+      <span class="line"><span class="enter-line" style="--d:80ms">Your Phone and PC,</span></span>
+      <span class="line"><span class="enter-line grad" style="--d:180ms">Working as One.</span></span>
+    </h1>
+    <p class="lede enter" style="--d:320ms">Orbit connects your Android phone and Windows PC directly. Share your clipboard, see notifications, move files and use your phone from your desktop, with no account and no cloud in between.</p>
+    <div class="cta-row enter" style="--d:420ms">
+      <a class="btn btn-primary btn-lg dl-primary" href="https://github.com/Mohib-76/orbit/releases/latest">
+        <svg class="i" aria-hidden="true"><use href="#i-win"/></svg>
+        <span>Download for Windows</span>
+      </a>
+      <a class="btn btn-ghost btn-lg" href="https://github.com/Mohib-76/orbit">
+        <svg class="i" aria-hidden="true"><use href="#i-github"/></svg>
+        <span>View Source</span>
+      </a>
     </div>
-    <figure class="shots">
-      <div class="win"><img class="th-l" src="img/dashboard-light.webp" srcset="img/dashboard-light-960.webp 960w, img/dashboard-light.webp 1920w" sizes="(max-width:760px) 100vw, 1000px" width="1920" height="1500" alt="Orbit for Windows: phone battery, USB mode, the song playing on the phone, clipboard, notifications and files" fetchpriority="high" decoding="async"><img class="th-d" src="img/dashboard-dark.webp" srcset="img/dashboard-dark-960.webp 960w, img/dashboard-dark.webp 1920w" sizes="(max-width:760px) 100vw, 1000px" width="1920" height="1500" alt="Orbit for Windows: phone battery, USB mode, the song playing on the phone, clipboard, notifications and files" loading="lazy" decoding="async"></div>
-      <div class="device phn"><img class="th-l" src="img/phone-light.webp" srcset="img/phone-light-390.webp 390w, img/phone-light.webp 780w" sizes="(max-width:760px) 40vw, 240px" width="780" height="1688" alt="Orbit for Android: the laptop connection, send clipboard, send file, USB mode, music and earbuds" decoding="async"><img class="th-d" src="img/phone-dark.webp" srcset="img/phone-dark-390.webp 390w, img/phone-dark.webp 780w" sizes="(max-width:760px) 40vw, 240px" width="780" height="1688" alt="Orbit for Android: the laptop connection, send clipboard, send file, USB mode, music and earbuds" loading="lazy" decoding="async"></div>
+    <p class="hero-meta enter" style="--d:500ms" id="platform-note">Free and open source <span aria-hidden="true">·</span> Windows&nbsp;10 &amp;&nbsp;11 <span aria-hidden="true">·</span> Android&nbsp;10+</p>
+  </div>
+
+  <div class="wrap hero-stage enter" style="--d:560ms">
+    <figure class="stage3d" id="stage3d">
+      <div class="frame">
+        <img class="th-l" src="img/dashboard-light.webp" srcset="img/dashboard-light-960.webp 960w, img/dashboard-light.webp 1920w" sizes="(max-width:760px) 100vw, 1040px" width="1920" height="1500" alt="Orbit for Windows: phone battery, USB mode, the song playing on the phone, clipboard, notifications and files" fetchpriority="high" decoding="async">
+        <img class="th-d" src="img/dashboard-dark.webp" srcset="img/dashboard-dark-960.webp 960w, img/dashboard-dark.webp 1920w" sizes="(max-width:760px) 100vw, 1040px" width="1920" height="1500" alt="Orbit for Windows: phone battery, USB mode, the song playing on the phone, clipboard, notifications and files" decoding="async">
+      </div>
+      <div class="device hero-phone">
+        <img class="th-l" src="img/phone-light.webp" srcset="img/phone-light-390.webp 390w, img/phone-light.webp 780w" sizes="(max-width:760px) 30vw, 250px" width="780" height="1688" alt="Orbit for Android: the laptop connection, send clipboard, send file, USB mode, music and earbuds" decoding="async">
+        <img class="th-d" src="img/phone-dark.webp" srcset="img/phone-dark-390.webp 390w, img/phone-dark.webp 780w" sizes="(max-width:760px) 30vw, 250px" width="780" height="1688" alt="Orbit for Android: the laptop connection, send clipboard, send file, USB mode, music and earbuds" decoding="async">
+      </div>
+      <div class="chip chip-a" aria-hidden="true">
+        <span class="chip-ico"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
+        <span><b>Clipboard Synced</b><small>PC → Phone · just now</small></span>
+      </div>
+      <div class="chip chip-b" aria-hidden="true">
+        <span class="chip-ico"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg></span>
+        <span><b>Connected</b><small>USB cable · encrypted</small></span>
+      </div>
     </figure>
   </div>
 </section>
 
-<!-- FILM: the features in motion -->
-<section class="v-film" aria-labelledby="film-title">
+<!-- SPECS -->
+<section class="specs" aria-label="At a glance">
   <div class="wrap">
-    <h2 id="film-title" class="sr">Orbit at work</h2>
-    <figure class="film">
+    <ul class="spec-row">
+      <li class="spec" data-reveal style="--i:0"><span class="spec-n">4</span><span class="spec-l">connection routes, tried in parallel</span></li>
+      <li class="spec" data-reveal style="--i:1"><span class="spec-n">0</span><span class="spec-l">servers between your devices</span></li>
+      <li class="spec" data-reveal style="--i:2"><span class="spec-n">TLS</span><span class="spec-l">mutual authentication, keys pinned at pairing</span></li>
+      <li class="spec" data-reveal style="--i:3"><span class="spec-n">100%</span><span class="spec-l">open source under AGPL-3.0</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- FILM -->
+<section class="section film-sec" aria-labelledby="film-title">
+  <div class="wrap">
+    <div class="head center" data-reveal>
+      <p class="kicker">In Motion</p>
+      <h2 id="film-title">See Orbit at Work</h2>
+    </div>
+    <figure class="film" data-reveal>
       <video class="film-v th-l" muted loop playsinline preload="none" poster="media/orbit-loop-light.jpg" width="1280" height="720" aria-label="Orbit at work: text copied on the PC is pasted on the phone, phone notifications appear on the PC, a file dropped on the PC arrives on the phone, and the phone opens in a window on the PC."><source src="media/orbit-loop-light.mp4" type="video/mp4"></video>
       <video class="film-v th-d" muted loop playsinline preload="none" poster="media/orbit-loop-dark.jpg" width="1280" height="720" aria-label="Orbit at work: text copied on the PC is pasted on the phone, phone notifications appear on the PC, a file dropped on the PC arrives on the phone, and the phone opens in a window on the PC."><source src="media/orbit-loop-dark.mp4" type="video/mp4"></video>
-      <button class="film-btn" type="button" aria-pressed="false"><svg class="i-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="i-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span class="film-btn-l">Pause</span></button>
+      <button class="film-btn" type="button" data-stopped="false" aria-label="Pause the video"><svg class="i i-pause" viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="i i-play" viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M7 4v16l13-8z"/></svg><span class="film-btn-l">Pause</span></button>
     </figure>
   </div>
 </section>
 
-<!-- FEATURES: one screen each -->
-<section class="section v-feats" id="what" aria-labelledby="what-title">
+<!-- FEATURES -->
+<section class="section" id="features" aria-labelledby="features-title">
   <div class="wrap">
-    <h2 id="what-title" class="v-title">Everything, both ways.</h2>
+    <div class="head" data-reveal>
+      <p class="kicker">Features</p>
+      <h2 id="features-title">Everything You Reach For, on Both Screens</h2>
+      <p class="sub">The everyday tasks that send you back and forth between devices, handled in both directions.</p>
+    </div>
     <div class="bento">
-      <article class="tile t7">
-        <div class="tile-txt"><h3>Clipboard</h3><p>Copy on one, paste on the other.</p></div>
+      <article class="tile t7" data-reveal style="--i:0">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span><h3>Universal Clipboard</h3><p>Copy on your PC and paste on your phone. Send text back with a single tap.</p></div>
         <div class="tile-img shot"><img class="th-l" src="img/clipboard-light.webp" width="1920" height="1230" alt="Orbit’s clipboard page on Windows with the last synced text and history" loading="lazy" decoding="async"><img class="th-d" src="img/clipboard-dark.webp" width="1920" height="1230" alt="Orbit’s clipboard page on Windows with the last synced text and history" loading="lazy" decoding="async"></div>
       </article>
-      <article class="tile t5 tall">
-        <div class="tile-txt"><h3>Files</h3><p>Share to Orbit, it lands on the PC.</p></div>
-        <div class="tile-img"><div class="device"><img class="th-l" src="img/share-sheet-light.webp" width="780" height="1688" alt="The Android share sheet sending two photos and a PDF to the laptop" loading="lazy" decoding="async"><img class="th-d" src="img/share-sheet-dark.webp" width="780" height="1688" alt="The Android share sheet sending two photos and a PDF to the laptop" loading="lazy" decoding="async"></div></div>
+      <article class="tile t5" data-reveal style="--i:1">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg></span><h3>File Transfer</h3><p>Drag and drop, or share from any app. Interrupted transfers resume.</p></div>
+        <div class="tile-img dev"><div class="device"><img class="th-l" src="img/share-sheet-light.webp" width="780" height="1688" alt="The Android share sheet sending two photos and a PDF to the laptop" loading="lazy" decoding="async"><img class="th-d" src="img/share-sheet-dark.webp" width="780" height="1688" alt="The Android share sheet sending two photos and a PDF to the laptop" loading="lazy" decoding="async"></div></div>
       </article>
-      <article class="tile t12">
-        <div class="tile-txt"><h3>Screen mirroring</h3><p>Use your phone from your PC, with mouse, keyboard and sound.</p></div>
+      <article class="tile t12 wide" data-reveal style="--i:0">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg></span><h3>Screen Mirroring</h3><p>Use your phone from your desktop with mouse, keyboard and audio. Capture screenshots and recordings, over USB or Wi-Fi.</p></div>
         <div class="tile-img shot"><img class="th-l" src="img/mirror-light.webp" width="1920" height="1230" alt="Orbit’s mirror window showing the phone’s home screen, phone controls and stream settings" loading="lazy" decoding="async"><img class="th-d" src="img/mirror-dark.webp" width="1920" height="1230" alt="Orbit’s mirror window showing the phone’s home screen, phone controls and stream settings" loading="lazy" decoding="async"></div>
       </article>
-      <article class="tile t7">
-        <div class="tile-txt"><h3>Notifications</h3><p>Phone alerts on your PC. Dismiss once, gone on both.</p></div>
+      <article class="tile t7" data-reveal style="--i:0">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg></span><h3>Notifications</h3><p>Phone alerts as native Windows notifications. Dismiss on one device, cleared on both.</p></div>
         <div class="tile-img shot"><img class="th-l" src="img/notifications-light.webp" width="1920" height="1230" alt="Orbit’s notifications page on Windows, grouped by app" loading="lazy" decoding="async"><img class="th-d" src="img/notifications-dark.webp" width="1920" height="1230" alt="Orbit’s notifications page on Windows, grouped by app" loading="lazy" decoding="async"></div>
       </article>
-      <article class="tile t5 tall">
-        <div class="tile-txt"><h3>Earbuds</h3><p>Battery, noise control and Play here.</p></div>
-        <div class="tile-img"><div class="device"><img class="th-l" src="img/buds-light.webp" width="780" height="1688" alt="Orbit’s earbuds screen on Android: battery per bud, noise control and Play here" loading="lazy" decoding="async"><img class="th-d" src="img/buds-dark.webp" width="780" height="1688" alt="Orbit’s earbuds screen on Android: battery per bud, noise control and Play here" loading="lazy" decoding="async"></div></div>
+      <article class="tile t5" data-reveal style="--i:1">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-music"/></svg></span><h3>Earbuds</h3><p>Battery and Play Here for any Bluetooth buds, plus noise control on supported models.</p></div>
+        <div class="tile-img dev"><div class="device"><img class="th-l" src="img/buds-light.webp" width="780" height="1688" alt="Orbit’s earbuds screen on Android: battery per bud, noise control and Play here" loading="lazy" decoding="async"><img class="th-d" src="img/buds-dark.webp" width="780" height="1688" alt="Orbit’s earbuds screen on Android: battery per bud, noise control and Play here" loading="lazy" decoding="async"></div></div>
       </article>
-      <article class="tile t6 tall">
-        <div class="tile-txt"><h3>From the tray</h3><p>Music, buds, battery and the cable, one click away.</p></div>
+      <article class="tile t6" data-reveal style="--i:0">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-sliders"/></svg></span><h3>System Tray</h3><p>Media, earbuds, battery and USB mode, one click away on Windows.</p></div>
         <div class="tile-img tray"><img class="th-l" src="img/tray-light.webp" width="720" height="1440" alt="Orbit’s tray flyout on Windows" loading="lazy" decoding="async"><img class="th-d" src="img/tray-dark.webp" width="720" height="1440" alt="Orbit’s tray flyout on Windows" loading="lazy" decoding="async"></div>
       </article>
-      <article class="tile t6 tall">
-        <div class="tile-txt"><h3>From the phone</h3><p>Quick Settings tiles and one-tap actions.</p></div>
-        <div class="tile-img"><div class="device"><img class="th-l" src="img/shortcuts-light.webp" width="780" height="1688" alt="Android Quick Settings with Orbit’s Send clipboard and Buds tiles and its notifications" loading="lazy" decoding="async"><img class="th-d" src="img/shortcuts-dark.webp" width="780" height="1688" alt="Android Quick Settings with Orbit’s Send clipboard and Buds tiles and its notifications" loading="lazy" decoding="async"></div></div>
+      <article class="tile t6" data-reveal style="--i:1">
+        <div class="tile-txt"><span class="tile-ico"><svg class="i" aria-hidden="true"><use href="#i-android"/></svg></span><h3>Quick Settings</h3><p>Send your clipboard or switch noise modes without opening the app.</p></div>
+        <div class="tile-img dev"><div class="device"><img class="th-l" src="img/shortcuts-light.webp" width="780" height="1688" alt="Android Quick Settings with Orbit’s Send clipboard and Buds tiles and its notifications" loading="lazy" decoding="async"><img class="th-d" src="img/shortcuts-dark.webp" width="780" height="1688" alt="Android Quick Settings with Orbit’s Send clipboard and Buds tiles and its notifications" loading="lazy" decoding="async"></div></div>
       </article>
     </div>
-    <p class="v-small">Screens from Orbit’s design files, with sample data.</p>
+    <p class="small center">Screens from Orbit’s design files, shown with sample data.</p>
+
+    <ul class="more">
+      <li class="more-item" data-reveal style="--i:0"><svg class="i" aria-hidden="true"><use href="#i-music"/></svg><h3>Media Controls</h3><p>See what’s playing on either device, then play, pause, skip or seek from the other.</p></li>
+      <li class="more-item" data-reveal style="--i:1"><svg class="i" aria-hidden="true"><use href="#i-plug"/></svg><h3>USB Modes</h3><p>Choose charging, USB tethering or file sharing, and switch from either device.</p></li>
+      <li class="more-item" data-reveal style="--i:2"><svg class="i" aria-hidden="true"><use href="#i-battery"/></svg><h3>Phone Battery</h3><p>Charge level and time to full on your PC, with a low-battery alert.</p></li>
+      <li class="more-item" data-reveal style="--i:0"><svg class="i" aria-hidden="true"><use href="#i-qr"/></svg><h3>Quick Pairing</h3><p>Scan a QR code, or plug in and pair over USB in one click.</p></li>
+      <li class="more-item" data-reveal style="--i:1"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg><h3>Global Shortcuts</h3><p><kbd>Ctrl</kbd>&nbsp;<kbd>Alt</kbd>&nbsp;<kbd>C</kbd> sends your clipboard. Every shortcut is configurable.</p></li>
+      <li class="more-item" data-reveal style="--i:2"><svg class="i" aria-hidden="true"><use href="#i-sliders"/></svg><h3>Notification Filters</h3><p>Choose apps, hide message text, or silence alerts while your PC is locked.</p></li>
+    </ul>
   </div>
 </section>
 
 <!-- CONNECT -->
-<section class="section v-connect" id="connect" aria-labelledby="connect-title">
-  <div class="wrap v-split">
-    <div class="v-copy">
-      <h2 id="connect-title" class="v-title">Connects over anything.</h2>
-      <p>Cable, hotspot or Wi-Fi. Orbit tries them all at once and uses whichever answers first.</p>
+<section class="section connect" id="connect" aria-labelledby="connect-title">
+  <div class="wrap split">
+    <div class="split-copy">
+      <div class="head" data-reveal>
+        <p class="kicker">Connectivity</p>
+        <h2 id="connect-title">Connects Over Whatever Is Available</h2>
+        <p class="sub">Orbit dials every route at once and keeps the first one that answers. No firewall rules, no port forwarding, no setup. Select a route to see it in action.</p>
+      </div>
+      <div class="routes" role="group" aria-label="Connection route" data-reveal>
+        <button class="route" type="button" data-lane="0" aria-pressed="false"><span class="route-n" translate="no">01</span><span class="route-t"><b>USB Cable</b><small>Works with no network at all</small></span></button>
+        <button class="route" type="button" data-lane="1" aria-pressed="true"><span class="route-n" translate="no">02</span><span class="route-t"><b>Tethering or Hotspot</b><small>Your phone is the PC’s gateway</small></span></button>
+        <button class="route" type="button" data-lane="2" aria-pressed="false"><span class="route-n" translate="no">03</span><span class="route-t"><b>Same Wi-Fi</b><small>Found by local broadcast</small></span></button>
+        <button class="route" type="button" data-lane="3" aria-pressed="false"><span class="route-n" translate="no">04</span><span class="route-t"><b>Manual Address</b><small>For VPNs and isolated networks</small></span></button>
+      </div>
     </div>
-    <div class="stage-col">
-      <div class="race" id="race" data-state="done" data-winner="1">
-        <div class="race-head">
-          <h3 class="race-q">Your setup</h3>
-          <fieldset class="setups">
-            <legend class="sr">Your setup</legend>
-            <button class="setup" type="button" data-lane="0" aria-pressed="false">USB cable</button>
-            <button class="setup" type="button" data-lane="1" aria-pressed="true">Phone hotspot</button>
-            <button class="setup" type="button" data-lane="2" aria-pressed="false">Same Wi-Fi</button>
-            <button class="setup" type="button" data-lane="3" aria-pressed="false">VPN or guest Wi-Fi</button>
-          </fieldset>
-        </div>
-        <div class="stage" aria-hidden="true">
-          <svg viewBox="0 0 600 290" focusable="false">
-            <g class="lanes">
-              <g class="lane" data-i="0"><path class="lane-base" d="M118 150C196 14 406 14 484 150"/><path class="lane-probe" d="M118 150C196 14 406 14 484 150"/><path class="lane-lock" d="M118 150C196 14 406 14 484 150"/></g>
-              <g class="lane won" data-i="1"><path class="lane-base" d="M118 150C212 84 390 84 484 150"/><path class="lane-probe" d="M118 150C212 84 390 84 484 150"/><path class="lane-lock" d="M118 150C212 84 390 84 484 150"/></g>
-              <g class="lane" data-i="2"><path class="lane-base" d="M118 150C212 216 390 216 484 150"/><path class="lane-probe" d="M118 150C212 216 390 216 484 150"/><path class="lane-lock" d="M118 150C212 216 390 216 484 150"/></g>
-              <g class="lane" data-i="3"><path class="lane-base" d="M118 150C196 286 406 286 484 150"/><path class="lane-probe" d="M118 150C196 286 406 286 484 150"/><path class="lane-lock" d="M118 150C196 286 406 286 484 150"/></g>
-            </g>
-            <!-- PC -->
-            <rect class="dev-fill dev-line" x="20" y="106" width="98" height="68" rx="7"/>
-            <rect class="dev-screen" x="27" y="113" width="84" height="54" rx="3"/>
-            <g transform="translate(55 126) scale(.58)"><circle class="dev-logo" cx="24" cy="24" r="8"/><path d="M28.4 7.58A17 17 0 1 0 40.42 19.6" fill="none" stroke="var(--on-accent)" stroke-width="3.6" stroke-linecap="round"/><circle class="dev-logo" cx="36.02" cy="11.98" r="4.4"/></g>
-            <path class="dev-fill dev-line" d="M8 180h122l-8 9H16z"/>
-            <!-- Phone -->
-            <rect class="dev-fill dev-line" x="484" y="88" width="62" height="124" rx="12"/>
-            <rect class="dev-screen" x="490" y="98" width="50" height="104" rx="6"/>
-            <g transform="translate(501 136) scale(.58)"><circle class="dev-logo" cx="24" cy="24" r="8"/><path d="M28.4 7.58A17 17 0 1 0 40.42 19.6" fill="none" stroke="var(--on-accent)" stroke-width="3.6" stroke-linecap="round"/><circle class="dev-logo" cx="36.02" cy="11.98" r="4.4"/></g>
-            <circle class="port" cx="118" cy="150" r="4.5"/>
-            <circle class="port" cx="484" cy="150" r="4.5"/>
-            <!-- Packets that travel the locked lane -->
-            <g class="pkt" data-way="out"><circle r="13"/><path transform="translate(-7 -7) scale(.58)" d="M9 3h6v3H9zM15 4.5h2a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2"/></g>
-            <g class="pkt" data-way="in"><circle r="13"/><path transform="translate(-7 -7) scale(.58)" d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20.5a2 2 0 0 0 4 0"/></g>
-            <g class="pkt" data-way="out"><circle r="13"/><path transform="translate(-7 -7) scale(.58)" d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"/></g>
-          </svg>
-          <span class="lane-label" style="left:50%;top:16.6%">usb cable</span>
-          <span class="lane-label won" style="left:50%;top:34.7%">tethering / hotspot</span>
-          <span class="lane-label" style="left:50%;top:68.8%">same wi-fi</span>
-          <span class="lane-label" style="left:50%;top:86.9%">typed address</span>
-          <span class="dev-label" style="left:11.5%;top:75.5%">Your PC</span>
-          <span class="dev-label" style="left:85.8%;top:75.5%">Your phone</span>
-        </div>
-        <div class="race-status" role="status">
+
+    <div class="race card" id="race" data-state="done" data-winner="1" data-reveal>
+      <div class="stage" aria-hidden="true">
+        <svg viewBox="0 0 600 290" focusable="false">
+          <g class="lanes">
+            <g class="lane" data-i="0"><path class="lane-base" d="M118 150C196 14 406 14 484 150"/><path class="lane-probe" d="M118 150C196 14 406 14 484 150"/><path class="lane-lock" d="M118 150C196 14 406 14 484 150"/></g>
+            <g class="lane won" data-i="1"><path class="lane-base" d="M118 150C212 84 390 84 484 150"/><path class="lane-probe" d="M118 150C212 84 390 84 484 150"/><path class="lane-lock" d="M118 150C212 84 390 84 484 150"/></g>
+            <g class="lane" data-i="2"><path class="lane-base" d="M118 150C212 216 390 216 484 150"/><path class="lane-probe" d="M118 150C212 216 390 216 484 150"/><path class="lane-lock" d="M118 150C212 216 390 216 484 150"/></g>
+            <g class="lane" data-i="3"><path class="lane-base" d="M118 150C196 286 406 286 484 150"/><path class="lane-probe" d="M118 150C196 286 406 286 484 150"/><path class="lane-lock" d="M118 150C196 286 406 286 484 150"/></g>
+          </g>
+          <!-- PC -->
+          <rect class="dev-body" x="20" y="106" width="98" height="68" rx="8"/>
+          <rect class="dev-screen" x="27" y="113" width="84" height="54" rx="4"/>
+          <use href="#i-logo" class="dev-logo" x="55" y="126" width="28" height="28"/>
+          <path class="dev-body" d="M8 180h122l-8 9H16z"/>
+          <!-- Phone -->
+          <rect class="dev-body" x="484" y="88" width="62" height="124" rx="13"/>
+          <rect class="dev-screen" x="490" y="98" width="50" height="104" rx="7"/>
+          <use href="#i-logo" class="dev-logo" x="501" y="136" width="28" height="28"/>
+          <circle class="port" cx="118" cy="150" r="4.5"/>
+          <circle class="port" cx="484" cy="150" r="4.5"/>
+          <!-- Packets on the locked lane: clipboard and file out, a notification back -->
+          <g class="pkt" data-way="out"><circle r="13"/><use href="#i-clip" x="-7" y="-7" width="14" height="14"/></g>
+          <g class="pkt" data-way="in"><circle r="13"/><use href="#i-bell" x="-7" y="-7" width="14" height="14"/></g>
+          <g class="pkt" data-way="out"><circle r="13"/><use href="#i-file" x="-7" y="-7" width="14" height="14"/></g>
+        </svg>
+        <span class="lane-label" style="left:50%;top:16.6%">usb cable</span>
+        <span class="lane-label won" style="left:50%;top:34.7%">tethering / hotspot</span>
+        <span class="lane-label" style="left:50%;top:68.8%">same wi-fi</span>
+        <span class="lane-label" style="left:50%;top:86.9%">manual address</span>
+        <span class="dev-label" style="left:11.5%;top:75.5%">Your PC</span>
+        <span class="dev-label" style="left:85.8%;top:75.5%">Your Phone</span>
+      </div>
+      <div class="race-foot">
+        <div class="race-status" role="status" aria-live="polite">
           <strong><span class="dot"></span><span class="st-title">Connected over your phone’s hotspot</span></strong>
-          <span class="st-text">With USB tethering or the phone’s hotspot, the phone is the PC’s gateway, so the PC dials it directly. That takes well under a second.</span>
+          <span class="st-text">With USB tethering or a hotspot, your phone is the PC’s gateway, so Orbit reaches it directly, typically in well under a second.</span>
         </div>
+        <button class="btn btn-ghost btn-sm replay" type="button" id="replay"><svg class="i" aria-hidden="true"><use href="#i-replay"/></svg><span>Replay</span></button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- PRIVACY -->
-<section class="section band v-band" id="privacy" aria-labelledby="privacy-title">
+<!-- SECURITY -->
+<section class="section band" id="security" aria-labelledby="security-title">
+  <div class="band-bg" aria-hidden="true"></div>
   <div class="wrap">
-    <div class="v-band-copy">
-      <h2 id="privacy-title" class="v-mega">No account.<br>No cloud.<br><span>No tracking.</span></h2>
-      <p class="v-band-p">Your data goes straight from one of your devices to the other, encrypted. Free and open source.</p>
-      <div class="band-links">
-        <a class="btn btn-ghost" href="https://github.com/Mohib-76/orbit/blob/main/PRIVACY.md">Privacy details<svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="btn btn-ghost" href="https://github.com/Mohib-76/orbit">Source code<svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-      </div>
+    <div class="head center" data-reveal>
+      <p class="kicker">Security &amp; Privacy</p>
+      <h2 id="security-title">Private by Architecture</h2>
+      <p class="sub">There is no Orbit server. Your data moves only between your own two devices, so there is nothing to sign up for, sync or breach.</p>
     </div>
-    <svg class="v-link" viewBox="0 0 440 300" role="img" aria-label="A PC and a phone joined by one encrypted line; the path through the cloud is crossed out">
-      <path class="vl-ghost" d="M96 150C130 40 310 40 344 150"/>
-      <g transform="translate(220 58)"><path class="vl-dev" d="M-26 10a14 14 0 0 1 4-27 20 20 0 0 1 38 4 12 12 0 0 1 2 23z"/><path class="vl-x" d="M-12-12 12 12M12-12-12 12"/></g>
-      <text x="220" y="104" text-anchor="middle">no cloud in between</text>
-      <rect class="vl-dev" x="14" y="118" width="84" height="58" rx="6"/><rect class="vl-scr" x="21" y="125" width="70" height="44" rx="3"/><path class="vl-dev" d="M4 186h104l-7 8H11z"/>
-      <rect class="vl-dev" x="344" y="100" width="54" height="104" rx="10"/><rect class="vl-scr" x="350" y="109" width="42" height="86" rx="5"/>
-      <path class="vl-line" d="M106 150H340"/>
-      <g transform="translate(222 150)"><circle class="vl-lock" r="22"/><rect class="vl-lock-k" x="-8" y="-3" width="16" height="12" rx="2"/><path class="vl-lock-k" d="M-5-3v-4a5 5 0 0 1 10 0v4"/></g>
-      <text x="222" y="196" text-anchor="middle">direct and encrypted</text>
-      <text x="56" y="232" text-anchor="middle">Your PC</text><text x="371" y="232" text-anchor="middle">Your phone</text>
+    <svg class="link-art" viewBox="0 0 640 120" role="img" aria-label="A PC and a phone joined by one direct, encrypted connection" data-reveal>
+      <rect class="la-dev" x="20" y="30" width="88" height="60" rx="8"/><rect class="la-scr" x="27" y="37" width="74" height="40" rx="4"/>
+      <rect class="la-dev" x="560" y="16" width="52" height="92" rx="11"/><rect class="la-scr" x="566" y="25" width="40" height="74" rx="6"/>
+      <path class="la-line" d="M118 60H550"/>
+      <path class="la-flow" d="M118 60H550"/>
+      <g class="la-lock" transform="translate(334 60)"><circle r="24"/><use href="#i-lock" x="-10" y="-10" width="20" height="20"/></g>
     </svg>
+    <div class="sec-grid">
+      <article class="sec card" data-reveal style="--i:0"><span class="sec-ico"><svg class="i" aria-hidden="true"><use href="#i-cloud-off"/></svg></span><h3>No Account, No Cloud</h3><p>Nothing to register and no relay in the middle. Orbit works on a cable or your own network, even with no internet.</p></article>
+      <article class="sec card" data-reveal style="--i:1"><span class="sec-ico"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg></span><h3>Encrypted End to End</h3><p>Every connection uses mutual TLS with certificates pinned at pairing. Only your paired devices can connect.</p></article>
+      <article class="sec card" data-reveal style="--i:2"><span class="sec-ico"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg></span><h3>You Decide What Syncs</h3><p>Choose which apps forward notifications and hide their text. Password-manager copies are never synced.</p></article>
+      <article class="sec card" data-reveal style="--i:3"><span class="sec-ico"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><h3>Open Source</h3><p>No analytics, no ads. The complete source is public under AGPL-3.0, so you can audit and build it yourself.</p></article>
+    </div>
+    <div class="center band-links" data-reveal>
+      <a class="btn btn-ghost" href="https://github.com/Mohib-76/orbit/blob/main/PRIVACY.md"><span>Read the Privacy Policy</span><svg class="i" aria-hidden="true"><use href="#i-out"/></svg></a>
+      <a class="btn btn-ghost" href="https://github.com/Mohib-76/orbit/blob/main/docs/PROTOCOL.md"><span>Read the Protocol</span><svg class="i" aria-hidden="true"><use href="#i-out"/></svg></a>
+    </div>
   </div>
 </section>
 
 <!-- INSTALL -->
-<section class="section v-install" id="install" aria-labelledby="install-title">
-  <div class="wrap">
-    <h2 id="install-title" class="v-title">Get both apps.</h2>
-    <p class="v-sub">Install on your PC, plug in your phone, and Orbit sets up the rest.</p>
-    <div class="dls">
-      <div class="dl" id="dl-win">
-        <span class="this" hidden>Your device</span>
-        <h3><span class="dl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10 4.5v7H3zM11 4.3 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg></span>Windows</h3>
-        <p>Windows 10 or 11</p>
-        <a class="btn btn-primary" id="win-link" href="https://github.com/Mohib-76/orbit/releases/latest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg>Download</a>
+<section class="section" id="install" aria-labelledby="install-title">
+  <div class="wrap split install">
+    <div>
+      <div class="head" data-reveal>
+        <p class="kicker">Get Started</p>
+        <h2 id="install-title">Up and Running in Minutes</h2>
+        <p class="sub">Install Orbit on your PC. It sets up your phone for you over USB.</p>
       </div>
-      <div class="dl" id="dl-and">
-        <span class="this" hidden>Your device</span>
-        <h3><span class="dl-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.2 4.2 6 2.4l.7-.4 1.2 1.9A8 8 0 0 1 12 3c1.5 0 2.9.3 4.1.9L17.3 2l.7.4-1.2 1.8A7 7 0 0 1 19.5 10h-15a7 7 0 0 1 2.7-5.8zM9 7.2a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zM4.5 11h15v8a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2z"/></svg></span>Android</h3>
-        <p>Android 10 or newer</p>
-        <p>Installed from the Windows app: turn on USB debugging, plug in and click <b>Install on phone</b>.</p>
-        <!-- Android download hidden for now (see the hero). Restore when browser installs work again.
-        <a class="btn btn-primary" id="and-link" href="https://github.com/Mohib-76/orbit/releases/latest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg>Download</a>
+      <ol class="steps">
+        <li class="step" data-reveal style="--i:0"><span class="step-n">1</span><div><h3>Install Orbit for Windows</h3><p>Download the installer and run it. Orbit runs quietly in the system tray.</p></div></li>
+        <li class="step" data-reveal style="--i:1"><span class="step-n">2</span><div><h3>Plug In Your Phone</h3><p>Turn on <a class="ilink" href="https://github.com/Mohib-76/orbit/blob/main/docs/TROUBLESHOOTING.md#turn-on-usb-debugging">USB debugging</a>, connect the cable and select <b>Install on phone</b>. Orbit installs the Android app and pairs both devices in one step.</p></div></li>
+        <li class="step" data-reveal style="--i:2"><span class="step-n">3</span><div><h3>Grant Access</h3><p>Open Orbit on your phone and allow notification access. You’re connected.</p></div></li>
+      </ol>
+    </div>
+
+    <div class="dls" data-reveal>
+      <div class="dl card" id="dl-win">
+        <span class="this" hidden>Your Device</span>
+        <div class="dl-head"><span class="dl-ico"><svg class="i" aria-hidden="true"><use href="#i-win"/></svg></span><div><h3>Orbit for Windows</h3><p class="dl-ver"><span class="rel-version">Latest release</span></p></div></div>
+        <ul class="dl-req">
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Windows&nbsp;10 (1809) or Windows&nbsp;11, x64</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Includes the Android app, installed over USB</li>
+        </ul>
+        <a class="btn btn-primary btn-lg btn-block" id="win-link" href="https://github.com/Mohib-76/orbit/releases/latest"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><span>Download Installer</span></a>
+        <p class="dl-fine">Verify the download against <span translate="no">SHA256SUMS.txt</span> in the release.</p>
+      </div>
+      <div class="dl card dl-and" id="dl-and">
+        <span class="this" hidden>Your Device</span>
+        <div class="dl-head"><span class="dl-ico"><svg class="i" aria-hidden="true"><use href="#i-android"/></svg></span><div><h3>Orbit for Android</h3><p class="dl-ver">Android&nbsp;10 or later</p></div></div>
+        <p>Installed from the Windows app over USB, which avoids the browser-install block some phones apply. <a class="ilink" href="https://github.com/Mohib-76/orbit/blob/main/docs/TROUBLESHOOTING.md#app-blocked-to-protect-your-device">Learn why</a></p>
+        <!-- Android download hidden for now: Play Protect blocks browser installs of apps with notification access
+             in some countries, so the Windows app installs the phone app over USB. Restore when that's solved.
+        <a class="btn btn-ghost btn-block" id="and-link" href="https://github.com/Mohib-76/orbit/releases/latest"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><span>Download APK</span></a>
         -->
       </div>
+      <p class="small"><a class="ilink" href="https://github.com/Mohib-76/orbit/releases">All Releases</a> <span aria-hidden="true">·</span> <a class="ilink" href="https://github.com/Mohib-76/orbit/blob/main/CHANGELOG.md">Changelog</a> <span aria-hidden="true">·</span> <a class="ilink" href="https://github.com/Mohib-76/orbit/blob/main/docs/TROUBLESHOOTING.md">Troubleshooting</a></p>
     </div>
-    <p class="v-small"><a class="ilink" href="https://github.com/Mohib-76/orbit/releases">All releases</a> · <a class="ilink" href="https://github.com/Mohib-76/orbit/blob/main/docs/TROUBLESHOOTING.md">Troubleshooting</a></p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section faq-sec" id="faq" aria-labelledby="faq-title">
+  <div class="wrap narrow">
+    <div class="head center" data-reveal>
+      <p class="kicker">FAQ</p>
+      <h2 id="faq-title">Frequently Asked Questions</h2>
+    </div>
+    <div class="faq" data-reveal>
+      <details name="faq">
+        <summary>Is Orbit really free?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <div class="faq-a"><p>Yes. Orbit is free and open source under the GNU AGPL-3.0, with no ads, subscriptions or in-app purchases.</p></div>
+      </details>
+      <details name="faq">
+        <summary>Do I need an internet connection?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <div class="faq-a"><p>No. Orbit connects over a USB cable, USB tethering, your phone’s hotspot or a shared Wi-Fi network. Your data never leaves your two devices.</p></div>
+      </details>
+      <details name="faq">
+        <summary>Why is the Android app installed from the PC?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <div class="faq-a"><p>In some regions, Play Protect blocks browser installs of apps that read notifications. Installing over USB from Orbit for Windows avoids this and pairs both devices in the same step. The APK is also attached to every <a class="ilink" href="https://github.com/Mohib-76/orbit/releases">release</a>.</p></div>
+      </details>
+      <details name="faq">
+        <summary>What does screen mirroring require?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <div class="faq-a"><p>USB debugging on your phone. Mirroring over Wi-Fi also works after a one-time wireless debugging setup in Orbit, with both devices on the same network. Mirroring is built on <a class="ilink" href="https://github.com/Genymobile/scrcpy">scrcpy</a>.</p></div>
+      </details>
+      <details name="faq">
+        <summary>Which earbuds are supported?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <div class="faq-a"><p>Any Bluetooth earbuds show battery and Play Here. Noise control, sound settings and tap actions are available for realme, OnePlus and OPPO models that use the realme Link or HeyMelody app.</p></div>
+      </details>
+      <details name="faq">
+        <summary>Does Orbit support macOS, Linux or iPhone?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <div class="faq-a"><p>Not today. Orbit is built for Windows&nbsp;10 and 11 and Android&nbsp;10 or later, and connects one phone to one PC.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec" aria-labelledby="cta-title">
+  <div class="wrap">
+    <div class="cta-card" data-reveal>
+      <svg class="cta-rings" viewBox="-300 -150 600 300" aria-hidden="true" focusable="false"><ellipse rx="150" ry="58"/><ellipse rx="230" ry="92"/><ellipse rx="300" ry="124"/></svg>
+      <svg class="cta-logo" aria-hidden="true"><use href="#i-logo"/></svg>
+      <h2 id="cta-title">Bring Your Devices Into Orbit</h2>
+      <p>Free, private and ready in minutes.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg dl-primary" href="https://github.com/Mohib-76/orbit/releases/latest"><svg class="i" aria-hidden="true"><use href="#i-win"/></svg><span>Download for Windows</span></a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/Mohib-76/orbit"><svg class="i" aria-hidden="true"><use href="#i-github"/></svg><span>Star on GitHub</span></a>
+      </div>
+    </div>
   </div>
 </section>
 </main>
 
-<footer>
+<footer class="foot">
   <div class="wrap">
-    <a class="wordmark" href="#top" aria-label="Orbit, back to top">orbit<span>.</span></a>
-    <div class="foot">
-      <p class="credits">Built on <a class="ilink" href="https://github.com/Genymobile/scrcpy">scrcpy</a> and <a class="ilink" href="https://ffmpeg.org">FFmpeg</a>, with earbuds protocol work from <a class="ilink" href="https://codeberg.org/Freeyourgadget/Gadgetbridge">Gadgetbridge</a> and ideas from <a class="ilink" href="https://kdeconnect.kde.org">KDE Connect</a>.</p>
-      <nav aria-label="Project links">
-        <ul>
-          <li><a href="https://github.com/Mohib-76/orbit">Source code</a></li>
-          <li><a href="https://github.com/Mohib-76/orbit/releases">Releases</a></li>
-          <li><a href="https://github.com/Mohib-76/orbit/blob/main/docs/PROTOCOL.md">Protocol</a></li>
-          <li><a href="https://github.com/Mohib-76/orbit/blob/main/PRIVACY.md">Privacy</a></li>
-          <li><a href="https://github.com/Mohib-76/orbit/blob/main/SECURITY.md">Security</a></li>
-          <li><a href="https://github.com/Mohib-76/orbit/blob/main/LICENSE">License</a></li>
-        </ul>
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="brand" href="#top" aria-label="Orbit, back to top" translate="no"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg><span>Orbit</span></a>
+        <p>Your Android phone and Windows PC, connected directly. Free and open source.</p>
+      </div>
+      <nav class="foot-cols" aria-label="Footer">
+        <div><h2>Product</h2><ul><li><a href="#features">Features</a></li><li><a href="#connect">Connectivity</a></li><li><a href="#security">Security</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+        <div><h2>Resources</h2><ul><li><a href="https://github.com/Mohib-76/orbit/releases">Releases</a></li><li><a href="https://github.com/Mohib-76/orbit/blob/main/CHANGELOG.md">Changelog</a></li><li><a href="https://github.com/Mohib-76/orbit/blob/main/docs/TROUBLESHOOTING.md">Troubleshooting</a></li><li><a href="https://github.com/Mohib-76/orbit/blob/main/docs/PROTOCOL.md">Protocol</a></li></ul></div>
+        <div><h2>Project</h2><ul><li><a href="https://github.com/Mohib-76/orbit">Source Code</a></li><li><a href="https://github.com/Mohib-76/orbit/blob/main/PRIVACY.md">Privacy</a></li><li><a href="https://github.com/Mohib-76/orbit/blob/main/SECURITY.md">Security</a></li><li><a href="https://github.com/Mohib-76/orbit/blob/main/LICENSE">License</a></li></ul></div>
       </nav>
     </div>
-    <p class="fine">Orbit is an independent open-source project, not affiliated with realme, OnePlus, OPPO, Samsung, Google, Microsoft or Genymobile. Product names only describe compatibility.</p>
+    <div class="foot-bottom">
+      <p>Built on <a class="ilink" href="https://github.com/Genymobile/scrcpy">scrcpy</a> and <a class="ilink" href="https://ffmpeg.org">FFmpeg</a>, with earbuds protocol research from <a class="ilink" href="https://codeberg.org/Freeyourgadget/Gadgetbridge">Gadgetbridge</a> and ideas from <a class="ilink" href="https://kdeconnect.kde.org">KDE Connect</a>.</p>
+      <p>Orbit is an independent open-source project, not affiliated with realme, OnePlus, OPPO, Samsung, Google, Microsoft or Genymobile. Product names are used only to describe compatibility.</p>
+    </div>
   </div>
 </footer>
 

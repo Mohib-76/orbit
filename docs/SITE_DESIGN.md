@@ -13,16 +13,22 @@ Read this before changing the page so later edits stay consistent.
   light and dark themes. No third-party scripts or fonts. The only outside request is the GitHub API call for the
   latest release links, and the links still work without it.
 
-## Direction: visual first
+## Direction: a product page
 
-The page shows the real app screens and keeps text to a title and one line per idea. Details live on GitHub
-(README, PRIVACY, TROUBLESHOOTING), linked from the page; don't bring long copy back onto it.
+The page reads like a professional software product: a confident headline, the real app screens, and short,
+precise copy in a product voice (second person, active voice, Title Case headings and buttons, curly quotes,
+numerals). Each claim must be true of the shipped apps; details live on GitHub (README, PRIVACY, PROTOCOL,
+TROUBLESHOOTING) and are linked rather than repeated.
 
-One signature moment carries the product's real difference: the **route race**. The PC dials every route to the
-phone at once (cable, tethering/hotspot, Wi-Fi broadcast, typed address) and keeps the first that answers. The
-diagram lets visitors pick their setup and watch that lane lock, then packets travel it. The 404 page reuses it
-with no lane answering, and the privacy band draws the same line language (one direct encrypted line, the cloud
-crossed out).
+The page follows Vercel's Web Interface Guidelines (`vercel-labs/web-interface-guidelines`, used through the
+`web-design-guidelines` skill): visible focus rings, skip link, `scroll-margin-top` on anchors, explicit image
+sizes, `color-scheme` and `theme-color`, `translate="no"` on the brand, no `transition: all`, transform and
+opacity animations only, and every motion either finite, user-driven or pausable. Re-run that review after
+changing the page.
+
+The product's real difference gets one interactive moment: the **route diagram**. The PC dials every route to the
+phone at once (cable, tethering/hotspot, Wi-Fi broadcast, manual address) and keeps the first that answers.
+Visitors pick a route from the list; the diagram races the lanes, locks the winner and sends one pass of packets.
 
 ## Screens
 
@@ -32,7 +38,8 @@ crossed out).
   copy (the owner's name, places, phone numbers, OTPs, real banks or restaurants). Check every new screen for these
   before adding it. The page says the screens come from the design files with sample data.
 - Every screen has a light and a dark render, paired with `.th-l` / `.th-d`; the dark copy is `loading="lazy"` so
-  only the visible one loads. Keep it that way: a screen that doesn't follow the theme looks broken. When the canvas
+  only the visible one loads (except the hero, whose dark copies load eagerly because they are the largest
+  image above the fold for dark-theme visitors). Keep it that way: a screen that doesn't follow the theme looks broken. When the canvas
   has no dark artboard, make the dark copy from the canvas's own palettes (WinDashboard's `light`/`dark` tables for
   Windows screens, AndHome's for Android), mapping each light color to its dark role.
 
@@ -47,29 +54,45 @@ when a feature it shows changes.
 
 ## System
 
-- **Palette (light / dark):** ground `#F5F5F8` / `#0C0C12`, ink `#121219` / `#F1F1F6`, muted `#55566A` / `#A6A7BA`,
-  accent `#4B4FE6` / `#8C8FFF`, signal green only for "connected", band `#13132A` for the privacy statement.
-  No gradients.
-- **Type:** Manrope (variable, self-hosted) for everything; JetBrains Mono only for route names in the diagram.
-- **Shape:** 24 px tiles, 14 px controls, devices drawn as a black frame around the Android screens.
-- **Motion:** one ease (`cubic-bezier(.16,1,.3,1)`). Buttons fill left to right (a line being dialled), tiles rise in
-  as they arrive and lift their screen on hover, the race runs on one `requestAnimationFrame` clock that pauses off
-  screen. Everything is still under reduced motion; the HTML paints the finished, locked race first.
-- **Idle:** the hero is still at rest by decision (a product page); the race and the privacy line keep moving while
-  on screen.
+- **Palette (light / dark):** ground `#FAFAFC` / `#07070C`, surface `#FFFFFF` / `#0E0E17`, ink `#0D0D17` /
+  `#F2F2F8`, muted `#5A5B6F` / `#A2A3B8`, accent `#4B4FE6` / `#8C8FFF` (buttons `#4B4FE6` / `#5257F0`), a
+  violet `#8B5CF6` / `#B794FF` only in the headline gradient, green only for "connected". The security band and
+  the closing card are dark in both themes. All colors are tokens on `:root` in `site.css`.
+- **Type:** Manrope (variable, self-hosted) for everything, 800 weight with tight tracking for headings;
+  JetBrains Mono only for route numbers and lane labels.
+- **Shape:** 22 px cards and tiles, pill buttons, devices drawn as a black frame around the Android screens.
+- **Texture:** a faint grid and an accent glow behind the hero and the security band, thin orbit rings in the
+  hero, the closing card and the 404.
+- **Motion:** one ease (`cubic-bezier(.16,1,.3,1)`).
+  - Hero: the headline lines slide up, the rest rises in, the rings draw once and the two status chips pop in.
+    While scrolling, the product frame straightens from a 3D tilt, the phone settles and the rings turn
+    (scroll-linked, so the visitor drives it).
+  - Sections rise in as they arrive (`data-reveal`, staggered with `--i`). Tiles get a spotlight that follows the
+    pointer and lift their screen on hover. The primary button has a light sweep on hover.
+  - The route diagram plays once when it first comes into view, and again on a route click or Replay; one pass is
+    under 5 seconds. The security band's encrypted line draws once.
+  - Under reduced motion everything is still and visible, and the HTML paints the finished, locked diagram.
 
 ## Sections
 
 ```
-hero      badge, h1, one line, download buttons / Windows dashboard with the Android home screen in front
+hero      release badge, h1, one paragraph, Download for Windows + View Source, platform line /
+          the Windows dashboard in a tilted frame with the Android home screen in front and two status chips
+specs     4 figures: routes, servers, TLS, open source
 film      the 12 s feature loop, framed 16:9, with a Pause button
-features  bento of screens: clipboard, files (share sheet), mirroring (full width), notifications,
-          earbuds, tray, phone shortcuts
-connect   one line / the route race
-privacy   "No account. No cloud. No tracking." / the direct-line drawing
-install   two cards (your platform marked), links to releases and troubleshooting. For now only Windows has a
-          download: Play Protect blocks browser installs of the APK in some countries, so the Android card says the
-          Windows app installs it over USB (the hero's Android button and link are commented out, ready to restore)
-footer    wordmark, credits, project links
-404       "No route to this page." / the race with no lane answering
+features  bento of screens (`.bento` > `article.tile t5|t6|t7|t12`, each row adding up to 12): clipboard, files,
+          mirroring (full width), notifications, earbuds, tray, quick settings; then a grid of six smaller
+          capabilities without screens
+connect   heading and route list (the controls) / the route diagram with a status line and Replay
+security  dark band: heading, the direct-line drawing, four cards, links to PRIVACY and PROTOCOL
+install   three steps / download cards (your platform marked). For now only Windows has a download: Play Protect
+          blocks browser installs of the APK in some countries, so the Android card says the Windows app installs
+          it over USB (its download button is commented out, ready to restore)
+faq       six questions in an exclusive accordion (`<details name="faq">`)
+cta       dark closing card with the download button
+footer    brand line, three link columns, credits, non-affiliation notice
+404       "This Page Is Out of Orbit" over the hero rings
 ```
+
+The hero badge names the latest headline feature (its text is static, not the version number); update it at
+release time along with the bento.

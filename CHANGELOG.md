@@ -4,6 +4,9 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
 
 ## [Unreleased]
 
+### Changed
+- The website has a new design: a scroll-animated hero, a features overview, an interactive connection diagram, security, install steps and an FAQ, with rewritten copy. The README has matching wording and light and dark screenshots.
+
 ## [1.2.0] - 2026-10-20
 
 ### Added
