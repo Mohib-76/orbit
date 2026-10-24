@@ -41,7 +41,8 @@ public sealed partial class OrbitCore
             commands.Add(new JsonObject { ["id"] = c.Id, ["name"] = c.Name, ["ask"] = c.Ask });
         return new JsonObject
         {
-            ["volume"] = Settings.RemoteVolume, ["power"] = power, ["commands"] = commands,
+            ["volume"] = Settings.RemoteVolume, ["input"] = Settings.RemoteInput, ["slides"] = Settings.RemoteSlides,
+            ["power"] = power, ["commands"] = commands,
             ["linksAsk"] = Settings.LinksFromPhone == "ask"
         };
     }
@@ -59,6 +60,8 @@ public sealed partial class OrbitCore
     public void SaveRemoteSettings()
     {
         Settings.Save();
+        if (!Settings.RemoteInput && !Settings.RemoteSlides) StopFocusWatch();
+        if (!Settings.RemoteInput) InputInjector.ReleaseAll();
         SendRemoteCaps();
         SendVolumeState();
     }

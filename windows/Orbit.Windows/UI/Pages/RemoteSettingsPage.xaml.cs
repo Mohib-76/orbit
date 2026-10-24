@@ -34,6 +34,8 @@ public partial class RemoteSettingsPage : UserControl
         var phone = string.IsNullOrEmpty(Core.Phone.Name) ? "your phone" : Core.Phone.Name;
         Intro.Text = $"Choose what {phone} can do on this PC. The phone only shows the buttons you allow here, and can't send anything else.";
         VolumeToggle.IsChecked = s.RemoteVolume;
+        InputToggle.IsChecked = s.RemoteInput;
+        SlidesToggle.IsChecked = s.RemoteSlides;
         LockToggle.IsChecked = s.RemoteLock;
         SleepToggle.IsChecked = s.RemoteSleep;
         ShutdownToggle.IsChecked = s.RemoteShutdown;
@@ -60,6 +62,8 @@ public partial class RemoteSettingsPage : UserControl
         if (_loading) return;
         var s = Core.Settings;
         s.RemoteVolume = VolumeToggle.IsChecked == true;
+        s.RemoteInput = InputToggle.IsChecked == true;
+        s.RemoteSlides = SlidesToggle.IsChecked == true;
         s.RemoteLock = LockToggle.IsChecked == true;
         s.RemoteSleep = SleepToggle.IsChecked == true;
         s.RemoteShutdown = ShutdownToggle.IsChecked == true;

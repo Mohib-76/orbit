@@ -75,11 +75,15 @@ no reply. The PC then dials `port` over TLS as usual, so discovery never carries
 | `orbit.mirror.setup` | PC → phone | `{}`. "Open on phone": show the setup screen (or a notification that opens it). Answered with `orbit.mirror.info` |
 | `orbit.mirror.info` | phone → PC | `{sdk, devOptions, wirelessDebugging, wifi, usbDebugging, canToggle}` |
 | `orbit.url` | both | `{url}`: open this web link on the receiver (see [Phone remote](#phone-remote)). Only absolute `http`/`https` URLs, at most 4096 characters; anything else is ignored |
-| `orbit.remote.caps` | PC → phone | `{volume, power: ["lock"|"sleep"|"shutdown"|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC; `linksAsk` = the PC asks before opening a link from the phone.\|"sleep"\|"shutdown"\|"restart"…], commands: [{id, name, ask}…]}`: what the phone may do on the PC. Sent on connect and whenever Settings › Phone remote changes |
-| `orbit.remote.run` | phone → PC | `{op: "lock"\|| `orbit.remote.caps` | PC → phone | `{volume, power: ["lock"|"sleep"|"shutdown"|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC; `linksAsk` = the PC asks before opening a link from the phone.\|"shutdown"\|"restart"}` · `{op: "command", id}` |
+| `orbit.remote.caps` | PC → phone | `{volume, input, slides, power: ["lock"\|"sleep"\|"shutdown"\|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC. `input` = touchpad and keyboard, `slides` = slides remote, `linksAsk` = the PC asks before opening a link from the phone. Sent on connect and whenever Settings › Phone remote changes |
+| `orbit.remote.run` | phone → PC | `{op: "lock"\|"sleep"\|"shutdown"\|"restart"}` · `{op: "command", id}` |
 | `orbit.remote.result` | PC → phone | `{op, id?, ok, error?}`: the answer to `orbit.remote.run`. `error` is a sentence to show |
 | `orbit.volume.state` | PC → phone | `{level, muted}`: the default playback device's volume, 0–100 (`-1` = no playback device). Sent on connect and on every change (debounced 80 ms) while volume control is allowed |
 | `orbit.volume.set` | phone → PC | `{level?, muted?}`. Raising `level` above 0 without `muted` also unmutes |
+| `orbit.input` | phone → PC | Touchpad and keyboard, when `input` is allowed: `{op: "move", dx, dy}` (pixels) · `{op: "button", button: "left"\|"right"\|"middle", action: "click"\|"down"\|"up"}` · `{op: "scroll", dy, dx}` (wheel units, 120 = one notch; positive = up / right) · `{op: "text", text}` (at most 1000 characters; `\n` presses Enter) · `{op: "key", key?, mods: ["ctrl"\|"alt"\|"shift"\|"win"…]}` (`key`: `esc`, `tab`, `enter`, `backspace`, `delete`, `space`, arrows `left`/`up`/`right`/`down`, `home`, `end`, `pageup`, `pagedown`, `insert`, `f1`–`f12`, a letter or a digit; no `key` = the modifiers alone) |
+| `orbit.slides` | phone → PC | `{op: "next"\|"prev"\|"start"\|"end"\|"black"}`, when `slides` is allowed. The PC presses Right, Left, F5 (Ctrl+F5 when a browser is in front, where F5 would reload), Esc or B in the window in front |
+| `orbit.focus.watch` | phone → PC | `{on}`: while a touchpad, keyboard or slides screen is open, the phone asks for the PC's foreground app |
+| `orbit.focus` | PC → phone | `{app}`: the foreground app's name ("Google Chrome"), sent when it changes while watched. Never the window title |
 
 `orbit.settings` also carries `budsEnabled`, so the Earbuds switch stays the same on both devices, and
 `usbMode` (`"charging"`, `"tethering"` or `"files"`), the mode the PC applies when the cable is plugged in.
@@ -109,12 +113,13 @@ packets for buttons it wasn't given. Every power button and command shows a noti
 
 - **Commands** are set up on the PC (a name, a program, script or command line, and whether to ask first). The
   phone only ever sees `{id, name, ask}` and sends back the `id`; the command text never leaves the PC.
-- `ask` (commands) and `| `orbit.remote.caps` | PC → phone | `{volume, power: ["lock"|"sleep"|"shutdown"|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC; `linksAsk` = the PC asks before opening a link from the phone.` / `"restart"` (always) mean the phone asks "Are you sure?" before sending.
+- `ask` (commands) and `"shutdown"` / `"restart"` (always) mean the phone asks "Are you sure?" before sending.
 - **Links:** the phone opens a link from the PC as a notification with Open, Copy and Share (Android won't let
   an app open a browser from the background). The PC opens a link from the phone straight away, or after a
   notification if its user chose "Ask first". Both sides accept only `http` and `https`, so a link can't start a
   program or open a local file.
-- Links and command names are user content: neither side logs them.
+- Links, typed text and command names are user content: neither side logs them. Input can't reach elevated (administrator) windows or the lock screen, by Windows' design.
+- Touchpad and keyboard (`input`) are off until switched on on the PC; when the phone starts using input or the slides remote after five idle minutes, the PC shows a notification.
 
 ## USB modes
 

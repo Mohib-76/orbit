@@ -142,9 +142,13 @@ private fun VolumeSlider(level: Int, muted: Boolean, big: Boolean, modifier: Mod
 
 // ============================================================== Home card
 
+const val TOOL_TOUCHPAD = "touchpad"
+const val TOOL_KEYBOARD = "keyboard"
+const val TOOL_SLIDES = "slides"
+
 /** "Control <PC>" on Home: one-tap tools, and the header opens the full Remote screen. */
 @Composable
-fun PcControlCard(openRemote: () -> Unit) {
+fun PcControlCard(openRemote: () -> Unit, openTool: (String) -> Unit) {
     val c = LocalOrbit.current
     val ctx = LocalContext.current
     val caps by Remote.caps.collectAsState()
@@ -152,11 +156,18 @@ fun PcControlCard(openRemote: () -> Unit) {
     if (!caps.any) return
     val parts = listOfNotNull(
         stringResource(R.string.remote_volume).takeIf { caps.volume },
+        stringResource(R.string.remote_touchpad_keyboard).takeIf { caps.input },
+        stringResource(R.string.slides_title).takeIf { caps.slides },
         stringResource(R.string.remote_power).takeIf { caps.power.isNotEmpty() },
         stringResource(R.string.remote_commands).takeIf { caps.commands.isNotEmpty() }
     )
     val summary = parts.mapIndexed { i, s -> if (i == 0) s else s.lowercase() }.joinToString(", ")
     val tools = buildList<Triple<ImageVector, String, () -> Unit>> {
+        if (caps.input) {
+            add(Triple(Icons.Touchpad, stringResource(R.string.input_touchpad)) { openTool(TOOL_TOUCHPAD) })
+            add(Triple(Icons.Keyboard, stringResource(R.string.input_keyboard)) { openTool(TOOL_KEYBOARD) })
+        }
+        if (caps.slides) add(Triple(Icons.Slides, stringResource(R.string.remote_slides_short)) { openTool(TOOL_SLIDES) })
         if (Remote.LOCK in caps.power) {
             val locking = stringResource(R.string.remote_locking, ui.pcName)
             val offline = stringResource(R.string.pc_not_connected)
@@ -204,7 +215,7 @@ private sealed interface Confirm {
 }
 
 @Composable
-fun RemoteScreen(onBack: () -> Unit) {
+fun RemoteScreen(onBack: () -> Unit, openTool: (String) -> Unit) {
     val c = LocalOrbit.current
     val ctx = LocalContext.current
     val ui by Hub.ui.collectAsState()
@@ -271,6 +282,30 @@ fun RemoteScreen(onBack: () -> Unit) {
                 PcVolumeRow(big = true)
                 Text(stringResource(R.string.remote_volume_note), fontSize = 12.sp, color = c.text2)
             }
+
+            val tiles = buildList {
+                if (caps.input) {
+                    add(Triple(Icons.Touchpad, R.string.input_touchpad, TOOL_TOUCHPAD))
+                    add(Triple(Icons.Keyboard, R.string.input_keyboard, TOOL_KEYBOARD))
+                }
+                if (caps.slides) add(Triple(Icons.Slides, R.string.slides_title, TOOL_SLIDES))
+            }
+            tiles.chunked(2).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    row.forEach { (icon, label, tool) ->
+                        Column(
+                            Modifier.weight(1f).height(104.dp).clip(RoundedCornerShape(22.dp)).background(c.surf)
+                                .clickable(enabled = connected, role = Role.Button) { openTool(tool) }.padding(16.dp),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            IconChip(icon, 40.dp, c.pc, c.onPc)
+                            Text(stringResource(label), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.text)
+                        }
+                    }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+            if (connected && caps.inputKnown && !caps.input) Note(stringResource(R.string.remote_tools_off, pc))
 
             if (caps.power.isNotEmpty()) {
                 SectionLabel(stringResource(R.string.remote_power))

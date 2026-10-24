@@ -43,7 +43,7 @@ screen and control media and earbuds, with no account and no cloud in between.
 | **Screen mirroring** | View and control your phone from your PC with mouse, keyboard and audio. Capture screenshots and recordings. Works over USB, or over Wi-Fi after a one-time setup |
 | **Media controls** | See what's playing on either device, then play, pause, skip or seek from the other. Phone audio appears in the Windows media controls, and PC playback in the phone's media player |
 | **Links** | Share a link to *Open on your PC* and it opens in the PC's browser. Copy a link on the PC and send it to the phone from the tray or with Ctrl+Alt+L |
-| **Phone remote** | Change or mute the PC's volume, lock it, put it to sleep or shut it down from the phone, and run your own commands. The PC decides which buttons the phone gets, and every action shows a notification there |
+| **Phone remote** | Use the phone as a touchpad, keyboard or slides clicker for the PC, change or mute its volume, lock it, put it to sleep or shut it down, and run your own commands. The PC decides which buttons the phone gets, and every action shows a notification there |
 | **Phone battery** | Charge level, charging state and time to full in the app, the system tray and the tray flyout, with a low-battery alert |
 | **USB modes** | Choose what the cable does: charging only, USB tethering (your laptop goes online through your phone) or file sharing (your phone opens in File Explorer). Switch at any time from either device |
 | **Earbuds** | Battery and Play Here for any Bluetooth earbuds. Noise control (Off / Transparency / ANC), sound settings and tap actions for supported realme, OnePlus and OPPO models, on both devices |
@@ -130,6 +130,7 @@ documents the wire protocol. Contributions are welcome; please read [CONTRIBUTIN
 - Android only lets the app in the foreground read the clipboard, so sending from phone to PC takes a tap. PC to
   phone is automatic.
 - Orbit connects one phone to one PC at a time.
+- The phone's touchpad and keyboard can't control administrator windows or the Windows lock screen.
 - Orbit can't turn on your phone's hotspot (Android doesn't allow apps to), but it connects as soon as your laptop
   joins it.
 - The QR scanner uses Google Play services, so this build isn't on F-Droid yet. Pair over USB works without it.

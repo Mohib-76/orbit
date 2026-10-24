@@ -16,10 +16,15 @@ data class RemoteCaps(
     val volume: Boolean = false,
     val power: List<String> = emptyList(),
     val commands: List<RemoteCommand> = emptyList(),
+    /** Touchpad and keyboard, and the slides remote. */
+    val input: Boolean = false,
+    val slides: Boolean = false,
+    /** The PC knows about touchpad and keyboard (older PCs don't send `input`), so it has a switch for them. */
+    val inputKnown: Boolean = false,
     /** The PC asks before opening a link from this phone (so "Opened on…" would be wrong). */
     val linksAsk: Boolean = false
 ) {
-    val any: Boolean get() = volume || power.isNotEmpty() || commands.isNotEmpty()
+    val any: Boolean get() = volume || input || slides || power.isNotEmpty() || commands.isNotEmpty()
 }
 
 /** The PC's master volume (`orbit.volume.state`); `level` -1 = no playback device. */
@@ -52,7 +57,8 @@ object Remote {
             }
         }.orEmpty()
         val volumeAllowed = b.optBoolean("volume")
-        caps.value = RemoteCaps(volumeAllowed, power.filter { it in listOf(LOCK, SLEEP, SHUTDOWN, RESTART) }, commands, b.optBoolean("linksAsk"))
+        caps.value = RemoteCaps(volumeAllowed, power.filter { it in listOf(LOCK, SLEEP, SHUTDOWN, RESTART) }, commands,
+            b.optBoolean("input"), b.optBoolean("slides"), b.has("input"), b.optBoolean("linksAsk"))
         if (!volumeAllowed) volume.value = null
     }
 

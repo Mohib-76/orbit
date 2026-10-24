@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -93,6 +94,21 @@ class MainActivity : ComponentActivity() {
         OrbitService.start(this)
         BudsService.start(this)
     }
+
+    /** The slides remote can turn the volume keys into Previous / Next while it's open. */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        val handler = io.github.mohib76.orbit.remote.RemoteInput.volumeKeys
+        if (handler != null && isVolumeKey(keyCode)) {
+            if (event.repeatCount == 0) handler(keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        if (io.github.mohib76.orbit.remote.RemoteInput.volumeKeys != null && isVolumeKey(keyCode)) true else super.onKeyUp(keyCode, event)
+
+    private fun isVolumeKey(code: Int) = code == KeyEvent.KEYCODE_VOLUME_UP || code == KeyEvent.KEYCODE_VOLUME_DOWN
 
     private fun needsNotifPermission() =
         checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED

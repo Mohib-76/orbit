@@ -63,6 +63,13 @@ Another app may already use it. *Settings → Keyboard shortcuts* says so; pick 
   execution policy.
 - If the PC answers with an error, the phone shows it under the command.
 
+## The touchpad or keyboard does nothing in some windows
+
+Windows doesn't let normal apps send input to windows running as administrator (Task Manager, installers,
+anything that showed a UAC prompt) or to the lock screen. Click into another window, or run that app without
+administrator rights. If the Touchpad and Keyboard buttons are missing on the phone, switch them on in the PC's
+*Settings → Phone remote*.
+
 ## A link from the PC doesn't open on the phone
 
 Links arrive as a notification, because Android doesn't let apps open the browser on their own. Allow Orbit's

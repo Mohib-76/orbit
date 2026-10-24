@@ -32,7 +32,7 @@ addresses, IPs, names, local paths), secrets (signing keys, passwords), or third
 - Privacy rules: logs must never contain notification text, clipboard contents or track titles; diagnostics exports redact device names and addresses (`Diagnostics.cs` / `Diagnostics.kt`).
 
 ### Windows: `windows/Orbit.Windows` (WPF, .NET 8, `net8.0-windows10.0.19041.0`)
-- `Core/OrbitCore*.cs`: singleton state and logic as partial classes (`.cs` connection and session, `.Transfers.cs`, `.Buds.cs`, `.Media.cs`, `.Usb.cs`, `.PhoneApp.cs`, `.Remote.cs` links / volume / power / commands, `.Mirror*.cs`). The UI reads `OrbitCore.Instance` (alias `App.Core`).
+- `Core/OrbitCore*.cs`: singleton state and logic as partial classes (`.cs` connection and session, `.Transfers.cs`, `.Buds.cs`, `.Media.cs`, `.Usb.cs`, `.PhoneApp.cs`, `.Remote.cs` links / volume / power / commands, `.Input.cs` touchpad / keyboard / slides via `InputInjector`, `.Mirror*.cs`). The UI reads `OrbitCore.Instance` (alias `App.Core`).
 - `Core/Adb.cs` (adb track-devices, forward, shell), `Core/PhoneLink.cs` (framing, TLS dial, protocol version), `Core/Platform.cs` (toasts, clipboard listener and global hotkeys, autostart, QR), `Core/Hotkeys.cs`, `Core/Diagnostics.cs`, `Core/Buds/`, `Core/Media/`, `Core/Mirror/`.
 - `UI/MainWindow` (custom chrome and nav rail; pages in `UI/Pages/`, created lazily in `Show()`), `UI/TrayIcon.cs`, `UI/TrayFlyout`, `UI/MirrorWindow`, `UI/AboutWindow`.
 - Threading: mutate observable state only via `Ui.Run(...)`. Pages mostly refresh from code-behind on events rather than through MVVM.
@@ -42,7 +42,7 @@ addresses, IPs, names, local paths), secrets (signing keys, passwords), or third
 
 ### Android: `android/` (Kotlin, Compose, package `io.github.mohib76.orbit`, minSdk 29)
 - `Hub.kt`: app-wide state (StateFlows) and packet handling. `Server.kt`: TLS server, pairing, discovery. `Transfers.kt`, `OrbitService.kt` (foreground service, battery), `NotifListener.kt`, `Components.kt` (Application, receivers, clipboard tile and activity), `Prefs.kt`, `Diagnostics.kt`.
-- `buds/`, `media/`, `mirror/`, `remote/` (`Remote.kt` state, `Links.kt` link notification and "Open on PC" share target), `usb/`, `ui/` (`Theme.kt` colors/Manrope/`Icons`, `Components.kt`, `Screens.kt`, `BudsUi.kt`, `PcMediaUi.kt`, `RemoteUi.kt`, `UsbUi.kt`, `MirrorUi.kt`, `AboutUi.kt`). Navigation is plain state in `MainActivity`/`MainScreen`.
+- `buds/`, `media/`, `mirror/`, `remote/` (`Remote.kt` state, `RemoteInput.kt` touchpad / keyboard / slides, `Links.kt` link notification and "Open on PC" share target), `usb/`, `ui/` (`Theme.kt` colors/Manrope/`Icons`, `Components.kt`, `Screens.kt`, `BudsUi.kt`, `PcMediaUi.kt`, `RemoteUi.kt`, `InputUi.kt`, `UsbUi.kt`, `MirrorUi.kt`, `AboutUi.kt`). Navigation is plain state in `MainActivity`/`MainScreen`.
 - Logcat tags: `Orbit`, `OrbitBuds`.
 
 ## UI conventions
