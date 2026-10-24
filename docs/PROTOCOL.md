@@ -74,6 +74,12 @@ no reply. The PC then dials `port` over TLS as usual, so discovery never carries
 | `orbit.mirror.prepare` | PC → phone | `{}`. Get wireless debugging ready: the phone turns it on if it may (`WRITE_SECURE_SETTINGS`) and answers with `orbit.mirror.info` |
 | `orbit.mirror.setup` | PC → phone | `{}`. "Open on phone": show the setup screen (or a notification that opens it). Answered with `orbit.mirror.info` |
 | `orbit.mirror.info` | phone → PC | `{sdk, devOptions, wirelessDebugging, wifi, usbDebugging, canToggle}` |
+| `orbit.url` | both | `{url}`: open this web link on the receiver (see [Phone remote](#phone-remote)). Only absolute `http`/`https` URLs, at most 4096 characters; anything else is ignored |
+| `orbit.remote.caps` | PC → phone | `{volume, power: ["lock"|"sleep"|"shutdown"|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC; `linksAsk` = the PC asks before opening a link from the phone.\|"sleep"\|"shutdown"\|"restart"…], commands: [{id, name, ask}…]}`: what the phone may do on the PC. Sent on connect and whenever Settings › Phone remote changes |
+| `orbit.remote.run` | phone → PC | `{op: "lock"\|| `orbit.remote.caps` | PC → phone | `{volume, power: ["lock"|"sleep"|"shutdown"|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC; `linksAsk` = the PC asks before opening a link from the phone.\|"shutdown"\|"restart"}` · `{op: "command", id}` |
+| `orbit.remote.result` | PC → phone | `{op, id?, ok, error?}`: the answer to `orbit.remote.run`. `error` is a sentence to show |
+| `orbit.volume.state` | PC → phone | `{level, muted}`: the default playback device's volume, 0–100 (`-1` = no playback device). Sent on connect and on every change (debounced 80 ms) while volume control is allowed |
+| `orbit.volume.set` | phone → PC | `{level?, muted?}`. Raising `level` above 0 without `muted` also unmutes |
 
 `orbit.settings` also carries `budsEnabled`, so the Earbuds switch stays the same on both devices, and
 `usbMode` (`"charging"`, `"tethering"` or `"files"`), the mode the PC applies when the cable is plugged in.
@@ -94,6 +100,21 @@ peer's player. `orbit.media.state` is sent on connect and on changes (debounced 
 - `active` is the player the sender's system considers current. `controllable` is false when the sender's
   user turned off remote control; the receiver then shows the player without buttons.
 - Track titles are user content: neither side logs them.
+
+## Phone remote
+
+The PC decides what the phone may do; the phone only draws what `orbit.remote.caps` lists. The PC checks every
+`orbit.remote.run` and `orbit.volume.set` against its own settings again, so a phone can't do more by sending
+packets for buttons it wasn't given. Every power button and command shows a notification on the PC.
+
+- **Commands** are set up on the PC (a name, a program, script or command line, and whether to ask first). The
+  phone only ever sees `{id, name, ask}` and sends back the `id`; the command text never leaves the PC.
+- `ask` (commands) and `| `orbit.remote.caps` | PC → phone | `{volume, power: ["lock"|"sleep"|"shutdown"|"restart"…], commands: [{id, name, ask}…], linksAsk}`: what the phone may do on the PC; `linksAsk` = the PC asks before opening a link from the phone.` / `"restart"` (always) mean the phone asks "Are you sure?" before sending.
+- **Links:** the phone opens a link from the PC as a notification with Open, Copy and Share (Android won't let
+  an app open a browser from the background). The PC opens a link from the phone straight away, or after a
+  notification if its user chose "Ask first". Both sides accept only `http` and `https`, so a link can't start a
+  program or open a local file.
+- Links and command names are user content: neither side logs them.
 
 ## USB modes
 

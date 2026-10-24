@@ -77,6 +77,42 @@ public static class Toasts
         catch (Exception ex) { Log.Write("toast: " + ex.Message); }
     }
 
+    public static void LinkOpened(string phone, string url)
+    {
+        try { new ToastContentBuilder().AddArgument("action", "openurl").AddArgument("url", url)
+                .AddText($"Opened a link from {phone}").AddText(Links.Short(url)).Show(); }
+        catch (Exception ex) { Log.Write("toast: " + ex.Message); }
+    }
+
+    /// <summary>Settings › Phone remote › "Ask first": the link opens only from the toast.</summary>
+    public static void LinkAsk(string phone, string url)
+    {
+        try
+        {
+            new ToastContentBuilder()
+                .AddArgument("action", "openurl").AddArgument("url", url)
+                .AddText($"{phone} sent a link").AddText(Links.Short(url))
+                .AddButton(new ToastButton().SetContent("Open").AddArgument("action", "openurl").AddArgument("url", url))
+                .AddButton(new ToastButton().SetContent("Copy").AddArgument("action", "copyurl").AddArgument("url", url))
+                .Show();
+        }
+        catch (Exception ex) { Log.Write("toast: " + ex.Message); }
+    }
+
+    /// <summary>Every remote action (power buttons, commands) says so, so nothing runs silently.</summary>
+    public static void RemoteAction(string title, string phone)
+    {
+        try
+        {
+            new ToastContentBuilder()
+                .AddArgument("action", "open").AddArgument("page", "remote")
+                .AddText(title).AddText($"From {phone} · just now")
+                .AddButton(new ToastButton().SetContent("Settings").AddArgument("action", "open").AddArgument("page", "remote"))
+                .Show();
+        }
+        catch (Exception ex) { Log.Write("toast: " + ex.Message); }
+    }
+
     public static void LowBattery(string phone, int level) =>
         Simple($"{phone} battery is at {level}%", "Plug it in soon.");
 
@@ -160,7 +196,7 @@ public static class Toasts
 public static class ClipboardHost
 {
     const int WM_CLIPBOARDUPDATE = 0x031D, WM_HOTKEY = 0x0312;
-    const int HOTKEY_SEND_CLIPBOARD = 1, HOTKEY_CYCLE_ANC = 2, HOTKEY_MIRROR = 3, HOTKEY_MEDIA = 4;
+    const int HOTKEY_SEND_CLIPBOARD = 1, HOTKEY_CYCLE_ANC = 2, HOTKEY_MIRROR = 3, HOTKEY_MEDIA = 4, HOTKEY_LINK = 5;
     /// <summary>Clips bigger than this aren't synced automatically.</summary>
     public const int MaxClipChars = 1_000_000;
 
@@ -172,7 +208,7 @@ public static class ClipboardHost
     static bool _settingText;
 
     /// <param name="onCopied">Text and whether the copying app marked it private (password managers).</param>
-    public static void Start(Action<string, bool> onCopied, Action onHotkey, Action onCycleAnc, Action onMirror, Action onMedia)
+    public static void Start(Action<string, bool> onCopied, Action onHotkey, Action onCycleAnc, Action onMirror, Action onMedia, Action onLink)
     {
         var p = new HwndSourceParameters("OrbitClipboard") { ParentWindow = new IntPtr(-3) /* HWND_MESSAGE */, Width = 0, Height = 0 };
         _src = new HwndSource(p);
@@ -181,23 +217,25 @@ public static class ClipboardHost
             if (msg == WM_CLIPBOARDUPDATE && !_settingText)
             {
                 var text = TryGetText();
-                if (text != null) onCopied(text, IsSensitive());
+                // "" for images and files, so a remembered link goes away.
+                onCopied(text ?? "", text != null && IsSensitive());
             }
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_SEND_CLIPBOARD) onHotkey();
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_CYCLE_ANC) onCycleAnc();
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_MIRROR) onMirror();
             else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_MEDIA) onMedia();
+            else if (msg == WM_HOTKEY && w.ToInt32() == HOTKEY_LINK) onLink();
             return IntPtr.Zero;
         });
         AddClipboardFormatListener(_src.Handle);
     }
 
     /// <summary>(Re)registers the hotkeys. Returns the ones Windows refused (already used by another app).</summary>
-    public static List<string> ApplyHotkeys(string clipboard, string noise, string mirror, string media)
+    public static List<string> ApplyHotkeys(string clipboard, string noise, string mirror, string media, string link)
     {
         var failed = new List<string>();
         if (_src == null) return failed;
-        foreach (var (id, text) in new[] { (HOTKEY_SEND_CLIPBOARD, clipboard), (HOTKEY_CYCLE_ANC, noise), (HOTKEY_MIRROR, mirror), (HOTKEY_MEDIA, media) })
+        foreach (var (id, text) in new[] { (HOTKEY_SEND_CLIPBOARD, clipboard), (HOTKEY_CYCLE_ANC, noise), (HOTKEY_MIRROR, mirror), (HOTKEY_MEDIA, media), (HOTKEY_LINK, link) })
         {
             UnregisterHotKey(_src.Handle, id);
             if (Hotkey.Parse(text) is not { } hk) continue;

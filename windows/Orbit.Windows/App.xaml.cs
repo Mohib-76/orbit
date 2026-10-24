@@ -51,7 +51,7 @@ public partial class App : Application
         AutoStart.Apply(Core.Settings.StartWithWindows);
         Toasts.Init(OnToast);
         ClipboardHost.Start((text, sensitive) => Core.OnLocalClipboard(text, sensitive), SendClipboardNow, CycleNoiseMode, () => OpenMirror(),
-            TogglePhoneMedia);
+            TogglePhoneMedia, SendLinkNow);
         ApplyHotkeys();
         Core.MirrorRequested += () => OpenMirror();
         Core.Start();
@@ -63,7 +63,8 @@ public partial class App : Application
 
     /// <summary>Registers the hotkeys from Settings; returns the ones another app already uses.</summary>
     public List<string> ApplyHotkeys() =>
-        ClipboardHost.ApplyHotkeys(Core.Settings.HotkeyClipboard, Core.Settings.HotkeyNoise, Core.Settings.HotkeyMirror, Core.Settings.HotkeyMedia);
+        ClipboardHost.ApplyHotkeys(Core.Settings.HotkeyClipboard, Core.Settings.HotkeyNoise, Core.Settings.HotkeyMirror, Core.Settings.HotkeyMedia,
+            Core.Settings.HotkeyLink);
 
     protected override void OnExit(ExitEventArgs e)
     {
@@ -131,6 +132,15 @@ public partial class App : Application
         if (!Core.SendClipboardText(text)) _tray?.Balloon("Phone not connected", "Orbit will connect when your phone is nearby.");
     }
 
+    /// <summary>Ctrl+Alt+L: open the copied link on the phone (it arrives as a notification there).</summary>
+    public void SendLinkNow()
+    {
+        var url = Links.FromClipboard(ClipboardHost.TryGetText());
+        if (url == null) { _tray?.Balloon("No link to send", "Copy a link first, then press the shortcut."); return; }
+        if (Core.SendLink(url)) _tray?.Balloon($"Sent to {Core.Phone.Name}", "Tap the notification on your phone to open it.");
+        else _tray?.Balloon("Phone not connected", "Orbit will connect when your phone is nearby.");
+    }
+
     public void CycleNoiseMode()
     {
         if (!Core.BudsEnabled) return;
@@ -189,6 +199,10 @@ public partial class App : Application
                 break;
             case "openphone": Core.OpenPhoneInExplorer(); break;
             case "usbhelp": OpenUrl(AppInfo.UsbDebuggingHelpUrl); break;
+            case "openurl" when a.TryGetValue("url", out string? url): OrbitCore.OpenLink(url); break;
+            case "copyurl" when a.TryGetValue("url", out string? url2):
+                if (Links.Normalize(url2) is { } link) ClipboardHost.SetText(link);
+                break;
             default:
                 a.TryGetValue("page", out string? page);
                 ShowMain(page);

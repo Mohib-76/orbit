@@ -23,6 +23,8 @@ pinned at pairing:
 | Earbuds state (battery, noise mode, settings) | When the earbuds feature is on |
 | What is playing (app, title, artist, album, album art, position) | While connected, unless the other device turned off showing media. Never written to the log |
 | USB mode of the phone's port (charging, tethering, file sharing) | While connected |
+| Links | Only links you send (Share › Open on your PC, or Open on phone on the PC). Never written to the log |
+| The PC's volume, and which remote buttons the PC allows (names of your commands) | While connected, when allowed in Settings › Phone remote. A command's program or script stays on the PC |
 | Device names, model, app and protocol version | When connecting |
 
 ## What is stored, and where

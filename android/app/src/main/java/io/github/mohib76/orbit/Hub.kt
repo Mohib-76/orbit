@@ -17,6 +17,8 @@ import io.github.mohib76.orbit.buds.BudsTileService
 import io.github.mohib76.orbit.media.Media
 import io.github.mohib76.orbit.mirror.Mirror
 import io.github.mohib76.orbit.mirror.MirrorTileService
+import io.github.mohib76.orbit.remote.Links
+import io.github.mohib76.orbit.remote.Remote
 import io.github.mohib76.orbit.usb.Usb
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -88,6 +90,7 @@ object Hub {
         Buds.init(app)
         Media.init(app)
         Usb.init(app)
+        Links.publishShareTarget(app)
     }
 
     // ------------------------------------------------------------------ pairing
@@ -112,6 +115,7 @@ object Hub {
         prefs.pc = pc
         accepted = null
         ui.update { it.copy(pcName = pc.name) }
+        Links.publishShareTarget(app)
     }
 
     fun unpair() {
@@ -119,12 +123,14 @@ object Hub {
         link?.close()
         prefs.pc = null
         ui.value = LinkUi(Conn.NotPaired)
+        Links.publishShareTarget(app)
     }
 
     fun renamePc(name: String) {
         val pc = prefs.pc ?: return
         prefs.pc = pc.copy(name = name)
         ui.update { it.copy(pcName = name) }
+        Links.publishShareTarget(app)
     }
 
     // ------------------------------------------------------------------ link state
@@ -151,6 +157,7 @@ object Hub {
         Media.onPeerGone()
         Usb.onPeerGone()
         Mirror.onLinkGone()
+        Remote.onPeerGone()
         ui.update { if (prefs.pc != null) it.copy(conn = Conn.Waiting) else LinkUi(Conn.NotPaired) }
         transfers.update { list -> list.map { if (it.state == TState.Running) it.copy(state = TState.Paused) else it } }
         OrbitService.instance?.refreshNotification()
@@ -176,6 +183,10 @@ object Hub {
             "orbit.mirror.state" -> Mirror.onState(b)
             "orbit.mirror.prepare" -> Mirror.onPrepare(l)
             "orbit.mirror.setup" -> Mirror.onSetupRequested(l)
+            "orbit.url" -> Links.onUrl(b)
+            "orbit.remote.caps" -> Remote.onCaps(b)
+            "orbit.volume.state" -> Remote.onVolume(b)
+            "orbit.remote.result" -> Remote.onResult(b)
             "orbit.settings" -> {
                 // Older PCs only send autoUsbTethering.
                 val usbMode = b.optString("usbMode").ifEmpty {
@@ -193,6 +204,7 @@ object Hub {
                 prefs.pc = null
                 l.close()
                 ui.value = LinkUi(Conn.NotPaired)
+                Links.publishShareTarget(app)
             }
             else -> Log.d(TAG, "unknown packet $type")
         }

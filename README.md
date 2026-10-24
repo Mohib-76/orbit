@@ -42,6 +42,8 @@ screen and control media and earbuds, with no account and no cloud in between.
 | **File transfer** | Drag and drop files onto Orbit, or choose *Share → Orbit* on your phone. Transfers show progress and resume automatically if the connection drops |
 | **Screen mirroring** | View and control your phone from your PC with mouse, keyboard and audio. Capture screenshots and recordings. Works over USB, or over Wi-Fi after a one-time setup |
 | **Media controls** | See what's playing on either device, then play, pause, skip or seek from the other. Phone audio appears in the Windows media controls, and PC playback in the phone's media player |
+| **Links** | Share a link to *Open on your PC* and it opens in the PC's browser. Copy a link on the PC and send it to the phone from the tray or with Ctrl+Alt+L |
+| **Phone remote** | Change or mute the PC's volume, lock it, put it to sleep or shut it down from the phone, and run your own commands. The PC decides which buttons the phone gets, and every action shows a notification there |
 | **Phone battery** | Charge level, charging state and time to full in the app, the system tray and the tray flyout, with a low-battery alert |
 | **USB modes** | Choose what the cable does: charging only, USB tethering (your laptop goes online through your phone) or file sharing (your phone opens in File Explorer). Switch at any time from either device |
 | **Earbuds** | Battery and Play Here for any Bluetooth earbuds. Noise control (Off / Transparency / ANC), sound settings and tap actions for supported realme, OnePlus and OPPO models, on both devices |
@@ -74,7 +76,7 @@ screen and control media and earbuds, with no account and no cloud in between.
 
 | Feature | Requires |
 |---|---|
-| Clipboard, notifications, files, battery, media controls | Nothing extra: USB tethering, a hotspot or a shared Wi-Fi network |
+| Clipboard, notifications, files, battery, media controls, links, phone remote | Nothing extra: USB tethering, a hotspot or a shared Wi-Fi network |
 | Pair over USB, USB modes, mirroring over USB | **USB debugging** on the phone ([how to enable it](docs/TROUBLESHOOTING.md#turn-on-usb-debugging)) |
 | Mirroring over Wi-Fi | Wireless debugging (a one-time QR setup in Orbit) and both devices on the same Wi-Fi network |
 | Earbuds | Earbuds paired over Bluetooth. Full controls require realme, OnePlus or OPPO earbuds that use the realme Link or HeyMelody app (tested with realme Buds T310); other brands show battery and playback. To add support for yours, see [Earbuds](docs/PROTOCOL.md#earbuds) |

@@ -50,6 +50,7 @@ import io.github.mohib76.orbit.Hub
 import io.github.mohib76.orbit.R
 import io.github.mohib76.orbit.media.Media
 import io.github.mohib76.orbit.media.MediaSnapshot
+import io.github.mohib76.orbit.remote.Remote
 import kotlinx.coroutines.delay
 
 private val LiveRed = Color(0xFFD93A2E)
@@ -150,6 +151,13 @@ fun PcMediaCard() {
             RoundIcon(Icons.Next, stringResource(R.string.media_next), 48, 24, Color.Transparent, if (p.canNext) c.text else c.disabled, p.canNext) {
                 Media.command("next")
             }
+        }
+
+        val caps by Remote.caps.collectAsState()
+        val vol by Remote.volume.collectAsState()
+        if (caps.volume && vol != null) Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.fillMaxWidth().height(1.dp).background(c.surfHi))
+            PcVolumeRow(big = false)
         }
     }
 }

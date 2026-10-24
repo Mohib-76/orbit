@@ -46,6 +46,8 @@ public static class Diagnostics
         // Identities and addresses are never needed to debug.
         foreach (var k in new[] { "DeviceId", "DeviceName", "ManualAddress", "BudsMac", "BudsName", "SaveFolder" }) o.Remove(k);
         if (o["Phone"] is JsonObject p) { p.Remove("Id"); p.Remove("Name"); p.Remove("Fingerprint"); p.Remove("LastIp"); }
+        // Command names and paths are personal; how many there are is enough.
+        o["RemoteCommands"] = s.RemoteCommands.Count;
         return o.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
 

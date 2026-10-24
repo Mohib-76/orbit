@@ -48,4 +48,58 @@
     <string name="usb_confirm_switch">Switch to %1$s</string>
     <string name="dont_ask_again">Don’t ask again</string>
     <string name="cancel">Cancel</string>
+    <string name="pair_first">Pair Orbit with your PC first</string>
+    <string name="pc_not_connected">PC not connected</string>
+
+    <!-- Links -->
+    <string name="open_on_pc">Open on PC</string>
+    <string name="open_on">Open on %1$s</string>
+    <string name="links_channel">Links from your PC</string>
+    <string name="links_channel_desc">Links your PC sends to open on this phone</string>
+    <string name="link_from">Link from %1$s</string>
+    <string name="link_open">Open</string>
+    <string name="link_copy">Copy</string>
+    <string name="link_share">Share</string>
+    <string name="link_copied">Link copied</string>
+    <string name="link_none">There’s no link to open in what you shared</string>
+    <string name="link_opened_on">Opened on %1$s</string>
+    <string name="link_sent_ask">Sent to %1$s. Open it from the notification there.</string>
+    <string name="copy_to_pc_clipboard">Copy to PC clipboard</string>
+
+    <!-- Phone remote -->
+    <string name="remote_control">Control %1$s</string>
+    <string name="remote_volume">Volume</string>
+    <string name="remote_power">Power</string>
+    <string name="remote_commands">Commands</string>
+    <string name="remote_pc_volume">PC volume</string>
+    <string name="remote_volume_note">Follows the PC: change it there and this moves too.</string>
+    <string name="remote_no_audio">The PC has no sound output right now.</string>
+    <string name="remote_mute">Mute</string>
+    <string name="remote_unmute">Unmute</string>
+    <string name="remote_muted">Muted</string>
+    <string name="remote_lock">Lock</string>
+    <string name="remote_lock_pc">Lock PC</string>
+    <string name="remote_sleep">Sleep</string>
+    <string name="remote_shutdown">Shut down</string>
+    <string name="remote_restart">Restart</string>
+    <string name="remote_your_commands">Your commands</string>
+    <string name="remote_set_up_on_pc">Set up on the PC</string>
+    <string name="remote_commands_note">Only commands you approved on %1$s show here. This phone can’t send anything else.</string>
+    <string name="remote_done">Done just now</string>
+    <string name="remote_asks_first">Asks first on this phone</string>
+    <string name="remote_runs_on">Runs on %1$s</string>
+    <string name="remote_run">Run</string>
+    <string name="remote_run_confirm">Run “%1$s”?</string>
+    <string name="remote_run_confirm_body">It runs on %1$s right away.</string>
+    <string name="remote_shutdown_confirm">Shut down %1$s?</string>
+    <string name="remote_restart_confirm">Restart %1$s?</string>
+    <string name="remote_power_confirm_body">Unsaved work on %1$s may be lost. Orbit disconnects until it’s back on.</string>
+    <string name="remote_locking">Locking %1$s</string>
+    <string name="remote_sleeping">%1$s is going to sleep</string>
+    <string name="remote_shutting_down">Shutting down %1$s</string>
+    <string name="remote_restarting">Restarting %1$s</string>
+    <string name="remote_nothing">Nothing is allowed yet. On %1$s, open Orbit › Settings › Phone remote and choose what this phone can do.</string>
+    <string name="remote_offline">Connect to %1$s to control it.</string>
+    <string name="remote_connected">Connected · %1$s</string>
+    <string name="remote_not_connected">Not connected</string>
 </resources>
