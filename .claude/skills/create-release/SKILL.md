@@ -85,7 +85,7 @@ Goal: after this release every document describes the app as it now is. Use
 1. **CHANGELOG.md**: every user-visible change in `git log <lastTag>..HEAD` has a line; no internal jargon,
    one line per change, grouped under `### Added` / `### Changed` / `### Fixed` / `### Removed`.
    Missing lines: add them.
-2. **README.md**: the Features table, "What needs what", "Known limits" and "Install" match the new features
+2. **README.md**: the Features table, "Requirements by feature", "Known limitations" and "Install" match the new features
    (a new capability → a row; a lifted limit → remove it; a replaced setting → new name).
 3. **docs/PROTOCOL.md**: every packet type in code is documented:
    ```bash
@@ -120,12 +120,16 @@ to Clipboard / Files / Screen mirroring / Notifications / Earbuds in the feature
   details in a local copy before rendering). Keep each bento row's spans adding up to 12 (`t5` + `t7`, `t6` + `t6`, `t12`).
   No screen designed yet: ask the owner for one rather than drawing a fake UI.
 - Update `<meta name="description">`, `og:description` and the hero copy if they list features.
+- The hero badge (`.eyebrow`, "New" + one line) names the latest headline feature: point it at this release's
+  biggest user-facing change, or leave it if the release has none. Copy follows the page's product voice (Title
+  Case headings and buttons, curly quotes, exact app labels).
 - Don't change the design, fonts, colors or scripts; don't add trackers or external resources.
 - Check it renders: headless screenshot with Edge/Chrome, e.g.
   `msedge --headless=new --disable-gpu --window-size=1280,2600 --screenshot=<scratchpad>\site.png file:///<repo>/site/index.html`
   and a 390-px-wide one for mobile, then look at both images.
 
-Minor or fix-only releases: record "Landing page: no change needed (no new major feature)".
+Minor or fix-only releases: check the hero badge still fits, then record "Landing page: no change needed (no new
+major feature)".
 
 ## 6. Version bump, checks, tests
 
