@@ -11,7 +11,7 @@
     <RootNamespace>Orbit</RootNamespace>
     <AssemblyName>Orbit</AssemblyName>
     <ApplicationIcon>Assets\orbit.ico</ApplicationIcon>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <TieredPGO>true</TieredPGO>
     <InvariantGlobalization>false</InvariantGlobalization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

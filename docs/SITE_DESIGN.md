@@ -81,8 +81,8 @@ hero      release badge, h1, one paragraph, Download for Windows + View Source, 
 specs     4 figures: routes, servers, TLS, open source
 film      the 12 s feature loop, framed 16:9, with a Pause button
 features  bento of screens (`.bento` > `article.tile t5|t6|t7|t12`, each row adding up to 12): clipboard, files,
-          mirroring (full width), notifications, earbuds, tray, quick settings; then a grid of six smaller
-          capabilities without screens
+          mirroring (full width), phone remote and its PC settings, notifications, earbuds, tray, quick settings; then a
+          grid of nine smaller capabilities without screens
 connect   heading and route list (the controls) / the route diagram with a status line and Replay
 security  dark band: heading, the direct-line drawing, four cards, links to PRIVACY and PROTOCOL
 install   three steps / download cards (your platform marked). For now only Windows has a download: Play Protect
