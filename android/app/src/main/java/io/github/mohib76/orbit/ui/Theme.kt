@@ -144,6 +144,7 @@ object Icons {
     val Slides = stroke("slides", "M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M12 16v4M8 20h8", "M10 8l4 2-4 2z")
     val Mic = stroke("mic", "M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z", "M5 11a7 7 0 0 0 14 0M12 18v3", width = 2f)
     val Square = stroke("square", "M8 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", fill = true)
+    val Camera = stroke("camera", "M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z", "M12 9a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z")
     val Exit = stroke("exit", "M9 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3", "M15 8l4 4-4 4", "M19 12H9", width = 2f)
     val Link = stroke("link", "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1", "M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1", width = 2f)
 }

@@ -36,6 +36,7 @@ public partial class RemoteSettingsPage : UserControl
         VolumeToggle.IsChecked = s.RemoteVolume;
         InputToggle.IsChecked = s.RemoteInput;
         SlidesToggle.IsChecked = s.RemoteSlides;
+        CameraToggle.IsChecked = s.RemoteCamera;
         LockToggle.IsChecked = s.RemoteLock;
         SleepToggle.IsChecked = s.RemoteSleep;
         ShutdownToggle.IsChecked = s.RemoteShutdown;
@@ -64,6 +65,7 @@ public partial class RemoteSettingsPage : UserControl
         s.RemoteVolume = VolumeToggle.IsChecked == true;
         s.RemoteInput = InputToggle.IsChecked == true;
         s.RemoteSlides = SlidesToggle.IsChecked == true;
+        s.RemoteCamera = CameraToggle.IsChecked == true;
         s.RemoteLock = LockToggle.IsChecked == true;
         s.RemoteSleep = SleepToggle.IsChecked == true;
         s.RemoteShutdown = ShutdownToggle.IsChecked == true;

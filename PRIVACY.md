@@ -19,7 +19,7 @@ pinned at pairing:
 | Notification title, text, app name and app icon | When notification mirroring is on, for the apps you allow |
 | Clipboard text | PC → phone automatically when auto-sync is on; phone → PC when you send it. Copies marked private by password managers are skipped on the PC |
 | Files | Only files you send |
-| Screen image, audio and your input | Only while you're mirroring; the phone always shows a LIVE notice with Stop |
+| Screen image, audio and your input, or the camera picture (no sound) | Only while you're mirroring; the phone always shows a LIVE notice with Stop |
 | Earbuds state (battery, noise mode, settings) | When the earbuds feature is on |
 | What is playing (app, title, artist, album, album art, position) | While connected, unless the other device turned off showing media. Never written to the log |
 | USB mode of the phone's port (charging, tethering, file sharing) | While connected |

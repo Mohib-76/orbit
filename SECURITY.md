@@ -25,7 +25,8 @@ What Orbit is designed to guarantee, so you can tell whether something is a vuln
   currently pairing with), by device ID.
 - **The PC never listens.** It only makes outgoing connections, so Windows needs no inbound firewall rule.
 - **Mirroring is never silent.** The PC won't start a stream unless the Orbit link is up, so the phone
-  always shows a LIVE notice with Stop.
+  always shows a LIVE notice with Stop. Showing the phone's camera
+  works the same way, never records sound, and the notice says the camera is visible.
 - **The phone can only do what the PC allows.** Power buttons, volume and commands are switched on in
   the PC's Settings › Phone remote and checked again on every request. The phone sends only a command's ID,
   never a command line, and every action shows a notification on the PC.

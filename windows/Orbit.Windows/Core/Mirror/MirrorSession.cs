@@ -8,7 +8,9 @@ using System.Threading.Channels;
 
 namespace Orbit.Core.Mirror;
 
-public sealed record MirrorOptions(int MaxSize, int MaxFps, int BitRate, bool Audio, bool KeepAwake, bool ShowTouches, bool HardwareDecode = true);
+/// <param name="Camera">"back" or "front" to stream that camera (Android 12+) instead of the screen; null = the screen.</param>
+public sealed record MirrorOptions(int MaxSize, int MaxFps, int BitRate, bool Audio, bool KeepAwake, bool ShowTouches, bool HardwareDecode = true,
+    string? Camera = null);
 
 /// <summary>
 /// One mirroring session, scrcpy-style: push scrcpy-server to the phone, start it through adb shell,
@@ -85,8 +87,12 @@ public sealed class MirrorSession : IDisposable
             StartServer(scid);
             _video = await ConnectFirstAsync(port, ct);
             if (Options.Audio) _audio = await ConnectAsync(port, ct);
-            _control = await ConnectAsync(port, ct);
-            _control.NoDelay = true;
+            // A camera stream runs without control, as scrcpy's own client does: no input, no clipboard, no screen wake-up.
+            if (Options.Camera == null)
+            {
+                _control = await ConnectAsync(port, ct);
+                _control.NoDelay = true;
+            }
 
             var name = new byte[64];
             await ReadExactAsync(_video.GetStream(), name, ct);
@@ -101,8 +107,8 @@ public sealed class MirrorSession : IDisposable
         new Thread(VideoLoop) { IsBackground = true, Name = "mirror-video" }.Start();
         new Thread(ConvertLoop) { IsBackground = true, Name = "mirror-convert" }.Start();
         if (_audio != null) new Thread(AudioLoop) { IsBackground = true, Name = "mirror-audio" }.Start();
-        new Thread(DeviceMessageLoop) { IsBackground = true, Name = "mirror-control-in" }.Start();
-        _ = Task.Run(WriteLoop);
+        if (_control != null) new Thread(DeviceMessageLoop) { IsBackground = true, Name = "mirror-control-in" }.Start();
+        if (_control != null) _ = Task.Run(WriteLoop);
         _ = Task.Run(StatsLoop);
     }
 
@@ -113,9 +119,11 @@ public sealed class MirrorSession : IDisposable
         args.Append($" scid={scid} log_level=info tunnel_forward=true video_codec=h264");
         args.Append($" video_bit_rate={o.BitRate} max_fps={o.MaxFps}");
         if (o.MaxSize > 0) args.Append($" max_size={o.MaxSize}");
-        if (o.Audio) args.Append(" audio_codec=raw"); else args.Append(" audio=false");
+        if (o.Camera != null) args.Append($" video_source=camera camera_facing={o.Camera} control=false");
+        // A camera stream never carries sound: scrcpy would otherwise record the microphone.
+        if (o.Audio && o.Camera == null) args.Append(" audio_codec=raw"); else args.Append(" audio=false");
         if (o.KeepAwake) args.Append(" keep_active=true");
-        if (o.ShowTouches) args.Append(" show_touches=true");
+        if (o.ShowTouches && o.Camera == null) args.Append(" show_touches=true");
 
         var psi = new ProcessStartInfo(_adb.ExePath!, args.ToString())
         {

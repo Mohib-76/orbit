@@ -32,7 +32,14 @@ public partial class MirrorWindow : Window
         M.PropertyChanged += OnMirrorChanged;
         Core.Phone.PropertyChanged += OnPhoneChanged;
         Core.MirrorStoppedByPhone += OnStoppedByPhone;
-        _flashTimer.Tick += (_, _) => { _flashTimer.Stop(); Flash.Visibility = Visibility.Collapsed; Hints.Visibility = Visibility.Visible; };
+        Core.MirrorSourceChanged += LoadSettings;
+        _floatTimer.Tick += FloatTimer_Tick;
+        _flashTimer.Tick += (_, _) =>
+        {
+            _flashTimer.Stop();
+            Flash.Visibility = FullFlash.Visibility = Visibility.Collapsed;
+            Hints.Visibility = _full ? Visibility.Collapsed : Visibility.Visible;
+        };
 
         DragEnter += (_, e) =>
         {
@@ -94,8 +101,10 @@ public partial class MirrorWindow : Window
         double oldW = Screen.Width, oldH = Screen.Height;
         _videoW = w; _videoH = h;
         if (Recorder.IsRecording) StopRecording(); // one MP4 track, one picture size
-        if (rotated && Core.Settings.MirrorAutoResize && WindowState == WindowState.Normal) ResizeForRotation(oldW, oldH);
+        // In full screen the window already fills the monitor; only the picture inside changes.
+        if (rotated && Core.Settings.MirrorAutoResize && WindowState == WindowState.Normal && !_full) ResizeForRotation(oldW, oldH);
         LayoutScreen();
+        RefreshState(); // the camera chip shows the picture size
     });
 
     /// <summary>Keeps the phone's long edge the same length and fits the window around it.</summary>
@@ -118,14 +127,15 @@ public partial class MirrorWindow : Window
     /// <summary>Sizes the phone to the biggest screen that fits the stage at the video's aspect ratio.</summary>
     void LayoutScreen()
     {
-        const double pad = 40, bezel = 18, hints = 34, toolbar = 70;
+        // Full screen: the picture fills the monitor, black bars on the sides that don't match.
+        double pad = _full ? 0 : 40, bezel = _full ? 0 : 18, hints = _full ? 0 : 34, toolbar = _full ? 0 : 70;
         double availW = Stage.ActualWidth - pad - bezel - toolbar, availH = Stage.ActualHeight - pad - bezel - hints;
         if (availW <= 0 || availH <= 0) return;
         double scale = Math.Min(availW / _videoW, availH / _videoH);
         Screen.Width = Math.Max(80, Math.Floor(_videoW * scale));
         Screen.Height = Math.Max(80, Math.Floor(_videoH * scale));
-        double r = Math.Min(32, Math.Min(Screen.Width, Screen.Height) * 0.09);
-        Bezel.CornerRadius = BezelShadow.CornerRadius = new CornerRadius(r + 8);
+        double r = _full ? 0 : Math.Min(32, Math.Min(Screen.Width, Screen.Height) * 0.09);
+        Bezel.CornerRadius = BezelShadow.CornerRadius = new CornerRadius(_full ? 0 : r + 8);
         Screen.Clip = new RectangleGeometry(new Rect(0, 0, Screen.Width, Screen.Height), r, r);
         Hints.MaxWidth = Flash.MaxWidth = Math.Max(Screen.Width + toolbar + 140, 300);
     }
@@ -151,7 +161,12 @@ public partial class MirrorWindow : Window
         StatsChip.Visibility = phase == MirrorPhase.Live && M.Stats.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         StatsText.Text = M.Stats;
         ViewOnlyChip.Visibility = M.ViewOnly ? Visibility.Visible : Visibility.Collapsed;
-        Toolbar.IsEnabled = phase == MirrorPhase.Live;
+        // Buttons one by one, not the whole toolbar, so Exit full screen always works.
+        // A camera picture has nothing to tap: only screenshot, record and leaving full screen stay.
+        foreach (var b in ToolStack.Children.OfType<ButtonBase>())
+            b.IsEnabled = b == ExitFullBtn || (phase == MirrorPhase.Live && (M.Camera == null || b.Tag is "screenshot" or "record"));
+        CameraChip.Visibility = phase == MirrorPhase.Live && M.Camera != null ? Visibility.Visible : Visibility.Collapsed;
+        CameraChipText.Text = $"{(M.Camera == "front" ? "Front" : "Back")} camera · {Math.Min(_videoW, _videoH)}p";
         LostText.Text = M.Message;
         UseUsbBtn.Visibility = M.UsbAvailable && M.Transport != "USB" ? Visibility.Visible : Visibility.Collapsed;
         SetupBtn.Visibility = M.NeedsSetup ? Visibility.Visible : Visibility.Collapsed;
@@ -209,6 +224,16 @@ public partial class MirrorWindow : Window
 
     void ShowFlash(string text)
     {
+        if (_full)
+        {
+            // Below the picture there is no room in full screen: a pill at the top instead.
+            FullHint.Visibility = Visibility.Collapsed;
+            FullFlashText.Text = text;
+            FullFlash.Visibility = Visibility.Visible;
+            _flashTimer.Stop();
+            _flashTimer.Start();
+            return;
+        }
         Flash.Text = text;
         Flash.Visibility = Visibility.Visible;
         Hints.Visibility = Visibility.Collapsed;
@@ -233,8 +258,27 @@ public partial class MirrorWindow : Window
         OptResize.IsChecked = st.MirrorAutoResize;
         PinToggle.IsChecked = Topmost = st.MirrorOnTop;
         PanelToggle.IsChecked = st.MirrorPanel;
-        StreamPanel.Visibility = st.MirrorPanel ? Visibility.Visible : Visibility.Collapsed;
+        StreamPanel.Visibility = st.MirrorPanel && !_full ? Visibility.Visible : Visibility.Collapsed;
+        bool camera = st.MirrorSource == "camera";
+        (camera ? SrcCamera : SrcScreen).IsChecked = true;
+        (st.MirrorCamera == "front" ? CamFront : CamBack).IsChecked = true;
+        CameraOptions.Visibility = camera ? Visibility.Visible : Visibility.Collapsed;
         _binding = false;
+    }
+
+    void Source_Checked(object s, RoutedEventArgs e)
+    {
+        if (_binding || s is not RadioButton { Tag: string src } || src == Core.Settings.MirrorSource) return;
+        Core.Settings.MirrorSource = src;
+        CameraOptions.Visibility = src == "camera" ? Visibility.Visible : Visibility.Collapsed;
+        Core.RestartMirror();
+    }
+
+    void Camera_Checked(object s, RoutedEventArgs e)
+    {
+        if (_binding || s is not RadioButton { Tag: string cam } || cam == Core.Settings.MirrorCamera) return;
+        Core.Settings.MirrorCamera = cam;
+        Core.RestartMirror();
     }
 
     void Quality_Checked(object s, RoutedEventArgs e)
@@ -300,7 +344,7 @@ public partial class MirrorWindow : Window
         Stage.Focus();
     }
 
-    bool CanControl => _session != null && M.Phase == MirrorPhase.Live && !M.ViewOnly;
+    bool CanControl => _session != null && M.Phase == MirrorPhase.Live && !M.ViewOnly && M.Camera == null;
 
     void Send(byte[] msg) { if (CanControl) _session!.Send(msg); }
 
@@ -353,7 +397,9 @@ public partial class MirrorWindow : Window
             if (action != null) { if (!e.IsRepeat) Run(action); e.Handled = true; return; }
             if (key == WKey.V && !shift) { PasteToPhone(); e.Handled = true; return; }
         }
-        if (key == WKey.Escape) { if (!e.IsRepeat) Run("back"); e.Handled = true; return; }
+        if (key == WKey.F11) { if (!e.IsRepeat) ToggleFullScreen(); e.Handled = true; return; }
+        // In full screen Esc leaves it (Back stays on right-click and the toolbar).
+        if (key == WKey.Escape) { if (!e.IsRepeat) { if (_full) ToggleFullScreen(); else Run("back"); } e.Handled = true; return; }
         if (StreamPanel.IsKeyboardFocusWithin) return;
 
         if (ctrl && !alt && key is >= WKey.A and <= WKey.Z)
@@ -514,6 +560,122 @@ public partial class MirrorWindow : Window
     // Chrome
     // =====================================================================
 
+    // ---------------- full screen (F11, the title-bar button, or a double-click on the title bar)
+
+    bool _full;
+    Rect _restoreBounds;
+    WindowState _restoreState;
+    double _restoreCaption;
+    Thickness _restoreResize;
+    readonly DispatcherTimer _floatTimer = new() { Interval = TimeSpan.FromSeconds(2.5) };
+    Point _lastMouse;
+
+    void FullScreen_Click(object s, RoutedEventArgs e) => ToggleFullScreen();
+
+    void ToggleFullScreen()
+    {
+        _full = !_full;
+        var chrome = System.Windows.Shell.WindowChrome.GetWindowChrome(this);
+        if (_full)
+        {
+            _restoreState = WindowState;
+            if (WindowState == WindowState.Maximized) WindowState = WindowState.Normal;
+            _restoreBounds = new Rect(Left, Top, Width, Height);
+            // The monitor the window is on, in device-independent units.
+            var screen = System.Windows.Forms.Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle).Bounds;
+            var toDip = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
+            var tl = toDip.Transform(new Point(screen.Left, screen.Top));
+            var br = toDip.Transform(new Point(screen.Right, screen.Bottom));
+            _restoreCaption = chrome.CaptionHeight;
+            _restoreResize = chrome.ResizeBorderThickness;
+            chrome.CaptionHeight = 0; // the top of the picture must take clicks, not drag the window
+            chrome.ResizeBorderThickness = new Thickness(0);
+            Left = tl.X; Top = tl.Y; Width = br.X - tl.X; Height = br.Y - tl.Y;
+        }
+        else
+        {
+            chrome.CaptionHeight = _restoreCaption;
+            chrome.ResizeBorderThickness = _restoreResize;
+            Left = _restoreBounds.Left; Top = _restoreBounds.Top; Width = _restoreBounds.Width; Height = _restoreBounds.Height;
+            if (_restoreState == WindowState.Maximized) WindowState = WindowState.Maximized;
+        }
+
+        TitleRow.Height = new GridLength(_full ? 0 : 44);
+        StreamPanel.Visibility = !_full && Core.Settings.MirrorPanel ? Visibility.Visible : Visibility.Collapsed;
+        Stage.Background = _full ? Brushes.Black : Brushes.Transparent;
+        BezelShadow.Visibility = _full ? Visibility.Collapsed : Visibility.Visible;
+        Bezel.Padding = new Thickness(_full ? 0 : 8);
+        Bezel.BorderThickness = new Thickness(_full ? 0 : 1);
+        Hints.Visibility = _full ? Visibility.Collapsed : Visibility.Visible;
+        FullSep.Visibility = ExitFullBtn.Visibility = _full ? Visibility.Visible : Visibility.Collapsed;
+
+        // The toolbar floats at the bottom, in a row, and only while the mouse moves.
+        if (_full)
+        {
+            ((Panel)Toolbar.Parent).Children.Remove(Toolbar);
+            FloatHost.Child = Toolbar;
+            Toolbar.Margin = new Thickness(0);
+        }
+        else
+        {
+            FloatHost.Child = null;
+            ToolbarRow.Children.Add(Toolbar);
+            Toolbar.Margin = new Thickness(16, 0, 0, 0);
+        }
+        ToolStack.Orientation = _full ? Orientation.Horizontal : Orientation.Vertical;
+        foreach (var sep in ToolStack.Children.OfType<Border>())
+        {
+            sep.Width = _full ? 1 : double.NaN;
+            sep.Height = _full ? 24 : 1;
+            sep.Margin = _full ? new Thickness(4, 0, 4, 0) : new Thickness(6, 4, 6, 4);
+        }
+        FloatHost.Visibility = Visibility.Collapsed;
+
+        if (_full) ShowFullHint(); else FullHint.Visibility = Visibility.Collapsed;
+        LayoutScreen();
+        Stage.Focus();
+    }
+
+    void ShowFullHint()
+    {
+        FullHint.Visibility = Visibility.Visible;
+        var fade = new System.Windows.Media.Animation.DoubleAnimation(1, 0, TimeSpan.FromSeconds(1)) { BeginTime = TimeSpan.FromSeconds(3) };
+        fade.Completed += (_, _) => { FullHint.Visibility = Visibility.Collapsed; FullHint.BeginAnimation(OpacityProperty, null); };
+        FullHint.BeginAnimation(OpacityProperty, fade);
+    }
+
+    protected override void OnPreviewMouseMove(MouseEventArgs e)
+    {
+        base.OnPreviewMouseMove(e);
+        if (!_full) return;
+        var p = e.GetPosition(this);
+        if ((p - _lastMouse).Length < 3) return; // ignore jitter and synthetic moves
+        _lastMouse = p;
+        FloatHost.Visibility = Visibility.Visible;
+        _floatTimer.Stop();
+        _floatTimer.Start();
+    }
+
+    void FloatTimer_Tick(object? s, EventArgs e)
+    {
+        _floatTimer.Stop();
+        if (FloatHost.IsMouseOver) { _floatTimer.Start(); return; }
+        FloatHost.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>A double-click on the title bar goes full screen (instead of maximizing).</summary>
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        const int WM_NCLBUTTONDBLCLK = 0x00A3;
+        var src = (System.Windows.Interop.HwndSource)PresentationSource.FromVisual(this);
+        src.AddHook((IntPtr h, int msg, IntPtr w, IntPtr l, ref bool handled) =>
+        {
+            if (msg == WM_NCLBUTTONDBLCLK && !_full) { ToggleFullScreen(); handled = true; }
+            return IntPtr.Zero;
+        });
+    }
+
     void Min_Click(object s, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     void Max_Click(object s, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     void Close_Click(object s, RoutedEventArgs e) => Close();
@@ -531,6 +693,8 @@ public partial class MirrorWindow : Window
         M.PropertyChanged -= OnMirrorChanged;
         Core.Phone.PropertyChanged -= OnPhoneChanged;
         Core.MirrorStoppedByPhone -= OnStoppedByPhone;
+        Core.MirrorSourceChanged -= LoadSettings;
+        _floatTimer.Stop();
         Core.StopMirror();
         base.OnClosed(e);
     }

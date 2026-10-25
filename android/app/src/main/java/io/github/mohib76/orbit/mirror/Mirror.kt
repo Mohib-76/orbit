@@ -26,7 +26,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.json.JSONObject
 
 /** What the PC told us about mirroring. */
-data class MirrorUi(val active: Boolean = false, val viewOnly: Boolean = false, val transport: String = "", val since: Long = 0)
+data class MirrorUi(val active: Boolean = false, val viewOnly: Boolean = false, val transport: String = "", val since: Long = 0,
+                    /** The PC shows this phone's camera ("back" / "front") instead of its screen; "" = the screen. */
+                    val camera: String = "")
 
 /** What wireless mirroring needs on this phone. */
 data class DevState(val devOptions: Boolean, val wirelessDebugging: Boolean, val wifi: Boolean, val usbDebugging: Boolean, val canToggle: Boolean)
@@ -59,7 +61,8 @@ object Mirror {
         val was = state.value
         val active = b.optBoolean("active")
         state.value = MirrorUi(active, b.optBoolean("viewOnly"), b.optString("transport"),
-            if (active) (if (was.active) was.since else System.currentTimeMillis()) else 0)
+            if (active) (if (was.active) was.since else System.currentTimeMillis()) else 0,
+            if (b.optString("source") == "camera") b.optString("camera", "back") else "")
         main.post { refresh() }
     }
 
@@ -148,10 +151,10 @@ object Mirror {
         Hub.link?.send("orbit.mirror.cmd", JSONObject().put("op", "viewOnly").put("on", on))
     }
 
-    /** From the tile: ask the PC to open its mirror window. False if the PC isn't connected. */
-    fun requestStart(): Boolean {
+    /** From the tile (or Camera on PC): ask the PC to open its mirror window. False if the PC isn't connected. */
+    fun requestStart(camera: Boolean = false): Boolean {
         val l = Hub.link ?: return false
-        l.send("orbit.mirror.cmd", JSONObject().put("op", "start"))
+        l.send("orbit.mirror.cmd", JSONObject().put("op", "start").apply { if (camera) put("source", "camera") })
         return true
     }
 
@@ -217,15 +220,20 @@ object Mirror {
     }
 
     private fun build(s: MirrorUi): Notification {
-        val text = if (s.viewOnly) "View only: $pcName can watch but not tap or type" else "$pcName can also tap and type on this phone"
+        val camera = s.camera.isNotEmpty()
+        val text = when {
+            camera -> app.getString(if (s.camera == "front") R.string.mirror_camera_front else R.string.mirror_camera_back)
+            s.viewOnly -> "View only: $pcName can watch but not tap or type"
+            else -> "$pcName can also tap and type on this phone"
+        }
         val open = PendingIntent.getActivity(app, 4, Intent(app, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
-        return Notification.Builder(app, CHANNEL)
+        val b = Notification.Builder(app, CHANNEL)
             .setSmallIcon(R.drawable.ic_mirror)
             .setColor(0xFFD93A2E.toInt())
             .setSubText("LIVE")
-            .setContentTitle("Your screen is visible on $pcName")
+            .setContentTitle(if (camera) app.getString(R.string.mirror_camera_title, pcName) else "Your screen is visible on $pcName")
             .setContentText(text)
-            .setStyle(Notification.BigTextStyle().bigText("$text.\nBanking and password screens show as blank on the PC."))
+            .setStyle(Notification.BigTextStyle().bigText(if (camera) text else "$text.\nBanking and password screens show as blank on the PC."))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setUsesChronometer(true)
@@ -237,9 +245,10 @@ object Mirror {
             // Android 14+ lets users swipe ongoing notifications away; put it back while mirroring.
             .setDeleteIntent(pi(ACTION_REPOST, 12))
             .addAction(Notification.Action.Builder(null as Icon?, "Stop", pi(ACTION_STOP, 10)).build())
-            .addAction(Notification.Action.Builder(null as Icon?, if (s.viewOnly) "Allow control" else "View only",
-                pi(ACTION_VIEW_ONLY, 11, !s.viewOnly)).build())
-            .build()
+        // Nothing to tap or type on a camera picture, so no View only.
+        if (!camera) b.addAction(Notification.Action.Builder(null as Icon?, if (s.viewOnly) "Allow control" else "View only",
+            pi(ACTION_VIEW_ONLY, 11, !s.viewOnly)).build())
+        return b.build()
     }
 }
 

@@ -12,6 +12,7 @@ public sealed class MirrorState : Observable
     int _step;
     string _message = "", _stats = "", _transport = "";
     bool _viewOnly, _usbAvailable, _needsSetup;
+    string? _camera;
 
     public MirrorPhase Phase { get => _phase; set => Set(ref _phase, value); }
     /// <summary>Connecting checklist: steps completed so far (0–3).</summary>
@@ -26,6 +27,8 @@ public sealed class MirrorState : Observable
     public bool UsbAvailable { get => _usbAvailable; set => Set(ref _usbAvailable, value); }
     /// <summary>No phone reachable and wireless mirroring was never set up.</summary>
     public bool NeedsSetup { get => _needsSetup; set => Set(ref _needsSetup, value); }
+    /// <summary>The running stream shows this camera ("back" / "front") instead of the screen; null = the screen.</summary>
+    public string? Camera { get => _camera; set => Set(ref _camera, value); }
 }
 
 public sealed partial class OrbitCore
@@ -34,12 +37,15 @@ public sealed partial class OrbitCore
     public MirrorSession? MirrorSession => _mirror;
     /// <summary>Raised when the phone asks the PC to show the mirror (Quick Settings tile).</summary>
     public event Action? MirrorRequested;
+    /// <summary>The phone switched between screen and camera (the stream panel shows it).</summary>
+    public event Action? MirrorSourceChanged;
     /// <summary>A new stream is being set up (UI thread, before it starts); attach to its frames here.</summary>
     public event Action<MirrorSession>? MirrorSessionStarted;
 
     MirrorSession? _mirror;
     bool _mirrorWanted;          // the mirror window is open and wants a stream
     bool _mirrorPreferUsb;
+    bool _cameraUnsupported;    // camera picked on a phone older than Android 12
     int _mirrorAttempt;
     DateTime _orbitLinkLostAt = DateTime.MaxValue;
     System.Windows.Threading.DispatcherTimer? _mirrorTimer;
@@ -74,6 +80,9 @@ public sealed partial class OrbitCore
         CloseSession();
         Mirror.Phase = MirrorPhase.Idle;
         Mirror.ViewOnly = false;
+        Mirror.Camera = null;
+        _cameraUnsupported = false;
+        Settings.MirrorSource = "screen"; // the camera is for one session; the next mirror shows the screen again
         SendMirrorState();
     }
 
@@ -81,6 +90,7 @@ public sealed partial class OrbitCore
     public void RestartMirror()
     {
         Settings.Save();
+        _cameraUnsupported = false;
         if (_mirrorWanted) _ = ConnectMirrorAsync();
     }
 
@@ -156,6 +166,13 @@ public sealed partial class OrbitCore
         var (serial, transport) = dev.Value;
         var options = await BuildMirrorOptionsAsync(serial, transport);
         if (attempt != _mirrorAttempt || !_mirrorWanted) return;
+        if (options == null)
+        {
+            _cameraUnsupported = true; // don't retry every few seconds: it can't work until Show is back on Screen
+            Lost($"Showing the camera needs Android 12 or later on {PhoneName}. Switch Show back to Screen.");
+            return;
+        }
+        if (attempt != _mirrorAttempt || !_mirrorWanted) return;
         var session = new MirrorSession(Adb, serial, options);
         session.Progress += step => Ui.Run(() => { if (_mirror == session) Mirror.Step = Math.Max(Mirror.Step, step + 1); });
         session.Ended += reason => Ui.Run(() =>
@@ -171,13 +188,15 @@ public sealed partial class OrbitCore
             {
                 if (_mirror != session) return;
                 Mirror.Phase = MirrorPhase.Live;
-                if (Settings.MirrorScreenOff) session.Send(Msg.SetDisplayPower(false));
+                if (Settings.MirrorScreenOff && options.Camera == null) session.Send(Msg.SetDisplayPower(false));
             });
         };
         _mirror = session;
         MirrorSessionStarted?.Invoke(session);
         Mirror.Transport = transport;
-        Log.Write($"mirror: starting on {serial} ({transport}) size={options.MaxSize} fps={options.MaxFps} br={options.BitRate} audio={options.Audio}");
+        Mirror.Camera = options.Camera;
+        if (options.Camera != null) Mirror.ViewOnly = false; // nothing to tap on a camera picture
+        Log.Write($"mirror: starting on {serial} ({transport}) size={options.MaxSize} fps={options.MaxFps} br={options.BitRate} audio={options.Audio} source={options.Camera ?? "screen"}");
         try
         {
             await session.StartAsync();
@@ -223,7 +242,7 @@ public sealed partial class OrbitCore
             Lost($"{PhoneName} disconnected from Orbit, so mirroring stopped.");
         }
         // Retry a lost stream every few seconds.
-        if (_mirrorWanted && s == null && Mirror.Phase == MirrorPhase.Lost && Phone.State == LinkState.Connected
+        if (_mirrorWanted && s == null && Mirror.Phase == MirrorPhase.Lost && Phone.State == LinkState.Connected && !_cameraUnsupported
             && DateTime.Now.Second % 4 == 0)
             _ = ConnectMirrorAsync(retry: true);
     }
@@ -259,9 +278,19 @@ public sealed partial class OrbitCore
         return null;
     }
 
-    async Task<MirrorOptions> BuildMirrorOptionsAsync(string serial, string transport)
+    /// <summary>Null when the camera is wanted but the phone is older than Android 12 (scrcpy needs Camera2 there).</summary>
+    async Task<MirrorOptions?> BuildMirrorOptionsAsync(string serial, string transport)
     {
         bool usb = transport == "USB";
+        string? camera = Settings.MirrorSource == "camera" ? (Settings.MirrorCamera == "front" ? "front" : "back") : null;
+        if (camera != null)
+        {
+            var (_, sdk) = await Adb.ShellAsync(serial, "getprop ro.build.version.sdk");
+            if (!int.TryParse(sdk.Trim(), out var level) || level < 31) return null;
+            // Cameras pick their own picture size; this caps it.
+            return new MirrorOptions(usb ? 1920 : 1280, Math.Min(Settings.MirrorFps, 30), usb ? 12_000_000 : 6_000_000, false, false, false,
+                Settings.MirrorHardwareDecode, camera);
+        }
         int shortTarget = Settings.MirrorQuality switch { "720p" => 720, "1080p" => 1080, "Max" => 0, _ => usb ? 1080 : 720 };
         int maxSize = 0;
         if (shortTarget > 0)
@@ -293,6 +322,8 @@ public sealed partial class OrbitCore
             ["active"] = active,
             ["viewOnly"] = Mirror.ViewOnly,
             ["transport"] = Mirror.Transport,
+            ["source"] = Mirror.Camera != null ? "camera" : "screen",
+            ["camera"] = Mirror.Camera ?? "",
         });
         // USB mirroring blocks switching the USB mode.
         SendUsbControl();
@@ -311,7 +342,27 @@ public sealed partial class OrbitCore
                 SetMirrorViewOnly(b["on"]?.GetValue<bool>() ?? true);
                 break;
             case "start":
-                Ui.Run(() => MirrorRequested?.Invoke());
+                // "Camera on PC" asks for the camera; the Mirror tile for the screen. Camera only when allowed.
+                var camera = b["source"]?.GetValue<string>() == "camera";
+                if (camera && !Settings.RemoteCamera)
+                {
+                    _link?.Post("orbit.remote.result", new JsonObject
+                    {
+                        ["op"] = "camera", ["ok"] = false, ["error"] = "Showing the phone's camera is switched off in Orbit on the PC."
+                    });
+                    break;
+                }
+                Ui.Run(() =>
+                {
+                    var source = camera ? "camera" : "screen";
+                    if (Settings.MirrorSource != source)
+                    {
+                        Settings.MirrorSource = source;
+                        MirrorSourceChanged?.Invoke();
+                        if (_mirrorWanted) RestartMirror();
+                    }
+                    MirrorRequested?.Invoke();
+                });
                 break;
         }
     }

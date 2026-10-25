@@ -93,6 +93,16 @@
                                 <TextBlock Text="Sends arrow keys, F5, Esc and B to the window in front" Style="{StaticResource Caption}"/>
                             </StackPanel>
                         </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Border Style="{StaticResource RowIcon}"><ui:Ic Data="{StaticResource IcCamera}" Width="17" Height="17" Foreground="{DynamicResource SoftInk}"/></Border>
+                            <CheckBox x:Name="CameraToggle" DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="12,0,0,0"
+                                      Checked="Toggle_Changed" Unchecked="Toggle_Changed" AutomationProperties.Name="Show phone camera"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Show phone camera" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Opens in the mirror window. Needs USB debugging" Style="{StaticResource Caption}"/>
+                            </StackPanel>
+                        </DockPanel>
                     </StackPanel>
                 </Border>
 
