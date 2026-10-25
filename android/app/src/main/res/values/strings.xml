@@ -104,6 +104,13 @@
     <string name="back">Back</string>
     <string name="remote_touchpad_keyboard">Touchpad, keyboard</string>
     <string name="remote_slides_short">Slides</string>
+    <string name="remote_camera">Camera on PC</string>
+    <string name="remote_camera_short">Camera</string>
+    <string name="remote_camera_desc">Opens in the mirror window</string>
+    <string name="remote_camera_opening">Opening the camera on %1$s</string>
+    <string name="mirror_camera_title">Your camera is visible on %1$s</string>
+    <string name="mirror_camera_back">Showing the back camera. Stop ends it.</string>
+    <string name="mirror_camera_front">Showing the front camera. Stop ends it.</string>
 
     <!-- Touchpad, keyboard, slides -->
     <string name="input_touchpad">Touchpad</string>

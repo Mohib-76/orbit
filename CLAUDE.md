@@ -38,7 +38,7 @@ addresses, IPs, names, local paths), secrets (signing keys, passwords), or third
 - Threading: mutate observable state only via `Ui.Run(...)`. Pages mostly refresh from code-behind on events rather than through MVVM.
 - Data: `%APPDATA%\Orbit` (settings.json, identity.pfx, orbit.log). Read `orbit.log` when debugging.
 - Default hotkeys (configurable in Settings): Ctrl+Alt+C send clipboard, Ctrl+Alt+B cycle noise mode, Ctrl+Alt+M mirror, Ctrl+Alt+P play/pause the phone, Ctrl+Alt+L open the copied link on the phone.
-- Mirroring internals: keep effects (DropShadow etc.) off anything containing the live video. Video is pipelined (decode thread hands the newest frame to a convert thread). D3D11VA decode exists behind `Settings.MirrorHardwareDecode` (off).
+- Mirroring internals: keep effects (DropShadow etc.) off anything containing the live video. Camera mode is `MirrorOptions.Camera` (`video_source=camera`, never audio; Android 12+). Full screen in `MirrorWindow` reparents the toolbar into `FloatHost` and zeroes the WindowChrome caption. Video is pipelined (decode thread hands the newest frame to a convert thread). D3D11VA decode exists behind `Settings.MirrorHardwareDecode` (off).
 
 ### Android: `android/` (Kotlin, Compose, package `io.github.mohib76.orbit`, minSdk 29)
 - `Hub.kt`: app-wide state (StateFlows) and packet handling. `Server.kt`: TLS server, pairing, discovery. `Transfers.kt`, `OrbitService.kt` (foreground service, battery), `NotifListener.kt`, `Components.kt` (Application, receivers, clipboard tile and activity), `Prefs.kt`, `Diagnostics.kt`.

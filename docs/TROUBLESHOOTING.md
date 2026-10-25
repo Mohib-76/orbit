@@ -80,6 +80,7 @@ notifications (the *Links from your PC* category) and tap the notification.
 - **Over USB:** USB debugging must be on and authorized.
 - **Over Wi-Fi:** run the one-time wireless setup in Orbit; phone and PC must be on the same Wi-Fi. Android doesn't offer wireless debugging over the phone's own hotspot.
 - Black areas are screens apps mark as secure (banking, passwords). That's Android protecting them.
+- **Camera doesn't start:** showing the phone's camera needs Android 12 or later, and another app may be using the camera. Switch *Show* back to *Screen* in the stream panel to mirror the screen again.
 
 ## Media from the other device doesn't show
 

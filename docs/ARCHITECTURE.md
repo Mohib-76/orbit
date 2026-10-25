@@ -112,6 +112,8 @@ itself isn't in the video path; it shows the LIVE notification and tile and rela
 - **Wireless**: a one-time setup pairs Android's *Wireless debugging* with the PC by QR code, like Android Studio (`WIFI:T:ADB;S:…;P:…;;`, then `adb pair`). After that adb finds the phone over mDNS. The phone and PC must be on the same Wi-Fi; Android doesn't offer wireless debugging over the phone's own hotspot.
 - After mirroring once, the PC grants Orbit `WRITE_SECURE_SETTINGS` over adb, so the phone can switch wireless debugging back on by itself after a reboot or Wi-Fi change.
 - The stream never runs silently: the PC refuses to start unless the Orbit link is up (so the phone can show its notice), and stops if the link is gone for 20 s.
+- **Camera:** with *Show › Camera* (Android 12 or later) the server streams a camera instead of the screen (`video_source=camera`, `camera_facing`), never with sound, so the microphone is never on. The phone's notice says the camera is visible, and the window takes no touch input. The phone's *Camera on PC* button asks for it with `orbit.mirror.cmd {op: "start", source: "camera"}`.
+- **Full screen** (F11, the title-bar button or a title-bar double-click) sizes the window to its monitor without a frame, hides the stream panel, floats the toolbar at the bottom while the mouse moves, and Esc leaves it (Back stays on right-click).
 - **View only** is enforced by the PC (it stops sending input). **Stop** is also a request to the PC; over Wi-Fi the phone can force it by restarting wireless debugging if the PC doesn't respond within 3 s.
 - Screens that apps mark as secure (banking, passwords) show as black on the PC. That's Android, not Orbit.
 

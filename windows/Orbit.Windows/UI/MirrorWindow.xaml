@@ -47,6 +47,13 @@
                 <Setter Property="ToolTipService.Placement" Value="Bottom"/>
                 <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
             </Style>
+            <Style x:Key="ChromeIcon" TargetType="Button" BasedOn="{StaticResource Tool}">
+                <Setter Property="Width" Value="40"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+                <Setter Property="ToolTipService.Placement" Value="Bottom"/>
+                <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            </Style>
             <Style x:Key="ToolSep" TargetType="Border">
                 <Setter Property="Height" Value="1"/>
                 <Setter Property="Margin" Value="6,4"/>
@@ -85,7 +92,7 @@
 
     <Grid x:Name="Root">
         <Grid.RowDefinitions>
-            <RowDefinition Height="44"/>
+            <RowDefinition x:Name="TitleRow" Height="44"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -104,7 +111,11 @@
                     <Path Data="M0 0l10 10M10 0 0 10" Stroke="{DynamicResource Text}" StrokeThickness="1" Width="10" Height="10"/>
                 </Button>
             </StackPanel>
-            <ToggleButton x:Name="PanelToggle" DockPanel.Dock="Right" Style="{StaticResource ChromeToggle}" Margin="4,0,8,0"
+            <Button DockPanel.Dock="Right" Style="{StaticResource ChromeIcon}" Margin="4,0,0,0" Click="FullScreen_Click"
+                    ToolTip="Full screen · F11 or double-click the title bar" AutomationProperties.Name="Full screen">
+                <ui:Ic Data="{StaticResource IcFullscreen}" Width="16" Height="16" Thickness="2"/>
+            </Button>
+            <ToggleButton x:Name="PanelToggle" DockPanel.Dock="Right" Style="{StaticResource ChromeToggle}" Margin="4,0,0,0"
                           ToolTip="Stream settings" AutomationProperties.Name="Stream settings" Checked="Panel_Changed" Unchecked="Panel_Changed">
                 <ui:Ic Data="{StaticResource IcPanel}" Width="16" Height="16" Thickness="2"/>
             </ToggleButton>
@@ -132,7 +143,7 @@
 
             <!-- Stage -->
             <Grid x:Name="Stage" Grid.Column="0" Background="Transparent" Focusable="True" FocusVisualStyle="{x:Null}" SizeChanged="Stage_SizeChanged">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="ToolbarRow" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <StackPanel VerticalAlignment="Center">
                         <Grid HorizontalAlignment="Center">
                         <!-- The shadow is its own static layer: an effect over the live video would re-render every frame. -->
@@ -147,6 +158,15 @@
                                        MouseLeftButtonDown="Video_LeftDown" MouseLeftButtonUp="Video_LeftUp" MouseMove="Video_Move"
                                        MouseRightButtonDown="Video_RightDown" MouseRightButtonUp="Video_RightUp"
                                        MouseDown="Video_MouseDown" MouseWheel="Video_Wheel" LostMouseCapture="Video_LostCapture"/>
+
+                                <!-- Camera chip -->
+                                <Border x:Name="CameraChip" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Padding="10,5" CornerRadius="999"
+                                        Background="#8C000000" Visibility="Collapsed" IsHitTestVisible="False">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="7" Height="7" Fill="#FF7A6E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="CameraChipText" FontFamily="{StaticResource Mono}" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                                    </StackPanel>
+                                </Border>
 
                                 <!-- Connecting -->
                                 <Border x:Name="ConnectingPanel" Background="{DynamicResource MirrorScrim}" Visibility="Collapsed">
@@ -210,11 +230,11 @@
                                    Margin="0,14,0,0" Visibility="Collapsed"/>
                     </StackPanel>
 
-                    <!-- Toolbar -->
+                    <!-- Toolbar (moves to FloatHost in full screen) -->
                     <Border x:Name="Toolbar" Margin="16,0,0,0" Padding="6" CornerRadius="14" VerticalAlignment="Center"
                             Background="{DynamicResource Card}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
                             AutomationProperties.Name="Phone controls">
-                        <StackPanel>
+                        <StackPanel x:Name="ToolStack">
                             <Button Style="{StaticResource Tool}" Tag="back" Click="Tool_Click" ToolTip="Back · Esc" AutomationProperties.Name="Back"><ui:Ic Data="{StaticResource IcBack}" Thickness="1.9"/></Button>
                             <Button Style="{StaticResource Tool}" Tag="home" Click="Tool_Click" ToolTip="Home · Ctrl H" AutomationProperties.Name="Home"><ui:Ic Data="{StaticResource IcNavHome}" Thickness="1.9"/></Button>
                             <Button Style="{StaticResource Tool}" Tag="recents" Click="Tool_Click" ToolTip="Recents · Ctrl S" AutomationProperties.Name="Recent apps"><ui:Ic Data="{StaticResource IcRecents}" Thickness="1.9"/></Button>
@@ -229,9 +249,29 @@
                             <ToggleButton x:Name="ScreenOffBtn" Style="{StaticResource Tool}" Tag="screenoff" Click="Tool_Click" ToolTip="Turn phone screen off · Ctrl O" AutomationProperties.Name="Phone screen off"><ui:Ic Data="{StaticResource IcScreenOff}" Thickness="1.9"/></ToggleButton>
                             <Button Style="{StaticResource Tool}" Tag="notifications" Click="Tool_Click" ToolTip="Open notification shade · Ctrl N" AutomationProperties.Name="Notifications"><ui:Ic Data="{StaticResource IcBell}" Thickness="1.9"/></Button>
                             <Button Style="{StaticResource Tool}" Tag="power" Click="Tool_Click" ToolTip="Lock / wake · Ctrl P" AutomationProperties.Name="Power"><ui:Ic Data="{StaticResource IcPower}" Thickness="1.9"/></Button>
+                            <Border x:Name="FullSep" Style="{StaticResource ToolSep}" Visibility="Collapsed"/>
+                            <Button x:Name="ExitFullBtn" Style="{StaticResource Tool}" Click="FullScreen_Click" Visibility="Collapsed"
+                                    ToolTip="Exit full screen · Esc" AutomationProperties.Name="Exit full screen"><ui:Ic Data="{StaticResource IcExitFullscreen}" Thickness="1.9"/></Button>
                         </StackPanel>
                     </Border>
                 </StackPanel>
+
+                <!-- Full screen: the toolbar floats here while the mouse moves, and a hint says how to leave -->
+                <Border x:Name="FloatHost" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,48" Visibility="Collapsed"/>
+                <Border x:Name="FullFlash" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,24,0,0" Height="40" Padding="16,0"
+                        CornerRadius="20" Background="#D1101017" Visibility="Collapsed" IsHitTestVisible="False">
+                    <TextBlock x:Name="FullFlashText" Foreground="White" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </Border>
+                <Border x:Name="FullHint" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,24,0,0" Height="40" Padding="16,0"
+                        CornerRadius="20" Background="#D1101017" Visibility="Collapsed" IsHitTestVisible="False">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Press " Foreground="White" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Border BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="5" Padding="7,2" Margin="2,0">
+                            <TextBlock Text="Esc" Foreground="White" FontFamily="{StaticResource Mono}" FontSize="12" FontWeight="SemiBold"/>
+                        </Border>
+                        <TextBlock Text=" to exit full screen" Foreground="White" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
             </Grid>
 
             <!-- Stream panel -->
@@ -251,7 +291,25 @@
                         <StackPanel>
                             <TextBlock Text="Stream" FontSize="15" FontWeight="ExtraBold" Margin="0,0,0,18"/>
 
-                            <TextBlock Text="Quality" Style="{StaticResource Label}"/>
+                            <TextBlock Text="Show" Style="{StaticResource Label}"/>
+                            <Border Background="{DynamicResource Surface2}" CornerRadius="9" Padding="1.5">
+                                <UniformGrid Columns="2" AutomationProperties.Name="Show">
+                                    <RadioButton x:Name="SrcScreen" Style="{StaticResource Seg}" GroupName="src" Content="Screen" Tag="screen" Checked="Source_Checked"/>
+                                    <RadioButton x:Name="SrcCamera" Style="{StaticResource Seg}" GroupName="src" Content="Camera" Tag="camera" Checked="Source_Checked"/>
+                                </UniformGrid>
+                            </Border>
+                            <StackPanel x:Name="CameraOptions" Visibility="Collapsed">
+                                <Border Background="{DynamicResource Surface2}" CornerRadius="9" Padding="1.5" Margin="0,8,0,0">
+                                    <UniformGrid Columns="2" AutomationProperties.Name="Camera">
+                                        <RadioButton x:Name="CamBack" Style="{StaticResource Seg}" GroupName="cam" Content="Back" Tag="back" Checked="Camera_Checked"/>
+                                        <RadioButton x:Name="CamFront" Style="{StaticResource Seg}" GroupName="cam" Content="Front" Tag="front" Checked="Camera_Checked"/>
+                                    </UniformGrid>
+                                </Border>
+                                <TextBlock FontSize="11" Foreground="{DynamicResource Text2}" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="16.5"
+                                           Text="Share this window in a video call to show the camera. Needs Android 12 or later. No sound."/>
+                            </StackPanel>
+
+                            <TextBlock Text="Quality" Style="{StaticResource Label}" Margin="0,18,0,8"/>
                             <Border Background="{DynamicResource Surface2}" CornerRadius="9" Padding="1.5">
                                 <UniformGrid Columns="4" AutomationProperties.Name="Quality">
                                     <RadioButton x:Name="QAuto" Style="{StaticResource Seg}" GroupName="q" Content="Auto" Tag="Auto" Checked="Quality_Checked"/>

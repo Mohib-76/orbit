@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import io.github.mohib76.orbit.Conn
 import io.github.mohib76.orbit.Hub
 import io.github.mohib76.orbit.R
+import io.github.mohib76.orbit.mirror.Mirror
 import io.github.mohib76.orbit.remote.Remote
 import io.github.mohib76.orbit.remote.RemoteCommand
 import kotlinx.coroutines.delay
@@ -145,6 +146,7 @@ private fun VolumeSlider(level: Int, muted: Boolean, big: Boolean, modifier: Mod
 const val TOOL_TOUCHPAD = "touchpad"
 const val TOOL_KEYBOARD = "keyboard"
 const val TOOL_SLIDES = "slides"
+const val TOOL_CAMERA = "camera"
 
 /** "Control <PC>" on Home: one-tap tools, and the header opens the full Remote screen. */
 @Composable
@@ -158,6 +160,7 @@ fun PcControlCard(openRemote: () -> Unit, openTool: (String) -> Unit) {
         stringResource(R.string.remote_volume).takeIf { caps.volume },
         stringResource(R.string.remote_touchpad_keyboard).takeIf { caps.input },
         stringResource(R.string.slides_title).takeIf { caps.slides },
+        stringResource(R.string.remote_camera_short).takeIf { caps.camera },
         stringResource(R.string.remote_power).takeIf { caps.power.isNotEmpty() },
         stringResource(R.string.remote_commands).takeIf { caps.commands.isNotEmpty() }
     )
@@ -173,6 +176,14 @@ fun PcControlCard(openRemote: () -> Unit, openTool: (String) -> Unit) {
             val offline = stringResource(R.string.pc_not_connected)
             add(Triple(Icons.Lock, stringResource(R.string.remote_lock_pc)) {
                 Toast.makeText(ctx, if (Remote.power(Remote.LOCK)) locking else offline, Toast.LENGTH_SHORT).show()
+            })
+        }
+        // Last, so with every tool allowed the four slots stay Touchpad, Keyboard, Slides and Lock PC as designed.
+        if (caps.camera) {
+            val opening = stringResource(R.string.remote_camera_opening, ui.pcName)
+            val offline = stringResource(R.string.pc_not_connected)
+            add(Triple(Icons.Camera, stringResource(R.string.remote_camera_short)) {
+                Toast.makeText(ctx, if (Mirror.requestStart(camera = true)) opening else offline, Toast.LENGTH_SHORT).show()
             })
         }
     }
@@ -289,17 +300,28 @@ fun RemoteScreen(onBack: () -> Unit, openTool: (String) -> Unit) {
                     add(Triple(Icons.Keyboard, R.string.input_keyboard, TOOL_KEYBOARD))
                 }
                 if (caps.slides) add(Triple(Icons.Slides, R.string.slides_title, TOOL_SLIDES))
+                if (caps.camera) add(Triple(Icons.Camera, R.string.remote_camera, TOOL_CAMERA))
             }
+            val cameraOpening = stringResource(R.string.remote_camera_opening, pc)
             tiles.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     row.forEach { (icon, label, tool) ->
                         Column(
                             Modifier.weight(1f).height(104.dp).clip(RoundedCornerShape(22.dp)).background(c.surf)
-                                .clickable(enabled = connected, role = Role.Button) { openTool(tool) }.padding(16.dp),
+                                .clickable(enabled = connected, role = Role.Button) {
+                                    // The camera opens in the PC's mirror window, not on this phone.
+                                    if (tool == TOOL_CAMERA) Toast.makeText(ctx, if (Mirror.requestStart(camera = true)) cameraOpening else notConnected,
+                                        Toast.LENGTH_SHORT).show()
+                                    else openTool(tool)
+                                }.padding(16.dp),
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
                             IconChip(icon, 40.dp, c.pc, c.onPc)
-                            Text(stringResource(label), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.text)
+                            Column {
+                                Text(stringResource(label), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = c.text)
+                                if (tool == TOOL_CAMERA) Text(stringResource(R.string.remote_camera_desc), fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold, color = c.text2)
+                            }
                         }
                     }
                     if (row.size == 1) Spacer(Modifier.weight(1f))

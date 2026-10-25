@@ -41,7 +41,7 @@ public sealed partial class OrbitCore
             commands.Add(new JsonObject { ["id"] = c.Id, ["name"] = c.Name, ["ask"] = c.Ask });
         return new JsonObject
         {
-            ["volume"] = Settings.RemoteVolume, ["input"] = Settings.RemoteInput, ["slides"] = Settings.RemoteSlides,
+            ["volume"] = Settings.RemoteVolume, ["input"] = Settings.RemoteInput, ["slides"] = Settings.RemoteSlides, ["camera"] = Settings.RemoteCamera,
             ["power"] = power, ["commands"] = commands,
             ["linksAsk"] = Settings.LinksFromPhone == "ask"
         };
