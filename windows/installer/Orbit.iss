@@ -48,12 +48,42 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\Orbit.exe"; Description: "Open Orbit"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Orbit.exe"; Parameters: "--tray"; Flags: nowait; Check: RelaunchAfterSilentUpdate
 
 [UninstallRun]
 Filename: "{cmd}"; Parameters: "/c taskkill /im Orbit.exe /f"; Flags: runhidden; RunOnceId: "KillOrbit"
 Filename: "{app}\adb\adb.exe"; Parameters: "kill-server"; Flags: runhidden skipifdoesntexist; RunOnceId: "KillAdb"
 
 [Code]
+var
+  OrbitWasRunning: Boolean;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  Dir, Ps: String;
+  Code: Integer;
+begin
+  { Updating: Orbit's adb server keeps adb\*.dll locked and Restart Manager can't close it, so the update
+    would abort. Stop Orbit (it would restart the server) and adb, but only the copies in this install folder.
+    The exit code says whether Orbit was running, so a silent update can start it again. }
+  Dir := ExpandConstant('{app}');
+  if FileExists(Dir + '\adb\adb.exe') then
+  begin
+    StringChangeEx(Dir, '''', '''''', True);
+    Ps := '$d=''' + Dir + '\''; $p=@(Get-Process Orbit,adb -ErrorAction SilentlyContinue | ' +
+          'Where-Object { $_.Path -and $_.Path.StartsWith($d, ''OrdinalIgnoreCase'') }); ' +
+          '$o=@($p | Where-Object Name -eq ''Orbit'').Count; $p | Stop-Process -Force; exit $o';
+    if Exec('powershell.exe', '-NoProfile -NonInteractive -Command "' + Ps + '"', '', SW_HIDE, ewWaitUntilTerminated, Code) then
+      OrbitWasRunning := Code > 0;
+  end;
+  Result := '';
+end;
+
+function RelaunchAfterSilentUpdate: Boolean;
+begin
+  Result := WizardSilent and OrbitWasRunning;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then

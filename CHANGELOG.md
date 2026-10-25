@@ -4,6 +4,11 @@ All notable changes are listed here. Versions follow [Semantic Versioning](https
 
 ## [Unreleased]
 
+### Fixed
+- Windows: Orbit no longer piles up stray `adb.exe` processes (about 12 MB each) every time the adb server restarts.
+- Windows: updating with the installer while Orbit is running no longer fails because Orbit's adb server is holding its files.
+- Android: clearing finished transfers now closes the files of failed sends.
+
 ## [1.3.0] - 2026-10-25
 
 ### Added

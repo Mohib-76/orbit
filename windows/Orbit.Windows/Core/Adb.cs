@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -61,7 +62,7 @@ public sealed class Adb
         var errTask = p.StandardError.ReadToEndAsync();
         using var cts = new CancellationTokenSource(timeoutMs);
         try { await p.WaitForExitAsync(cts.Token); }
-        catch (OperationCanceledException) { try { p.Kill(true); } catch { } return (-1, "timeout"); }
+        catch (OperationCanceledException) { try { p.Kill(); } catch { } return (-1, "timeout"); }
         return (p.ExitCode, ((await outTask) + (await errTask)).Trim());
     }
 
@@ -73,26 +74,45 @@ public sealed class Adb
         await RunAsync("start-server", 20000);
         while (!_cts.IsCancellationRequested)
         {
+            Process? p = null;
             try
             {
                 var psi = new ProcessStartInfo(ExePath!, "track-devices")
                 {
                     UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true
                 };
-                using var p = Process.Start(psi)!;
-                _cts.Token.Register(() => { try { p.Kill(); } catch { } });
+                p = Process.Start(psi)!;
+                var proc = p;
+                using var reg = _cts.Token.Register(() => { try { proc.Kill(); } catch { } });
+                // Drain stderr so a chatty adb can't block on a full pipe.
+                _ = p.StandardError.ReadToEndAsync();
                 var r = p.StandardOutput;
                 var lenBuf = new char[4];
                 while (!_cts.IsCancellationRequested)
                 {
                     if (await ReadExact(r, lenBuf) == false) break;
-                    var len = Convert.ToInt32(new string(lenBuf), 16);
+                    // After an adb server restart the client can print text instead of a length: start over.
+                    if (!int.TryParse(lenBuf, NumberStyles.AllowHexSpecifier, null, out var len))
+                    {
+                        Log.Write("adb track: unexpected output, restarting");
+                        break;
+                    }
                     var body = new char[len];
                     if (len > 0 && await ReadExact(r, body) == false) break;
                     Apply(new string(body));
                 }
             }
             catch (Exception ex) { Log.Write("adb track: " + ex.Message); }
+            finally
+            {
+                // Never leave a track-devices behind before starting the next one. Not the whole tree:
+                // a client that had to start the adb server is that server's parent.
+                if (p != null)
+                {
+                    try { if (!p.HasExited) p.Kill(); } catch { }
+                    p.Dispose();
+                }
+            }
             lock (Devices) Devices.Clear();
             DevicesChanged?.Invoke();
             try { await Task.Delay(3000, _cts.Token); } catch { }
