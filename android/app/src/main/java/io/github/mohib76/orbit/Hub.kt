@@ -302,5 +302,10 @@ object Hub {
         transfers.update { list -> list.map { if (it.id == id) f(it) else it } }
     }
 
-    fun clearFinished() = transfers.update { list -> list.filter { it.active } }
+    fun clearFinished() {
+        var gone = emptyList<String>()
+        transfers.update { list -> list.partition { it.active }.let { (keep, drop) -> gone = drop.map { it.id }; keep } }
+        // A failed send keeps its file open for Retry; once it's cleared, nothing can retry it.
+        synchronized(sources) { gone.forEach { sources.remove(it)?.close() } }
+    }
 }
