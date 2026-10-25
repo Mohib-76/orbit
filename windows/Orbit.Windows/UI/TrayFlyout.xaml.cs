@@ -17,7 +17,7 @@ public partial class TrayFlyout : Window
         DataContext = Core;
         Core.Phone.PropertyChanged += (_, _) => Refresh();
         Core.Notifications.CollectionChanged += (_, _) => Refresh();
-        Core.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(OrbitCore.DoNotDisturb)) Refresh(); };
+        Core.PropertyChanged += (_, e) => { if (e.PropertyName is nameof(OrbitCore.DoNotDisturb) or nameof(OrbitCore.CopiedLink)) Refresh(); };
         Drop += (_, e) =>
         {
             if (e.Data.GetData(DataFormats.FileDrop) is string[] f) { Core.SendFiles(f); Hide(); }
@@ -148,6 +148,17 @@ public partial class TrayFlyout : Window
         Notifs.ItemsSource = Core.Notifications.Take(4).ToList();
         NoNotifs.Visibility = Core.Notifications.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         PauseText.Text = Core.DoNotDisturb ? "Resume" : "Pause";
+        var link = on ? Core.CopiedLink : null;
+        LinkCard.Visibility = link != null ? Visibility.Visible : Visibility.Collapsed;
+        LinkText2.Text = link != null ? Links.Short(link) : "";
+        var hk = Core.Settings.HotkeyLink;
+        LinkSend.ToolTip = string.IsNullOrEmpty(hk) ? null : hk.Replace("+", " ");
+    }
+
+    void LinkSend_Click(object s, RoutedEventArgs e)
+    {
+        if (Core.CopiedLink is { } url) Core.SendLink(url);
+        Hide();
     }
 
     public void ShowNearTray()

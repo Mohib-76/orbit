@@ -56,6 +56,13 @@ class Prefs(private val ctx: Context) {
     /** Let the PC play, pause and skip media on this phone. */
     var pcControlsMedia by bool("media.pcControl", true)
 
+    /** Touchpad pointer speed, 1–4. */
+    var touchpadSpeed: Int
+        get() = sp.getInt("remote.speed", 3)
+        set(v) = sp.edit().putInt("remote.speed", v.coerceIn(1, 4)).apply()
+    /** The slides remote turns the volume keys into Previous / Next while it is open. */
+    var slidesVolumeKeys by bool("remote.slidesVolumeKeys", true)
+
     /** "system", "light" or "dark". */
     var theme: String
         get() = sp.getString("theme", "system")!!

@@ -67,6 +67,7 @@ public sealed partial class OrbitCore : Observable
         _ = Task.Run(ConnectLoop);
         _ = Task.Run(TickLoop);
         StartBuds();
+        StartRemote();
         NetworkChange.NetworkAddressChanged += (_, _) => _kick.Release();
     }
 
@@ -384,6 +385,8 @@ public sealed partial class OrbitCore : Observable
         PublishBuds();
         SendMirrorState();
         OnMediaConnected();
+        SendRemoteCaps();
+        SendVolumeState();
 
         try
         {
@@ -405,6 +408,8 @@ public sealed partial class OrbitCore : Observable
             _link = null;
             OnBudsPeerGone();
             OnMediaPeerGone();
+            StopFocusWatch();
+            InputInjector.ReleaseAll();
             OnUsbPeerGone();
             Log.Write("disconnected");
             Ui.Run(() =>
@@ -447,6 +452,12 @@ public sealed partial class OrbitCore : Observable
             case "orbit.usb.set": _ = SetUsbModeAsync(b["mode"]?.GetValue<string>() ?? "", fromPhone: true); break;
             case "orbit.mirror.cmd": OnMirrorCommand(b); break;
             case "orbit.mirror.info": OnMirrorInfo(b); break;
+            case "orbit.url": OnPhoneUrl(b); break;
+            case "orbit.volume.set": OnVolumeSet(b); break;
+            case "orbit.remote.run": OnRemoteRun(b); break;
+            case "orbit.input": OnRemoteInput(b); break;
+            case "orbit.slides": OnSlides(b); break;
+            case "orbit.focus.watch": OnFocusWatch(b); break;
             case "orbit.settings":
                 if (b["budsEnabled"] is { } be && be.GetValue<bool>() != Settings.BudsEnabled)
                     SetBudsEnabled(be.GetValue<bool>(), fromPeer: true);
@@ -555,6 +566,7 @@ public sealed partial class OrbitCore : Observable
 
     public void OnLocalClipboard(string text, bool sensitive)
     {
+        if (text != _lastRemoteClip) NoteCopiedLink(text, sensitive);
         if (string.IsNullOrEmpty(text) || text == _lastRemoteClip) return;
         if (!Settings.ClipboardAutoSync || _link == null) return;
         // Password managers mark their copies private; huge clips are almost never meant for the phone.
@@ -589,6 +601,7 @@ public sealed partial class OrbitCore : Observable
     {
         if (string.IsNullOrEmpty(text)) return;
         _lastRemoteClip = text;
+        NoteCopiedLink(null, false); // the clipboard no longer holds the copied link
         Ui.Run(() =>
         {
             ClipboardHost.SetText(text);

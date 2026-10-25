@@ -29,6 +29,17 @@ public sealed class PairedPhone
     public DateTime PairedAt { get; set; } = DateTime.Now;
 }
 
+/// <summary>A button on the phone's Remote screen that runs a command or script on this PC.</summary>
+public sealed class RemoteCommand
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = "";
+    /// <summary>A program, script or document path, or a command line for cmd.exe.</summary>
+    public string Command { get; set; } = "";
+    /// <summary>The phone asks "Run …?" before sending it.</summary>
+    public bool Ask { get; set; }
+}
+
 public sealed class Settings
 {
     public string DeviceId { get; set; } = Guid.NewGuid().ToString("N");
@@ -84,6 +95,26 @@ public sealed class Settings
     public string HotkeyMirror { get; set; } = "Ctrl+Alt+M";
     public string HotkeyMedia { get; set; } = "Ctrl+Alt+P";
 
+    public string HotkeyLink { get; set; } = "Ctrl+Alt+L";
+
+    /// <summary>Phone remote: what the paired phone may do on this PC. The phone only shows what's allowed here.</summary>
+    public bool RemoteVolume { get; set; } = true;
+    /// <summary>Touchpad and keyboard: off until switched on, since it can do anything you can at the keyboard.</summary>
+    public bool RemoteInput { get; set; }
+    /// <summary>Slides remote: arrow keys, F5, Esc and B to the window in front.</summary>
+    public bool RemoteSlides { get; set; } = true;
+    /// <summary>"Camera on PC": the phone may open its camera in the mirror window.</summary>
+    public bool RemoteCamera { get; set; } = true;
+    public bool RemoteLock { get; set; } = true;
+    public bool RemoteSleep { get; set; } = true;
+    /// <summary>Shut down and Restart: off until switched on, and they always ask on the phone first.</summary>
+    public bool RemoteShutdown { get; set; }
+    public bool RemoteRestart { get; set; }
+    /// <summary>Links shared from the phone: "open" right away, or "ask" with a notification first.</summary>
+    public string LinksFromPhone { get; set; } = "open";
+    /// <summary>Commands the phone can run on this PC, by id. Nothing else can run.</summary>
+    public List<RemoteCommand> RemoteCommands { get; set; } = new();
+
     /// <summary>Use the ADB link over USB for Orbit itself (fast pairing, works without Wi-Fi).</summary>
     public bool UseUsbLink { get; set; } = true;
 
@@ -97,6 +128,10 @@ public sealed class Settings
     public bool MirrorAutoResize { get; set; } = true;
     public bool MirrorOnTop { get; set; }
     public bool MirrorPanel { get; set; } = true;
+    /// <summary>What the mirror shows: "screen" or "camera" (Android 12+), and which camera: "back" or "front".</summary>
+    [System.Text.Json.Serialization.JsonIgnore] // per session: a new mirror always starts on the screen
+    public string MirrorSource { get; set; } = "screen";
+    public string MirrorCamera { get; set; } = "back";
     /// <summary>
     /// Decode mirror video on the GPU (D3D11VA). No UI. Off by default: decoding is ~1 ms on the GPU, but
     /// copying each frame back costs ~12 ms at 1080p, so software (~7.5 ms, no copy) is smoother.

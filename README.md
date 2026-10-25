@@ -40,8 +40,10 @@ screen and control media and earbuds, with no account and no cloud in between.
 | **Universal clipboard** | Copy on your PC and paste on your phone, automatically. Send text from your phone with one tap: a button, a Quick Settings tile, a notification action, or by sharing text to Orbit. Copies marked private by password managers are never synced |
 | **Notifications** | Phone notifications appear as native Windows notifications with app icons. Dismiss one on your PC and it clears on your phone. Choose which apps forward, hide message text, pause, or silence alerts while your PC is locked |
 | **File transfer** | Drag and drop files onto Orbit, or choose *Share → Orbit* on your phone. Transfers show progress and resume automatically if the connection drops |
-| **Screen mirroring** | View and control your phone from your PC with mouse, keyboard and audio. Capture screenshots and recordings. Works over USB, or over Wi-Fi after a one-time setup |
+| **Screen mirroring** | View and control your phone from your PC with mouse, keyboard and audio, in a window or full screen. Show the phone's camera instead of its screen. Capture screenshots and recordings. Works over USB, or over Wi-Fi after a one-time setup |
 | **Media controls** | See what's playing on either device, then play, pause, skip or seek from the other. Phone audio appears in the Windows media controls, and PC playback in the phone's media player |
+| **Links** | Share a link to *Open on your PC* and it opens in the PC's browser. Copy a link on the PC and send it to the phone from the tray or with Ctrl+Alt+L |
+| **Phone remote** | Use the phone as a touchpad, keyboard or slides clicker for the PC, change or mute its volume, lock it, put it to sleep or shut it down, and run your own commands. The PC decides which buttons the phone gets, and every action shows a notification there |
 | **Phone battery** | Charge level, charging state and time to full in the app, the system tray and the tray flyout, with a low-battery alert |
 | **USB modes** | Choose what the cable does: charging only, USB tethering (your laptop goes online through your phone) or file sharing (your phone opens in File Explorer). Switch at any time from either device |
 | **Earbuds** | Battery and Play Here for any Bluetooth earbuds. Noise control (Off / Transparency / ANC), sound settings and tap actions for supported realme, OnePlus and OPPO models, on both devices |
@@ -74,9 +76,10 @@ screen and control media and earbuds, with no account and no cloud in between.
 
 | Feature | Requires |
 |---|---|
-| Clipboard, notifications, files, battery, media controls | Nothing extra: USB tethering, a hotspot or a shared Wi-Fi network |
+| Clipboard, notifications, files, battery, media controls, links, phone remote | Nothing extra: USB tethering, a hotspot or a shared Wi-Fi network |
 | Pair over USB, USB modes, mirroring over USB | **USB debugging** on the phone ([how to enable it](docs/TROUBLESHOOTING.md#turn-on-usb-debugging)) |
 | Mirroring over Wi-Fi | Wireless debugging (a one-time QR setup in Orbit) and both devices on the same Wi-Fi network |
+| Showing the phone's camera | Android 12 or later, and mirroring working (USB debugging, or wireless mirroring set up) |
 | Earbuds | Earbuds paired over Bluetooth. Full controls require realme, OnePlus or OPPO earbuds that use the realme Link or HeyMelody app (tested with realme Buds T310); other brands show battery and playback. To add support for yours, see [Earbuds](docs/PROTOCOL.md#earbuds) |
 
 ## Install
@@ -128,6 +131,7 @@ documents the wire protocol. Contributions are welcome; please read [CONTRIBUTIN
 - Android only lets the app in the foreground read the clipboard, so sending from phone to PC takes a tap. PC to
   phone is automatic.
 - Orbit connects one phone to one PC at a time.
+- The phone's touchpad and keyboard can't control administrator windows or the Windows lock screen.
 - Orbit can't turn on your phone's hotspot (Android doesn't allow apps to), but it connects as soon as your laptop
   joins it.
 - The QR scanner uses Google Play services, so this build isn't on F-Droid yet. Pair over USB works without it.

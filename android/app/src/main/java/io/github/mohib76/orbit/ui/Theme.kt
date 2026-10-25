@@ -29,7 +29,7 @@ data class OrbitColors(
     val bg: Color, val surf: Color, val surfHi: Color, val text: Color, val text2: Color,
     val primary: Color, val primaryText: Color, val onPrimary: Color, val pc: Color, val onPc: Color,
     val green: Color, val greenInk: Color, val amber: Color, val nav: Color, val navInd: Color,
-    val danger: Color, val outline: Color,
+    val danger: Color, val dangerSoft: Color, val onDanger: Color, val outline: Color,
     val pcLine: Color, val disabled: Color, val muted: Color
 )
 
@@ -38,6 +38,7 @@ val LightOrbit = OrbitColors(
     text2 = Color(0xFF46474F), primary = Color(0xFF4B4FE6), primaryText = Color(0xFF3B3FD0), onPrimary = Color.White,
     pc = Color(0xFFE1E0FF), onPc = Color(0xFF14157A), green = Color(0xFF1DB46A), greenInk = Color(0xFF0B6E3F),
     amber = Color(0xFF8A5300), nav = Color(0xFFF1F0FA), navInd = Color(0xFFE1E0FF), danger = Color(0xFFA12A20),
+    dangerSoft = Color(0xFFFCE8E6), onDanger = Color.White,
     outline = Color(0xFF77778A), pcLine = Color(0xFFC9C8F5), disabled = Color(0xFFB4B3C6), muted = Color(0xFFA3A2BB)
 )
 
@@ -46,6 +47,7 @@ val DarkOrbit = OrbitColors(
     text2 = Color(0xFFC7C5D0), primary = Color(0xFFBFC1FF), primaryText = Color(0xFFBFC1FF), onPrimary = Color(0xFF1C1E86),
     pc = Color(0xFF2E3190), onPc = Color(0xFFE1E0FF), green = Color(0xFF3DD68C), greenInk = Color(0xFF6FE3A8),
     amber = Color(0xFFFFC567), nav = Color(0xFF1E1F26), navInd = Color(0xFF2E3190), danger = Color(0xFFFF9C92),
+    dangerSoft = Color(0xFF45201D), onDanger = Color(0xFF5C110B),
     outline = Color(0xFF918F9A), pcLine = Color(0xFF4446A8), disabled = Color(0xFF5A5A68), muted = Color(0xFF6C6B80)
 )
 
@@ -129,4 +131,20 @@ object Icons {
     val Pause = stroke("pause", "M6 4h4v16H6z", "M14 4h4v16h-4z", fill = true)
     val Next = stroke("next", "M15 5h2v14h-2z", "M4 5v14l10-7z", fill = true)
     val Prev = stroke("prev", "M7 5h2v14H7z", "M20 5v14l-10-7z", fill = true)
+    val Volume = stroke("volume", "M4 9v6h4l5 4V5L8 9z", "M16.5 8.5a5 5 0 0 1 0 7", "M19 6a8.5 8.5 0 0 1 0 12", width = 2f)
+    val VolumeOff = stroke("volumeOff", "M4 9v6h4l5 4V5L8 9z", "M17 9l4 6M21 9l-4 6", width = 2f)
+    val Moon = stroke("moon", "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z")
+    val Power = stroke("power", "M12 3v8", "M6.3 6.3a8 8 0 1 0 11.4 0", width = 2f)
+    val Restart = stroke("restart", "M20 11a8 8 0 1 0-2.3 5.7", "M20 5v6h-6", width = 2f)
+    val Shield = stroke("shield", "M12 3 5 6v5.5c0 4.2 3 7.6 7 8.5 4-.9 7-4.3 7-8.5V6z", width = 2f)
+    val Terminal = stroke("terminal", "M5 5h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", "M8 10l3 2.5L8 15", "M13 15h3")
+    val Remote = stroke("remote", "M5.5 5h13A1.5 1.5 0 0 1 20 6.5V16H4V6.5A1.5 1.5 0 0 1 5.5 5z", "M2 19h20", "M10 10.5l2-2 2 2")
+    val Touchpad = stroke("touchpad", "M6 4h12a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z", "M3 15h18M12 15v5")
+    val Keyboard = stroke("keyboard", "M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", "M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10")
+    val Slides = stroke("slides", "M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M12 16v4M8 20h8", "M10 8l4 2-4 2z")
+    val Mic = stroke("mic", "M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z", "M5 11a7 7 0 0 0 14 0M12 18v3", width = 2f)
+    val Square = stroke("square", "M8 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", fill = true)
+    val Camera = stroke("camera", "M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z", "M12 9a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z")
+    val Exit = stroke("exit", "M9 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3", "M15 8l4 4-4 4", "M19 12H9", width = 2f)
+    val Link = stroke("link", "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1", "M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1", width = 2f)
 }

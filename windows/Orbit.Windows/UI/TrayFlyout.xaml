@@ -72,6 +72,19 @@
                     </Button>
                 </UniformGrid>
 
+                <!-- A link on the clipboard -->
+                <Border x:Name="LinkCard" Margin="0,12,0,0" CornerRadius="8" Background="{DynamicResource Soft}" Padding="10,8,8,8" Visibility="Collapsed">
+                    <DockPanel>
+                        <ui:Ic Data="{StaticResource IcLink}" Width="16" Height="16" Thickness="2" Foreground="{DynamicResource SoftInk}" Margin="0,0,10,0"/>
+                        <Button x:Name="LinkSend" DockPanel.Dock="Right" Style="{StaticResource Primary}" Height="28" Padding="10,0" FontSize="11"
+                                Content="Open on phone" Click="LinkSend_Click" Margin="8,0,0,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Link copied" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource SoftInk}"/>
+                            <TextBlock x:Name="LinkText2" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
                 <!-- Listening: the phone's player and the buds -->
                 <Border x:Name="BudsCard" Margin="0,12,0,0" CornerRadius="8" BorderThickness="1"
                         BorderBrush="{DynamicResource CardBorder}" Background="{DynamicResource BtnBg}">

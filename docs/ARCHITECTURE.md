@@ -55,6 +55,29 @@ shows the phone's player on Home and in the tray, and can put it in the Windows 
 silent `MediaPlayer`'s `SystemMediaTransportControls`, so media keys reach the phone while it plays. Each side
 leaves its own session out of what it publishes, so nothing echoes back. Album art travels once per track.
 
+## Phone remote and links
+
+The PC owns the rules. Settings › Phone remote lists what the phone may do; the PC sends that as
+`orbit.remote.caps` and the phone draws only those buttons (its Control screen and the Home card). Requests
+come back as `orbit.remote.run` / `orbit.volume.set` and the PC checks them against the same settings before
+acting, then shows a notification. Commands are stored on the PC with a random ID; the phone sends the ID, so it
+can't run anything that isn't on the list. A PowerShell script runs through `powershell.exe -File`, another
+existing file opens with its app, and anything else runs hidden through `cmd.exe /c`.
+
+Volume is the default playback device's master volume (Core Audio through NAudio), followed when the default
+device changes. The phone throttles slider moves to one packet per 60 ms and ignores the PC's echoes for a
+moment while the finger is down, so the slider doesn't jump.
+
+Touchpad, keyboard and slides input (`orbit.input`, `orbit.slides`) becomes `SendInput` on the PC. Pointer moves and
+scrolls are gathered on the phone and sent at most every 16 ms. Text goes as Unicode characters, so it doesn't
+depend on the PC's keyboard layout; the phone's keyboard field keeps a zero-width character at the start so
+Backspace still reaches Orbit when it looks empty. While one of those screens is open the phone asks for the
+PC's foreground app name (`orbit.focus`), never the window title.
+
+Links use `orbit.url` both ways. The phone offers "Open on <PC>" as a sharing shortcut (the share sheet's top
+row) and as a button in its Send to PC sheet; the PC watches the clipboard for a copied link and offers it in the
+tray. Both sides accept only `http(s)`.
+
 ## Earbuds
 
 There are two levels. **Any** Bluetooth buds get what the OS knows: connected or not, one battery level
@@ -89,6 +112,8 @@ itself isn't in the video path; it shows the LIVE notification and tile and rela
 - **Wireless**: a one-time setup pairs Android's *Wireless debugging* with the PC by QR code, like Android Studio (`WIFI:T:ADB;S:…;P:…;;`, then `adb pair`). After that adb finds the phone over mDNS. The phone and PC must be on the same Wi-Fi; Android doesn't offer wireless debugging over the phone's own hotspot.
 - After mirroring once, the PC grants Orbit `WRITE_SECURE_SETTINGS` over adb, so the phone can switch wireless debugging back on by itself after a reboot or Wi-Fi change.
 - The stream never runs silently: the PC refuses to start unless the Orbit link is up (so the phone can show its notice), and stops if the link is gone for 20 s.
+- **Camera:** with *Show › Camera* (Android 12 or later) the server streams a camera instead of the screen (`video_source=camera`, `camera_facing`), never with sound, so the microphone is never on. The phone's notice says the camera is visible, and the window takes no touch input. The phone's *Camera on PC* button asks for it with `orbit.mirror.cmd {op: "start", source: "camera"}`.
+- **Full screen** (F11, the title-bar button or a title-bar double-click) sizes the window to its monitor without a frame, hides the stream panel, floats the toolbar at the bottom while the mouse moves, and Esc leaves it (Back stays on right-click).
 - **View only** is enforced by the PC (it stops sending input). **Stop** is also a request to the PC; over Wi-Fi the phone can force it by restarting wireless debugging if the PC doesn't respond within 3 s.
 - Screens that apps mark as secure (banking, passwords) show as black on the PC. That's Android, not Orbit.
 
@@ -102,6 +127,8 @@ windows/Orbit.Windows/        WPF app (.NET 8)
   Core/OrbitCore.Media.cs     media controls both ways (Core/Media/: sessions, Windows media controls)
   Core/OrbitCore.Usb.cs       USB modes: charging, tethering, file sharing
   Core/OrbitCore.PhoneApp.cs  install / update the bundled phone app over USB
+  Core/OrbitCore.Remote.cs    phone remote: links, volume, power buttons, commands (Core/Links.cs, Core/PcVolume.cs)
+  Core/OrbitCore.Input.cs     touchpad, keyboard and slides remote; foreground app (Core/InputInjector.cs: SendInput)
   Core/OrbitCore.Mirror*.cs   screen mirroring: sessions, device choice, wireless pairing
   Core/Adb.cs                 USB: adb track-devices, forward, shell
   Core/PhoneLink.cs           wire format, TLS dialing, protocol version
@@ -124,6 +151,7 @@ android/app/src/main/java/io/github/mohib76/orbit/
   media/                      media sessions both ways, the PC media player
   usb/                        USB port state, USB mode requests
   mirror/                     LIVE notification, Mirror tile, wireless-debugging helpers
+  remote/                     phone remote state, links (notification, Open on PC share target), touchpad / keyboard / slides input
   ui/                         Compose screens (design tokens in Theme.kt)
 tools/fetch-thirdparty.ps1    downloads and verifies scrcpy/FFmpeg/adb binaries
 ```

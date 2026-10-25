@@ -140,6 +140,21 @@
                 </StackPanel>
             </Border>
 
+            <!-- Phone remote -->
+            <Border Style="{StaticResource Section}" Padding="18,16">
+                <DockPanel>
+                    <Border Width="44" Height="44" CornerRadius="12" Background="{DynamicResource Soft}" Margin="0,0,14,0">
+                        <ui:Ic Data="{StaticResource IcLaptop}" Width="22" Height="22" Foreground="{DynamicResource SoftInk}"/>
+                    </Border>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Small}" Content="Choose" Click="Remote_Click" VerticalAlignment="Center"
+                            AutomationProperties.Name="Phone remote settings"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Phone remote" FontSize="15" FontWeight="ExtraBold"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="What your phone can do here: volume, lock and power, links and your own commands."/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
             <UniformGrid x:Name="Grid2" Columns="2">
 
                 <!-- Connection -->
@@ -298,6 +313,15 @@
                                      PreviewKeyDown="Hotkey_KeyDown" AutomationProperties.Name="Shortcut: screen mirroring" FontFamily="{StaticResource Mono}"/>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Screen mirroring" Style="{StaticResource RowTitle}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Style="{StaticResource Rule}"/>
+                        <DockPanel Style="{StaticResource Row}">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Link}" Content="Clear" Tag="link" Click="HotkeyClear_Click" Margin="6,0,0,0"/>
+                            <TextBox DockPanel.Dock="Right" x:Name="HkLink" Tag="link" Style="{StaticResource Field}" Width="150" IsReadOnly="True"
+                                     PreviewKeyDown="Hotkey_KeyDown" AutomationProperties.Name="Shortcut: open copied link on phone" FontFamily="{StaticResource Mono}"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Open copied link on phone" Style="{StaticResource RowTitle}"/>
                             </StackPanel>
                         </DockPanel>
                         <TextBlock x:Name="HotkeyHint" Style="{StaticResource Caption}" Margin="12,4,12,10"
